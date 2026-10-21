@@ -1,0 +1,64 @@
+# QA visual Android · 21/10/2026
+
+**Hallazgo pendiente**
+
+- **[P1] El mapa online aún no se puede comparar con la referencia.** En Mapa, la referencia muestra cartografía y marcadores; la app muestra el estado de indisponibilidad y la lista alternativa. Evidencia conjunta: `artifacts/comparison-map.png`. Mapbox está integrado en código, pero falta configurar el token público de la cuenta. Impacto: descubrir desde el mapa no está validado. Siguiente paso: configurar el token público, comprobar tiles, atribución, agrupación/expansión, selección, tema y errores. No sustituirlo por una imagen de mapa ni un proveedor distinto. Este bloqueo no impide utilizar y editar la primera interfaz de exploración en el emulador.
+
+**Alcance y artefactos**
+
+- Fuente visual: capturas aportadas por el usuario, conservadas localmente en `artifacts/reference-explore.jpg` y `artifacts/reference-map.jpg`. Originales: `C:/Users/migue/AppData/Local/Temp/codex-clipboard-4b91506c-3b00-4797-a161-19a400c7ff65.jpg` y `C:/Users/migue/AppData/Local/Temp/codex-clipboard-2e8ec6f2-8e9a-4e7b-b78e-9c57a8a69428.jpg`.
+- Implementación: `artifacts/explore-light-final.png`, `artifacts/explore-dark-final.png`, `artifacts/explore-large-text-final.png`, `artifacts/filters-final.png`, `artifacts/filters-large.png`, `artifacts/map-fallback-final.png` y `artifacts/map-large.png`. Capturas ADB de la app nativa, sin marco de Android Studio. No se trata de una página web ni se aplica la plantilla web mobile-app.
+- Comparación conjunta completa: `artifacts/comparison-explore.png` y `artifacts/comparison-map.png`. Comparación enfocada en foto, badge, corazón y texto: `artifacts/comparison-cards.png`. Estas composiciones se abrieron y revisaron, además de las capturas de tema/texto/filtros.
+- Fuente: 828 × 1792 px, normalizada a 414 × 896. Implementación: 1080 × 2424 px, densidad Android 420 dpi (factor 2,625), viewport aproximado 411,4 × 923,4 dp; para comparación se escala uniformemente a 414 × 929. No se estira a la proporción del iPhone. Los recortes de tarjetas se ampliaron para inspección óptica, sin inferir medidas desde ellos.
+- Estado: español, cliente sin cuenta, datos sintéticos, tema claro y fuente 1,0 para la comparación principal. La referencia de Explorar está desplazada dentro de su feed y la app está al inicio; por ello no se comparan los primeros resultados parciales como contenido faltante. La referencia de mapa tiene datos online; la implementación aún no. No hay comparación píxel a píxel equivalente ni puntuación artificial de similitud.
+- Las nueve capturas posteriores de Perfil, ajustes, ayuda, mensajes y alta comercial se consultaron después de terminar la primera base, respetando el orden pedido. Se trasladó su organización a Perfil, colección de favoritos, preferencias, ayuda y privacidad. Edición de cuenta, chat y alta comercial no están implementados ni se consideran aprobados por su aparición en las referencias.
+
+**Superficies revisadas**
+
+| Superficie | Observación y clasificación |
+| --- | --- |
+| Tipografía | Android utiliza su familia del sistema, con títulos 23/30, tarjetas 16 y cuerpo 14/16. La referencia tiene una familia y escala algo menores. Se conserva jerarquía y legibilidad sin descargar fuentes propietarias. Diferencia intencional de plataforma/producto; los títulos envuelven al ampliar texto. |
+| Espaciado y composición | Márgenes 24 dp, separación horizontal 14, fotos de tarjetas con radio 24 y proporción 1,08. Carruseles, títulos con flecha y búsqueda en píldora siguen la referencia. La app añade el aviso de demostración; se permite algo más de altura. Dock flotante de cuatro destinos por doc04, en lugar de las cinco secciones de viajes. Es una adaptación explícita de Foodtrucks. |
+| Colores y tokens | Se mantienen marfil/coral/azul noche provisionales del proyecto. Contraste calculado texto principal/secundario sobre fondo: claro 15,11:1 / 5,79:1; oscuro 16,55:1 / 10,75:1. Acento sobre superficie: 5,50:1 / 7,02:1. No se acreditan todas las combinaciones ni una auditoría WCAG completa. |
+| Imágenes | Fotografías propias generadas, nítidas, recorte cover, sin recursos gráficos de Airbnb. Se distingue el objeto foodtruck; la reutilización de dos fotos en cuatro fixtures es conocida e ilustrativa. No se usaron dibujos CSS/SVG para sustituir fotografías. |
+| Texto y contenido | Cocina, zona, precio inicial y disponibilidad de ejemplo sustituyen alojamiento, fechas y reseñas. No se inventan ratings, distancias, pedidos reales ni métricas. El carácter de demostración está visible; los importes no habilitan compras. |
+| Iconos y controles | MaterialIcons de una familia consistente, etiquetas explícitas en acciones y selección accesible. El filtro es una sheet Compose de @expo/ui con switches/botones nativos. Los corazones de tarjetas se separan del botón de abrir ficha. |
+| Navegación y accesibilidad | Dock con áreas seguras; contenido desplazable hasta el final. Fuente 1,6 revisada en Explorar, Perfil, Mapa y filtros. Se amplían las tarjetas y el espacio de mapa para evitar cortes. No hay animaciones decorativas; movimientos de sheets/transiciones son nativos. TalkBack y otros tamaños/dispositivos no se han validado. |
+
+**Historial de correcciones y evidencia posterior**
+
+1. El panel de filtros inicial recortaba el contenido y una versión intermedia anidaba Hosts nativos. Se pasó a un único árbol universal @expo/ui con área desplazable. Al verificarlo se detectó una conversión nativa fallida por `width: '100%'`; se reemplazó por ancho numérico calculado del viewport. Evidencia posterior: `filters-final.png`, `filters-large.png`, `filters-enabled.xml`, `filters-reset.xml` y `filters-closed.xml`: abre, muestra 3 resultados con Solo abiertos, restablece 4 y cierra. No se entrega la versión inicial como válida.
+2. Cambiar escala de fuente recreaba Activity y provocaba un error del development launcher. El plugin `with-font-scale.cjs` conserva el host de RN; se reconstruyó/reinstaló y se repitió el cambio volviendo desde segundo plano. Evidencia posterior: `explore-large-text-final.png`; no apareció una nueva excepción en el proceso actual durante las comprobaciones finales.
+3. Se revisó el panel de mapa con texto ampliado: la altura fija podía dejar poco espacio al mensaje. Se hizo dependiente de fontScale; `map-large.png` muestra el mensaje completo separado del panel de resultados. El título de Favoritos admite reducción de ancho/varias líneas con `flex: 1`.
+4. Se capturó el estado final a escala 1,0 en claro/oscuro y se revisó conjuntamente con las referencias. No se observaron otros P0/P1/P2 accionables dentro del alcance de exploración local. Continúa pendiente el P1 del mapa online descrito arriba.
+
+**Ampliación después de cerrar la base inicial**
+
+Se exploraron en la pestaña de Airbnb de Codex las cuatro categorías superiores y los cinco destinos principales; también la búsqueda expandida, resultados con mapa, filtros, ficha, Perfil, entrada a ajustes y menú de ayuda. No se realizó una reserva, edición de cuenta, envío de mensajes o cambios de favoritos. Las conclusiones se limitan a los estados visibles, sin afirmar cobertura exhaustiva de subpáginas.
+
+Referencias posteriores conservadas: `artifacts/reference-help.jpg` y `artifacts/reference-favorites.jpg`, procedentes de los adjuntos `codex-clipboard-52940bc7-feb8-4d6b-8537-7b24a600d5ea.jpg` y `codex-clipboard-494ee56a-fa2c-42f8-992f-91703d2af16d.jpg` en la carpeta Temp del usuario. Mismas dimensiones/normalización que la comparación principal. Comparaciones conjuntas abiertas: `artifacts/comparison-help.png` y `artifacts/comparison-favorites.png`. Capturas: `profile-expanded.png`, `preferences.png`, `privacy.png`, `help-expanded.png`, `favorites-collection.png` y `favorites-list.png`. La colección se probó con dos favoritos, desplegada y plegada. La FAQ se abrió y se comprobó su respuesta; los enlaces secundarios navegan y vuelven correctamente.
+
+En las cinco superficies: la tipografía conserva encabezados amplios y cuerpo legible del sistema; el espacio vertical y los menús siguen la referencia; se mantienen tokens de Foodtrucks; la colección utiliza fotografías propias con recortes nítidos; los textos describen funciones existentes sin nombres/datos de la cuenta de referencia. La captura original de ayuda es un menú de enlaces externos, mientras que Foodtrucks ofrece preguntas desplegables: diferencia intencional de alcance y contenido. Favoritos conserva una colección de sesión en lugar de historial remoto; se abre desde el stack y vuelve mediante flecha, sin añadir otro destino al dock.
+
+En la comparación de ayuda se detectó **[P2, corregido] espacio excesivo antes del título**. Se redujeron padding superior y separación entre botón y encabezado en PageShell; también el margen inicial de Perfil. Evidencia anterior: `help-expanded.png`; posterior: `help-final.png` y `comparison-help-final.png`, revisada de nuevo junto a la fuente. El contenido mantiene sus áreas táctiles y desplazamiento. Tema oscuro/fuente 1,6 de la ampliación: `profile-large-dark.png` y `favorites-large-dark-final.png`. La fuente y el tema del emulador se restauran a 1,0/claro tras probar.
+
+**Interacciones y comprobaciones**
+
+Pruebas en Pixel_10: búsqueda inexistente y recuperación; filtro Tacos; favoritos añadir/quitar y vacío; abrir ficha/carta y volver; filtros nativos abrir/cambiar/restablecer/cerrar; Pedidos y Perfil; lista alternativa del mapa. Fast Refresh se comprobó con un cambio temporal visible en Perfil, que se restauró sin compilar. Apertura tras reinstalar y reapertura desde segundo plano correctas. El logcat final del proceso actual no devolvió errores AndroidRuntime/ReactNativeJS al consultar esos niveles; el fallo anterior de filtros queda registrado como corregido, no como ausencia histórica de errores.
+
+TypeScript, lint, formato, 8 pruebas, compatibilidad Expo, Doctor 20/20, export Hermes y build nativa ejecutados; ver comandos/resultados y avisos de dependencias en [README](README.md). Esto no acredita CI, revisión humana independiente, release ni seguridad de producción.
+
+**Lista de implementación pendiente**
+
+- Configurar y verificar Mapbox online antes de aceptar la experiencia completa de mapa.
+- Probar TalkBack y móvil físico cuando se retome esa validación.
+- Resolver avisos de dependencias compatibles antes de una release.
+
+**Pulido posterior (P3)**
+
+- Optimizar el peso de las dos fotos locales antes de incorporar un catálogo real y ampliar las imágenes propias para reducir repetición.
+- Ajustar tipografía, espaciado y secciones adicionales tras explorar las referencias posteriores de Airbnb, conservando el flujo de Foodtrucks.
+
+**final result:** blocked
+
+Bloqueo acotado: mapa online sin configuración/verificación. La base Android y los flujos locales enumerados funcionan en Pixel_10; no se declara terminada la réplica completa de las referencias.

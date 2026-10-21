@@ -1,0 +1,145 @@
+{
+  "document_version": "1.10",
+  "date": "2026-10-15",
+  "markdown_files": 49,
+  "package_files": 55,
+  "recorded_skills": 37,
+  "docs_files": 47,
+  "internal_links_checked": 599,
+  "internal_anchors_checked": 3,
+  "markdown_tables_checked": 155,
+  "markdown_fences_titles_and_encoding": "passed",
+  "words_approx": 108911,
+  "zip_size_bytes": 677009,
+  "zip_sha256": "44502b624cade422e93ef96952af157ddb045cc0c765d804ba29347a1174760f",
+  "zip_crc_and_byte_identity": "passed",
+  "standalone_prompt_copies": "excluded_and_references_removed",
+  "requirements_mapping": {
+    "marketing": {
+      "requirements": 22,
+      "mapped": 22,
+      "status": "documentary_mapping_verified_not_runtime_implementation"
+    },
+    "security_qa": {
+      "requirements": 29,
+      "mapped": 29,
+      "status": "documentary_mapping_verified_not_runtime_implementation"
+    },
+    "observability": {
+      "requirements": 36,
+      "mapped": 36,
+      "status": "documentary_mapping_verified_not_runtime_implementation"
+    },
+    "ci_cd": {
+      "requirements": 20,
+      "mapped": 20,
+      "status": "documentary_mapping_verified_not_runtime_implementation"
+    }
+  },
+  "frontend_candidate_references": 8,
+  "admin_candidate_references": 8,
+  "reference_images": [
+    {
+      "path": "docs/assets/referencias-ui/01-dashboard.png",
+      "bytes": 222769,
+      "sha256": "d2f8c51e83cf6358331aa371d0ce3a3d1840806c2b44312b6ad278863f398187",
+      "width": 2311,
+      "height": 1236,
+      "unaltered_copy_verified": true
+    },
+    {
+      "path": "docs/assets/referencias-ui/02-calendar.png",
+      "bytes": 30838,
+      "sha256": "d518ff7e9d15d4ede1c1be266ddddcbb46b09814050ac1c1075c7fcacbe723f3",
+      "width": 1201,
+      "height": 813,
+      "unaltered_copy_verified": true
+    },
+    {
+      "path": "docs/assets/referencias-ui/03-whats-new.png",
+      "bytes": 82165,
+      "sha256": "91bda95991c23e93f538131daf036d92bcd788c5e4e7dc39b25003eede58c676",
+      "width": 1378,
+      "height": 1107,
+      "unaltered_copy_verified": true
+    },
+    {
+      "path": "docs/assets/referencias-ui/04-step-indicators.png",
+      "bytes": 4104,
+      "sha256": "780e1fe64de8460e7181e40f071a82ec8d78bc456652d675e846045a7ae9f3e2",
+      "width": 886,
+      "height": 478,
+      "unaltered_copy_verified": true
+    },
+    {
+      "path": "docs/assets/referencias-ui/05-language-selector.png",
+      "bytes": 25202,
+      "sha256": "b7e87e54a7b996eb7461456ae5b8d0f4d4744094beac9d7236fe479e257e79b2",
+      "width": 510,
+      "height": 628,
+      "unaltered_copy_verified": true
+    }
+  ],
+  "api_entities_and_skills_inventory_unchanged": true,
+  "decision_ids_unique": 44,
+  "pending_ids_unique": 63,
+  "qa_case_ids_unique": 29,
+  "existing_privacy_test_cases_preserved": 5,
+  "privacy_and_standards_topics_present": [
+    "RGPD",
+    "LOPDGDD",
+    "EIPD",
+    "Stripe",
+    "Mapbox",
+    "Cloudflare",
+    "Resend",
+    "Google",
+    "Redis",
+    "backup",
+    "25010",
+    "12207",
+    "29119",
+    "27001",
+    "OWASP",
+    "SSDF",
+    "CMMI",
+    "DevSecOps"
+  ],
+  "privacy_policy_runtime_status": "documented_only_not_implemented_or_tested_in_application",
+  "formal_certification_or_legal_conformity": "not_claimed_not_verified",
+  "modified_baseline_files": [
+    "AGENTS.md",
+    "README.md",
+    "docs/00-procedencia.md",
+    "docs/23-decisiones-pendientes.md"
+  ],
+  "new_documents": [],
+  "unrelated_baseline_files_preserved": true,
+  "all_detailed_policies_technical_files_and_images_byte_identical_to_v19": true,
+  "readme_main_word_count_including_markdown_tokens": 649,
+  "readme_word_limit": 800,
+  "summary_blocks": [
+    "Producto y pagos",
+    "Diseño y experiencia",
+    "Desarrollo, pruebas y entregas",
+    "Seguridad",
+    "Protección de datos",
+    "Servidor y backups",
+    "Monitorización",
+    "Marketing y costes"
+  ],
+  "rules_per_block": "two_or_three_verified",
+  "technical_index": {
+    "documents": 49,
+    "collapsed_by_default": true,
+    "complete_unique_links": true
+  },
+  "readme_history_preserved_in_provenance": "complete_text_with_only_local_link_destinations_rebased",
+  "existing_decisions_and_pending_rows_preserved": true,
+  "v19_zip_preserved_sha256": "f54e6751e8396e8256db54979ee585f8e4b514095094e85fb471597973373ccb",
+  "v19_report_preserved_sha256": "de880496c9d11ddc2e2b328dc21a2a8696f989f352da7975ffd2e1dcc5111383",
+  "credential_pattern_scan": "passed_limited_patterns_not_exhaustive_security_audit",
+  "application_tests": "not_applicable_documentation_only",
+  "git_commits_ci_builds_deployments_alerts": "not_verified_no_application_or_git_environment",
+  "errors": []
+}

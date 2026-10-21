@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Foodtrucks Dev",
+    "slug": "foodtrucks-dev",
+    "version": "0.1.0",
+    "scheme": "foodtrucks-dev",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.foodtrucks.dev",
+      "blockedPermissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFF9F2",
+          "dark": {
+            "backgroundColor": "#101B2B"
+          }
+        }
+      ],
+      "expo-image",
+      "@rnmapbox/maps",
+      "./plugins/with-font-scale.cjs"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

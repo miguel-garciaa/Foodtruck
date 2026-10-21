@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Literal ficticio de la skill ECC conservada sin modificaciones"
+condition = "AND"
+paths = ['''\.agents/skills/api-design/SKILL\.md$''']
+regexTarget = "secret"
+regexes = ['''^sk_live_abc123$''']
