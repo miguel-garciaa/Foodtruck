@@ -37,7 +37,7 @@ class ListingsTest extends PostgresTestCase
         DB::table('media_assets')->insert(['id' => $photo, 'user_id' => $owner->id, 'filename' => $photo.'.jpg', 'created_at' => now(), 'updated_at' => now()]);
         $truck = new FoodTruck;
         $truck->forceFill(['owner_id' => $owner->id, 'draft' => $this->draft(['photos' => [$photo]]), 'version' => 1, 'status' => 'submitted'])->save();
-        $this->artisan('foodtrucks:review', ['decision' => 'approve', 'id' => $truck->id, '--version' => '1', '--actor' => 'ci'])->assertSuccessful()->run();
+        $this->artisan('foodtrucks:review', ['decision' => 'approve', 'id' => $truck->id, '--expected-version' => '1', '--actor' => 'ci'])->assertSuccessful()->run();
         $this->assertNotNull($truck->refresh()->published);
         $truck->refresh()->forceFill(['draft' => $this->draft(['name' => 'Cambio sin revisar']), 'status' => 'draft'])->save();
         $this->getJson('/api/v1/foodtrucks/'.$truck->id)->assertOk()->assertJsonPath('document.name', 'Puesto de prueba');

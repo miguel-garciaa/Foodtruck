@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class ReviewTrucks extends Command
 {
-    protected $signature = 'foodtrucks:review {decision=list : list, approve o return} {id?} {--version=} {--actor=} {--reason=}';
+    protected $signature = 'foodtrucks:review {decision=list : list, approve o return} {id?} {--expected-version=} {--actor=} {--reason=}';
 
     protected $description = 'Revisión DEV por SSH; cada decisión comprueba versión y queda auditada.';
 
@@ -22,15 +22,15 @@ class ReviewTrucks extends Command
             return self::SUCCESS;
         }
         $approve = $this->argument('decision') === 'approve';
-        if (! in_array($this->argument('decision'), ['approve', 'return'], true) || ! Str::isUuid($this->argument('id') ?? '') || ! ctype_digit((string) $this->option('version')) || ! preg_match('/^[a-zA-Z0-9._@-]{1,100}$/D', $this->option('actor') ?? '') || strlen($this->option('reason') ?? '') > 2000 || (! $approve && trim($this->option('reason') ?? '') === '')) {
-            $this->error('Indica decisión, UUID, --version, --actor y motivo (obligatorio al devolver).');
+        if (! in_array($this->argument('decision'), ['approve', 'return'], true) || ! Str::isUuid($this->argument('id') ?? '') || ! ctype_digit((string) $this->option('expected-version')) || ! preg_match('/^[a-zA-Z0-9._@-]{1,100}$/D', $this->option('actor') ?? '') || strlen($this->option('reason') ?? '') > 2000 || (! $approve && trim($this->option('reason') ?? '') === '')) {
+            $this->error('Indica decisión, UUID, --expected-version, --actor y motivo (obligatorio al devolver).');
 
             return self::INVALID;
         }
 
         return DB::transaction(function () use ($approve) {
             $truck = FoodTruck::whereKey($this->argument('id'))->lockForUpdate()->first();
-            if (! $truck || $truck->status !== 'submitted' || $truck->version !== (int) $this->option('version')) {
+            if (! $truck || $truck->status !== 'submitted' || $truck->version !== (int) $this->option('expected-version')) {
                 $this->error('Anuncio inexistente, estado o versión incompatibles.');
 
                 return self::FAILURE;

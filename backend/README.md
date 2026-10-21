@@ -20,8 +20,8 @@ Revisión por operador SSH (actor declarado, con auditoría y versión obligator
 
 ```sh
 sudo docker compose run --rm review php artisan foodtrucks:review list
-sudo docker compose run --rm review php artisan foodtrucks:review approve UUID --version=2 --actor=miguel
-sudo docker compose run --rm review php artisan foodtrucks:review return UUID --version=2 --actor=miguel --reason='Completa los horarios'
+sudo docker compose run --rm review php artisan foodtrucks:review approve UUID --expected-version=2 --actor=miguel
+sudo docker compose run --rm review php artisan foodtrucks:review return UUID --expected-version=2 --actor=miguel --reason='Completa los horarios'
 ```
 
 Comprobaciones locales sin proveedor:
