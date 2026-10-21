@@ -14,7 +14,7 @@ Accesos: [ocho bloques](#1-producto-y-pagos) · [pendientes](#pendientes-princip
 
 ## 1. Producto y pagos
 
-- Mapa, carta, compra, preparación y recogida presencial con QR, sin reparto. Go/PostgreSQL confirman importes, pagos, stock y canje único.
+- Mapa, carta, compra, preparación y recogida presencial con QR, sin reparto. Laravel/PostgreSQL confirman importes, pagos, stock y canje único.
 - Separar Stripe Connect para comida y Billing para licencia/mensualidad comercial. Membresía cliente de **5,99 €/mes en EUR confirmados**; canal de cobro, impuestos, puntos y tarifas comerciales pendientes. Los ejemplos no son tarifas.
 
 Detalle: [producto](docs/01-producto-mvp.md), [pagos](docs/13-stripe.md) y [membresía](docs/25-suscripcion-clientes-fidelizacion.md).
@@ -50,7 +50,7 @@ Detalle: [privacidad y gobernanza](docs/48-proteccion-datos-gobernanza.md) y [co
 ## 6. Servidor y backups
 
 - Servidor doméstico, Ubuntu Server 26.04, Compose/Caddy y entornos separados. Los 4 vCPU/8 GB/40 GB son DEV; capacidad PROD pendiente.
-- Fotos persistentes locales, sin S3; backups externos fuera de casa y restore comprobado. Cloudflare para dominio/DNS y Resend para correo; cuentas/dominio/configuración por verificar.
+- Fotos persistentes locales, sin S3; backups externos fuera de casa y restore comprobado. Cloudflare para dominio/DNS y Resend para correo; foodtruck.bid comprado y verificado en Resend; clave de envío y Tunnel aplazados por el usuario.
 
 Detalle: [servidor](docs/38-servidor-domestico.md) y [backups](docs/18-media-backups-operacion.md).
 
@@ -72,7 +72,7 @@ Detalle: [marketing](docs/31-marketing-digital-maestro.md) y [costes](docs/37-co
 
 Resolver territorio/fiscalidad, tarifas y reglas comerciales, contratos/retención, versiones y capacidad de producción antes de implementar lo afectado. [Listado completo](docs/23-decisiones-pendientes.md).
 
-Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consultar [arquitectura](docs/07-arquitectura-monorepo.md), decisiones, políticas y skills según la tarea. Se mantienen Go/Chi/pgx/sqlc, PostgreSQL/PostGIS/Redis, React Native/Expo/TypeScript, Next.js, Mapbox y auth propia con email/contraseña y Google/Apple. Consultar [roadmap](docs/22-roadmap.md).
+Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consultar [arquitectura](docs/07-arquitectura-monorepo.md), decisiones, políticas y skills según la tarea. Backend principal Laravel/PHP por decisión del 21/10/2026; Go reservado para necesidades específicas futuras. Se mantienen PostgreSQL/PostGIS/Redis, React Native/Expo/TypeScript, Next.js, Mapbox y auth propia con email/contraseña y Google/Apple. Consultar [roadmap](docs/22-roadmap.md).
 
 <a id="indice-tecnico"></a>
 
@@ -91,7 +91,7 @@ Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consulta
 | [06. 21st.dev](docs/06-21st-dev-mcp.md) | Selección preliminar, evaluación y uso del MCP |
 | [07. Arquitectura](docs/07-arquitectura-monorepo.md) | Monorepo, límites y despliegue |
 | [08. Frontend](docs/08-frontend.md) | React Native, Expo, TypeScript y Next.js |
-| [09. Backend](docs/09-backend-go.md) | Go, Chi, pgx/sqlc, módulos y workers |
+| [09. Backend](docs/09-backend-go.md) | Laravel, Sanctum, Horizon y workers |
 | [10. Datos](docs/10-datos-postgresql-postgis.md) | Entidades, integridad, concurrencia y geografía |
 | [11. Redis](docs/11-redis-cache.md) | Caché, TTL, invalidación y degradación |
 | [12. Mapbox](docs/12-mapbox.md) | Mapas nativo/web, estilos y ubicaciones |

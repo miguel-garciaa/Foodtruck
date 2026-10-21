@@ -1,0 +1,28 @@
+{
+    admin off
+    auto_https off
+}
+:8080 {
+    root * /app/public
+    request_body {
+        max_size 9MB
+    }
+    header {
+        -Server
+        X-Content-Type-Options nosniff
+        Cache-Control no-store
+    }
+    @allowed path /api/* /up
+    handle @allowed {
+        rewrite * /index.php
+        reverse_proxy api:9000 {
+            transport fastcgi {
+                split .php
+                env SCRIPT_FILENAME /app/public/index.php
+            }
+        }
+    }
+    handle {
+        respond 404
+    }
+}

@@ -1,5 +1,7 @@
 # PostgreSQL, PostGIS y entidades
 
+**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+
 **Cerrado:** PostgreSQL como fuente duradera y PostGIS para geografía. **Base propuesta:** este modelo, nombres de tablas/campos y restricciones; todavía no existen migraciones.
 
 ## Modelo lógico

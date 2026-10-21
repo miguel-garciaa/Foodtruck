@@ -1,5 +1,7 @@
 # Entornos de Foodtrucks
 
+**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+
 **Consolidación:** 20 de octubre de 2026. Este documento define aislamiento y configuración por entorno. El ciclo Git/CI/CD, sus gates y la promoción se definen en [44](44-politica-commits-ci-cd-tests.md); las pruebas en [40](40-testing-qa-github.md) y la operación en [DevOps](devops/README.md). La aplicación y los entornos siguen pendientes de implementación/verificación.
 
 ## Entornos y separación

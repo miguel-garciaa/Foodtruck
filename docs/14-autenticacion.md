@@ -1,5 +1,7 @@
 # Autenticación propia y autorización
 
+**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+
 **Cerrado:** email/contraseña, Google y Apple, sin Supabase ni Firebase Authentication. FCM puede utilizarse solo para avisos.
 
 ## Identidad local

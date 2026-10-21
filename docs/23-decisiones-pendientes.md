@@ -13,7 +13,7 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 | D03 | Licencia inicial y mensualidad a comerciantes, con Stripe | C01/S |
 | D04 | React Native + Expo + TypeScript móvil; Next.js web | Evolución C07 confirmada en S |
 | D05 | Dock solo app nativa; header y menú responsive web | C10/S |
-| D06 | Go + Chi + pgx/sqlc para backend | C03/S |
+| D06 | Go + Chi + pgx/sqlc para backend; sustituida por D47 | C03/S, histórica |
 | D07 | PostgreSQL + PostGIS | S, base mantenida desde C01 |
 | D08 | Redis con caché e invalidación | C03/S |
 | D09 | Mapbox personalizado, nativo/web | C03/S |
@@ -54,6 +54,10 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 | D44 | Organizar la lectura en ocho bloques, con README principal de máximo 800 palabras e índice completo plegado; conservar los 49 documentos y políticas separados, sin borrarlos, fusionarlos ni añadir un documento | U22 |
 | D45 | Instalar una selección de ECC compatible con Foodtrucks y las skills actuales, con alcance de proyecto en .agents/skills y procedencia fijada por commit | Petición del usuario y elección «Selección para Foodtrucks», 20/10/2026 |
 | D46 | Consolidar AGENTS y CI/CD dentro de los 49 documentos existentes: AGENTS máximo 800 palabras, lectura por tarea e historial contextual; 21 define entornos, 40 pruebas, 44 política de entrega y DevOps procedimientos; conservar requisitos, casos QA y decisiones | Plan aprobado e implementación solicitada, 20/10/2026; complementa D44 sin borrar ni fusionar archivos |
+
+| D47 | Laravel/PHP como backend principal; ecosistema necesario para este hito y Go reservado para necesidades futuras | Instrucción expresa y selección del usuario, 21/10/2026 |
+| D48 | Google OAuth incluido ahora con auth propia; foodtruck.bid comprado en Cloudflare y correo Resend sobre ese dominio | Instrucciones expresas, 21/10/2026 |
+| D49 | Nueva clave Resend y túnel foodtrucks-dev pendientes por decisión del usuario; no publicar api-dev todavía | Respuesta expresa del usuario, 21/10/2026 |
 
 ## Bases propuestas, no cierres comerciales
 

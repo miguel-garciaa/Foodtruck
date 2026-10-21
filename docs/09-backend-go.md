@@ -1,57 +1,37 @@
-# Backend Go
+# Backend Laravel
 
-**Cerrado:** Go + Chi + pgx/sqlc, PostgreSQL/PostGIS y Redis. **Base propuesta de C03/C06:** monolito modular y workers Go.
+**Decisión vigente, 21/10/2026:** Laravel/PHP es el backend principal por instrucción expresa del usuario. Sustituye Go/Chi/pgx/sqlc; Go queda reservado para necesidades específicas futuras y no se ejecuta otro backend ahora. Se conserva este nombre de archivo para mantener enlaces históricos.
 
-## Módulos y herramientas
+## Implementación DEV
 
-Auth, usuarios/permisos, negocios/ubicaciones, catálogo, pedidos/recogida, Billing/Connect y notificaciones. Agrupar por responsabilidades significativas sin generar una capa por cada operación.
+Laravel 13 sobre PHP 8.5, PostgreSQL/PostGIS, Sanctum para tokens móviles, Horizon sobre Redis y scheduler Laravel. Composer y su lock fijan dependencias reales. API, worker y scheduler comparten imagen; Caddy solo escucha en loopback del servidor DEV. No se incluye un frontend Laravel ni un segundo sistema de autenticación.
 
-Chi para rutas y middleware; pgx para conexiones/transacciones; sqlc para código tipado desde SQL. La conversación propuso go-redis, stripe-go, goose, slog, OpenTelemetry y testing/Testcontainers. Verificar compatibilidad y fijar versiones al iniciar; instrumentación adicional y Testcontainers solo donde aporten evidencia útil.
+Form Requests/validación del servidor, Policies para propiedad, Resources para respuestas, Eloquent y SQL parametrizado donde PostGIS lo necesita. No Repository Pattern ni una clase por operación trivial. Contrato canónico: [OpenAPI](../contracts/openapi.json), con tipos móviles generados. Migraciones en backend/database/migrations; no otra fuente de esquema Go/sqlc.
 
-## Procesamiento HTTP
+El código está en implementación: arranque de Artisan, Pint, Larastan y pruebas HTTP sin DB se comprueban localmente. Las pruebas de negocio exigen PostgreSQL/PostGIS aislado; ver CI y guía del backend para resultados reales. No equivalen a despliegue ni QA Android completo.
 
-Identificador de petición, logs estructurados, recuperación de errores inesperados, límites de cuerpo, timeout y propagación de contexto. Autenticar y autorizar por recurso, validar JSON/query/path y rechazar campos o tamaños no admitidos.
+## HTTP, identidad y seguridad
 
-Configurar pool PostgreSQL y conexiones con presupuesto del servidor; límites concretos pendientes de carga medida. No lanzar goroutines sin límite ni sin estrategia de cancelación.
+Auth propia con Argon2id, tokens de acceso Sanctum de 15 minutos y refresh rotatorio de 30 días, almacenado como hash. La reutilización revoca la familia; logout y cambios de contraseña desvinculan dispositivos. Correo verificado mediante token único hasheado. Recuperación con el broker Laravel. Google valida firma, emisor, audiencia, caducidad y nonce de un solo uso, sin fusionar cuentas por coincidencia de email. Credenciales de proveedores pendientes mantienen sus funciones deshabilitadas explícitamente.
 
-## Límite transaccional
+Límites de cuerpo, intentos y uploads; errores JSON sin detalles internos. Autorizar cada recurso independientemente del modo de navegación. No registrar tokens, cuerpos privados, contraseñas ni payloads de correo. Telescope está instalado solo en desarrollo y deshabilitado, sin watchers; Horizon no ofrece dashboard público.
 
-Crear pedido, líneas con instantáneas, reserva si aplica y eventos duraderos dentro de PostgreSQL. El importe siempre se calcula con datos autorizados del servidor.
+## Anuncios, datos y fotos
 
-No mantener una transacción o un bloqueo SQL abierto mientras se espera a Stripe, email o push. Persistir la intención, realizar llamada externa con idempotencia y reconciliar el resultado. Tratar el caso de caída entre llamada y guardado local.
+Separar borrador y versión publicada. Ediciones con versión optimista y bloqueo corto; publicación únicamente tras revisión CLI auditada en Ubuntu. Un cambio de modo no concede permisos de administrador ni acceso a otro negocio. Búsqueda sobre anuncios publicados con PostGIS, localidad/provincia sin acentos, filtros AND y céntimos enteros inclusivos. Valoraciones nulas no se inventan.
 
-## Workers y outbox
+Fotos JPEG/PNG con límites de bytes y píxeles, decodificación y nueva codificación para retirar metadatos; nombres aleatorios y almacenamiento local privado persistente. Acceso por propiedad o referencia publicada. No servir directorios, configuración o backups.
 
-En la misma transacción que el cambio del pedido, añadir un evento de outbox. Worker reclama lotes con bloqueo coordinado, entrega notificaciones y marca resultados. Aplicar reintentos con backoff, límite, registro de fallo y posibilidad de reproceso.
+## Transacciones, jobs y outbox
 
-La entrega es al menos una vez; consumidores deben ser idempotentes. Redis Pub/Sub puede acelerar avisos de la app abierta, pero perder un mensaje no debe perder el evento persistido. C06 propuso este patrón; su esquema concreto sigue siendo propuesta.
+Guardar intención de aviso y cambio de negocio en la misma transacción PostgreSQL. Reclamar lotes con SKIP LOCKED, lease recuperable y reintentos limitados. Horizon transporta solamente IDs opacos; el payload permanece cifrado en PostgreSQL y se elimina al entregar, caducar o agotar intentos. Redis no decide permisos ni es autoridad duradera. Llamadas externas fuera de transacciones y con timeout; entrega al menos una vez, con IDs estables para deduplicar.
 
-## Pedidos y concurrencia
+Resend usa el transporte nativo de Laravel y resend/resend-php; claves solo servidor. DEV limita destinatarios. FCM HTTP v1 usa una cuenta de servicio independiente pendiente y comprueba sesión/dispositivo vigentes antes de enviar. Sin Firebase Authentication, Analytics ni servicios adicionales.
 
-Transiciones de estado explícitas; cliente no marca “pagado” o “entregado”. Comerciante opera únicamente su negocio. Actualización condicional/versionada evita que solicitudes antiguas sobrescriban estados nuevos.
+## Alcance posterior y pruebas
 
-QR: canje único y cambio a entregado en una transacción. Stock/franjas, si se aprueban: reserva atómica, expiración y liberación por estados. No utilizar una caché como arbitraje del último producto.
+Auth, usuarios, negocios, catálogo y avisos componen este hito. Pedidos, Billing/Connect, membresías, campañas, stock, puntos y QR continúan como responsabilidades futuras del monolito, sujetas a sus decisiones comerciales. PostgreSQL conserva importes, reglas versionadas, ledger y transacciones; ningún cliente marca pagado o entregado. No mantener locks durante llamadas a Stripe. Reintentos económicos idempotentes, deduplicación de webhooks y conciliación de resultados inciertos.
 
-## Pruebas importantes
+QR de canje único atómico; reservas y expiración de stock solo si se aprueban. Redis no arbitra el último producto. Tests futuros de doble canje/compra, importes alterados, webhooks duplicados/fuera de orden y recuperación; no se presentan como funciones implementadas.
 
-SQL con PostgreSQL/PostGIS real, autorización entre negocios, doble canje, doble compra, importes alterados, webhooks duplicados/fuera de orden y recuperación de fallos externos. Probar contratos HTTP y workers sin depender de la UI.
-
-No existe todavía go.mod, código generado sqlc, migraciones ejecutadas ni API implementada. [Contrato propuesto](20-api.md).
-
-## Membresías, campañas y puntos
-
-Añadir responsabilidades de membresía cliente, elegibilidad de ofertas, cálculo de puntos y canje/ajustes en el monolito. Persistir reglas versionadas y origen único de cada movimiento para que eventos repetidos no generen puntos adicionales.
-
-Reservar puntos/cupo en PostgreSQL, con recuperación ante pago tardío o fallido. No mantener locks abiertos al llamar Stripe. Autorizar ajustes administrativos y verificar concordancia entre ledger, saldo y descuentos. [Diseño propuesto](25-suscripcion-clientes-fidelizacion.md).
-
-## Correo con Resend
-
-Proveedor cerrado por U07. Integración propuesta vía API HTTPS desde el worker Go, aprovechando outbox PostgreSQL. Un cliente net/http con timeout/contexto puede bastar; cliente oficial solo si aporta valor. Claves servidor, destinatarios y plantillas controlados, idempotencia por entrega lógica y reconciliación de resultados inciertos.
-
-El webhook de Resend confirma eventos del correo, no pagos ni identidad por sí solo. Persistir y deduplicar la recepción firmada antes del procesamiento; ninguna transacción SQL permanece abierta durante una llamada externa. [Configuración, límites y pruebas](30-correo-resend.md).
-
-## Seguridad, tests e instrumentación
-
-U10 concreta tests de autorización/concurrencia/webhooks con Go y PostgreSQL/PostGIS real, según [QA](40-testing-qa-github.md). U11 propone métricas HTTP/outbox/DB y Sentry/OTel donde aporte valor. Instrumentar transacciones confirmadas y deduplicar eventos, sin mantener locks durante exportación.
-
-Prometheus no sustituye un ledger duradero de pedidos; counters en memoria o reintentos no determinan ventas. Normalizar rutas y controlar etiquetas; eliminar secretos/PII antes de logs y telemetría. [Guía operativa](41-observabilidad-grafana-prometheus-sentry.md). No se han añadido módulos, generado sqlc o ejecutado tests de Go.
+PHPUnit cubre comportamiento HTTP, aislamiento, renovación/replay, revisión y filtros con PostgreSQL/PostGIS real. Pint y Larastan completan la revisión estática. Sentry/OTel/Prometheus se incorporarán por necesidad medida y sin PII/secretos: métricas no sustituyen ledger ni ventas confirmadas. [QA](40-testing-qa-github.md), [operación](41-observabilidad-grafana-prometheus-sentry.md).

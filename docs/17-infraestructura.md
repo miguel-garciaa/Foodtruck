@@ -1,5 +1,7 @@
 # Infraestructura: servidor doméstico, VMware, Ubuntu y Compose
 
+**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+
 ## Base cerrada y dimensionamiento
 
 **Decisión vigente U09:** servidor en casa para desarrollo y producción, sustituyendo el VPS como base. Desarrollo/pruebas en VMware con Ubuntu Server 26.04, 4 vCPU, 8 GB RAM y 40 GB NVMe. Producción mantiene Ubuntu/Compose/Caddy, en entorno separado; hardware físico, recursos de PROD, red/ISP, energía y coste pendientes. [Diseño doméstico](38-servidor-domestico.md).

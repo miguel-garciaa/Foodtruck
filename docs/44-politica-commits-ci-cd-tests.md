@@ -1,5 +1,7 @@
 # Política de commits, pruebas y CI/CD
 
+**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+
 **Consolidación:** 20 de octubre de 2026. Fuente canónica del ciclo de cambios, controles CI y promoción. Política documentada; aplicación, Git/remoto, workflows y ejecución **NO VERIFICADOS**. [21](21-entornos-ci-cd.md) define entornos, [40](40-testing-qa-github.md) desarrolla pruebas y [DevOps](devops/README.md) ofrece procedimientos. Los detalles de implementación siguen siendo propuestas hasta verificarlos en el repositorio real.
 
 ## 1. Objetivo, decisiones y autoridad

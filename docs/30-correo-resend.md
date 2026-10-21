@@ -1,5 +1,7 @@
 # Correo con Resend: configuración e integración propuesta
 
+**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+
 **Cerrado por el usuario:** Resend para los correos de Foodtrucks; compra futura del dominio en Cloudflare. **Estado:** especificación para implementar y configurar después. No se ha comprado el dominio, creado una cuenta/clave, publicado DNS, enviado correo ni implementado código. Fuentes oficiales consultadas el 13 de octubre de 2026; revisar las condiciones vigentes durante la configuración.
 
 Los nombres `dominio.example` y sus subdominios son ejemplos reservados, no el dominio elegido. La configuración general del registrador, DNS, TLS y proxy está en [Cloudflare](29-cloudflare-dominio-dns.md). El dominio definitivo, buzón de soporte, región y plan de Resend siguen pendientes.

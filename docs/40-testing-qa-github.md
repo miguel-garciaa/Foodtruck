@@ -1,5 +1,7 @@
 # Testing y QA de Foodtrucks
 
+**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+
 **Consolidación:** 20 de octubre de 2026. Esta guía define qué probar y qué evidencia demuestra el comportamiento. La obligatoriedad de controles, revisión/Git/CI y promoción se rige por [44](44-politica-commits-ci-cd-tests.md); [21](21-entornos-ci-cd.md) define aislamiento y [39](39-seguridad-devsecops.md) los controles de seguridad. Los 29 apartados recibidos y QA01–29 se conservan como especificación; no hay tests de aplicación ni CI implementados/ejecutados en este paquete.
 
 ## 1. Preparar la verificación

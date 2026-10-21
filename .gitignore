@@ -24,3 +24,8 @@
 **/data/
 **/.DS_Store
 **/coverage/
+**/.private/
+**/vendor/
+**/.phpunit.cache/
+**/.phpunit.result.cache
+**/.phpstan-cache/
