@@ -1,7 +1,7 @@
 name: foodtrucks-dev
 x-app: &app
   image: foodtrucks-dev:local
-  build: {context: ., target: runtime}
+  pull_policy: never
   env_file: .private/providers.env
   environment: &app-env
     APP_NAME: Foodtrucks
@@ -65,6 +65,7 @@ services:
     logging: {driver: json-file, options: {max-size: 5m, max-file: '3'}}
   migrate:
     <<: *app
+    build: {context: ., target: runtime}
     command: [php, artisan, migrate, --force, --isolated]
     environment:
       <<: *app-env

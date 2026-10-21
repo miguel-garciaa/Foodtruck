@@ -58,8 +58,19 @@ jobs:
           docker run --rm --network host
           -e DB_HOST=127.0.0.1 -e DB_USERNAME=postgres -e DB_PASSWORD=ci-isolated-only
           foodtrucks-checks php vendor/bin/phpunit --fail-on-warning --fail-on-risky
-      - name: Build actual runtime
-        run: docker build --target runtime -t foodtrucks-dev:ci .
+      - name: Build and start the actual Compose stack
+        run: |
+          sh infrastructure/prepare-dev.sh
+          sudo chown 1000:1000 .private/db-password .private/app-password .private/app-key
+          docker compose config --quiet
+          docker compose build
+          docker compose up -d --no-build --wait --wait-timeout 120
+          curl --fail --retry 5 --retry-delay 2 http://127.0.0.1:8080/up
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/v1/me)" = 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/.env)" = 404
+      - name: Stop isolated CI containers
+        if: always()
+        run: docker compose down
   mobile:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
