@@ -2,7 +2,7 @@
 FROM php:8.5.12-fpm-bookworm AS php-base
 RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j2 pdo_pgsql intl gd exif bcmath pcntl posix zip opcache \
+    && docker-php-ext-install -j2 pdo_pgsql intl gd exif bcmath pcntl posix zip \
     && pecl install redis-6.3.0 && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/* /tmp/pear
 COPY --from=composer:2.9.7 /usr/bin/composer /usr/local/bin/composer
