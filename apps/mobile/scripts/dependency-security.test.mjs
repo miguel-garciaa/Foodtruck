@@ -31,7 +31,10 @@ function fixture(t) {
     for (const file of patch.files) {
       const path = join(directory, file.path);
       mkdirSync(dirname(path), { recursive: true });
-      const patched = readFileSync(join(mobileRoot, 'node_modules', patch.package, file.path), 'utf8');
+      const patched = readFileSync(
+        join(mobileRoot, 'node_modules', patch.package, file.path),
+        'utf8',
+      );
       writeFileSync(path, replaceHunks(patched, file.replacements, true));
     }
   }
@@ -75,7 +78,10 @@ test('un parche alterado no supera la verificación', (t) => {
 
 for (const operation of ['parse', 'compile', 'expand', 'stringify']) {
   test('braces rechaza 4000 niveles sin agotar la pila: ' + operation, () => {
-    for (const [open, close] of [['{', '}'], ['(', ')']]) {
+    for (const [open, close] of [
+      ['{', '}'],
+      ['(', ')'],
+    ]) {
       const pattern = open.repeat(4000) + 'x' + close.repeat(4000);
       assert.throws(
         () => braces[operation](pattern),
@@ -100,10 +106,10 @@ test('braces y micromatch conservan alternativas, rangos, escapes y patrones nor
   const pattern = '{'.repeat(64) + 'x' + '}'.repeat(64);
   assert.equal(braces.stringify(pattern), pattern);
   assert.deepEqual(braces.expand(pattern), [pattern]);
-  assert.deepEqual(
-    require('micromatch')(['src/a.ts', 'src/b.tsx', 'src/c.js'], 'src/*.{ts,tsx}'),
-    ['src/a.ts', 'src/b.tsx'],
-  );
+  assert.deepEqual(require('micromatch')(['src/a.ts', 'src/b.tsx', 'src/c.js'], 'src/*.{ts,tsx}'), [
+    'src/a.ts',
+    'src/b.tsx',
+  ]);
 });
 
 const keys = generateKeyPairSync('rsa', {
@@ -160,19 +166,16 @@ test('el control sin parche reproduce la aceptación del DigestAlgorithm malform
   assert.equal(originalPublicKey.verify(hash, signature([oid(), nil(), garbage()])), true);
 });
 
-test('Expo puede seguir generando identificadores de proyectos con uuid actualizado', () => {
+test('Expo conserva los identificadores con xcode 4 sin la dependencia uuid', () => {
   const xcode = require('xcode');
   const project = xcode.project('synthetic.pbxproj');
   project.hash = { project: { objects: {} } };
   const ids = new Set(Array.from({ length: 20 }, () => project.generateUuid()));
   assert.equal(ids.size, 20);
   for (const id of ids) assert.match(id, /^[A-F0-9]{24}$/);
-  const xcodeRequire = createRequire(require.resolve('xcode'));
-  assert.equal(xcodeRequire('uuid/package.json').version, '11.1.1');
-  assert.throws(
-    () => xcodeRequire('uuid').v5('x', xcodeRequire('uuid').v5.DNS, new Uint8Array(8)),
-    RangeError,
-  );
+  const manifest = require('xcode/package.json');
+  assert.equal(manifest.version, '4.0.0');
+  assert.equal(manifest.dependencies.uuid, undefined);
 });
 
 function report(entries) {
@@ -214,7 +217,10 @@ test('un aviso nuevo sobre el mismo paquete sigue bloqueando', () => {
     ]),
     finding('metro', ['braces']),
   ]);
-  assert.deepEqual(outstanding(data).map((item) => item.name), ['braces', 'metro']);
+  assert.deepEqual(
+    outstanding(data).map((item) => item.name),
+    ['braces', 'metro'],
+  );
 });
 
 test('otro paquete vulnerable alto o crítico sigue bloqueando', () => {
@@ -223,16 +229,20 @@ test('otro paquete vulnerable alto o crítico sigue bloqueando', () => {
       ...known,
       finding('other', [advisory('other', 'https://example.invalid/advisory')], undefined, level),
     ]);
-    assert.deepEqual(outstanding(data).map((item) => item.name), ['other']);
+    assert.deepEqual(
+      outstanding(data).map((item) => item.name),
+      ['other'],
+    );
   }
 });
 
 test('una copia anidada sin parche sigue bloqueando', () => {
   const data = report([
-    finding('braces', [advisory('braces', patches[0].advisory)], [
-      'node_modules/braces',
-      'node_modules/other/node_modules/braces',
-    ]),
+    finding(
+      'braces',
+      [advisory('braces', patches[0].advisory)],
+      ['node_modules/braces', 'node_modules/other/node_modules/braces'],
+    ),
   ]);
   assert.equal(outstanding(data).length, 1);
 });

@@ -99,7 +99,7 @@ Evidencia local ignorada: `artifacts/android-debug-build.log`, `artifacts/npm-au
 
 ### Dependencias y seguridad
 
-La revisión del 22/10/2026 incorpora parches locales verificados para braces 3.0.3 y node-forge 1.4.0, cuyos avisos aún no tienen release oficial corregida. uuid se actualiza a 11.1.1 mediante un override limitado a xcode. Instalación: `npm ci`; comprobación completa: `npm run security:audit`.
+La revisión del 22/10/2026 incorpora parches locales verificados para braces 3.0.3 y node-forge 1.4.0, cuyos avisos aún no tienen release oficial corregida. Los parches compatibles de Expo incorporan xcode 4.0.0 y eliminan la dependencia vulnerable uuid sin overrides. Instalación: `npm ci`; comprobación completa: `npm run security:audit`.
 
 La [guía de seguridad de dependencias](security/README.md) explica el código aplicado, fuentes, regresiones, límites y revisión obligatoria antes del 21/11/2026. `npm audit` conserva los avisos de las versiones originales: el gate solo considera resueltos los dos identificadores cuyo código parcheado ha verificado y bloquea cualquier otro alto/crítico pendiente. CI también comprueba compatibilidad Expo y el bundle Android; el resultado vigente se consulta por SHA en la PR.
 

@@ -63,9 +63,7 @@ export function outstandingVulnerabilities(report, verified, now = new Date()) {
     const next = new Set([...seen, name]);
     const item = vulnerabilities.get(name);
     return item.via.flatMap((via) =>
-      typeof via === 'string'
-        ? advisories(via, next)
-        : [{ name, item, advisory: via }],
+      typeof via === 'string' ? advisories(via, next) : [{ name, item, advisory: via }],
     );
   }
 
