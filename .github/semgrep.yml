@@ -1,0 +1,47 @@
+rules:
+  - id: php-sql-request-taint
+    languages: [php]
+    severity: ERROR
+    mode: taint
+    message: La consulta SQL contiene entrada HTTP; utilizar parámetros enlazados.
+    pattern-sources:
+      - pattern: $REQUEST->input(...)
+      - pattern: $REQUEST->query(...)
+      - pattern: $_GET[...]
+      - pattern: $_POST[...]
+    pattern-sinks:
+      - patterns:
+          - pattern: DB::$METHOD($SQL, ...)
+          - focus-metavariable: $SQL
+          - metavariable-regex:
+              metavariable: $METHOD
+              regex: '^(select|statement|unprepared|update|delete|insert)$'
+  - id: php-command-input
+    languages: [php]
+    severity: ERROR
+    message: No ejecutar comandos del sistema con entrada HTTP.
+    patterns:
+      - pattern-either:
+          - pattern: shell_exec($X)
+          - pattern: exec($X, ...)
+          - pattern: system($X, ...)
+      - metavariable-regex:
+          metavariable: $X
+          regex: '.*(\$_(GET|POST|REQUEST)|request\().*'
+  - id: php-dynamic-evaluation
+    languages: [php]
+    severity: ERROR
+    message: Evitar evaluación dinámica de código PHP.
+    pattern: eval(...)
+  - id: typescript-dynamic-evaluation
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Evitar ejecutar código construido desde cadenas.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+  - id: react-unsanitized-html
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Revisar y sanear HTML antes de insertarlo en React.
+    pattern: <$TAG dangerouslySetInnerHTML={...} ... />

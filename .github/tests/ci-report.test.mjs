@@ -25,6 +25,12 @@ const checks = {
   laravel: "Cuentas, permisos y servidor",
   mobile: "Comprobaciones de la app",
   "mobile-security": "Seguridad de dependencias de la app",
+  security: "Seguridad del código y de Actions",
+  android: "APK y recorridos Android",
+  verification: "Pruebas obligatorias",
+  image: "Construir y verificar la release",
+  dev: "Despliegue automático DEV",
+  production: "Promoción productiva con aprobación",
 };
 
 async function report(
@@ -39,7 +45,7 @@ async function report(
   const outcome = Object.fromEntries(
     Object.keys(checks)
       .filter((id) => id !== missing)
-      .map((id) => [id, { result: results[id] ?? "success" }]),
+      .map((id) => [id, { result: results[id] ?? (!push && ["image", "dev", "production"].includes(id) ? "skipped" : "success") }]),
   );
   const jobs = Object.entries(checks).map(([id, name], index) => ({
     id: index + 1,
@@ -112,7 +118,7 @@ test("éxito: explica el cambio, las pruebas, el commit y los límites", async (
   const result = await report(t);
   assert.equal(result.exitCode, 0);
   assert.match(result.text, /todas las comprobaciones configuradas han pasado/);
-  assert.equal((result.text.match(/\| Superada \|/g) ?? []).length, 4);
+  assert.equal((result.text.match(/\| Superada \|/g) ?? []).length, 6);
   assert.match(result.text, /ci: explicar los resultados de las pruebas/);
   assert.doesNotMatch(result.text, /Cuerpo del commit|synthetic-token/);
   assert.ok(result.text.includes(`/commit/${sha}`));
@@ -183,3 +189,17 @@ test("la ejecución de main no se presenta como una integración de PR", async (
   assert.equal(result.exitCode, 0);
   assert.doesNotMatch(result.text, /integración de la PR/);
 });
+
+test("una PR explica que publicar y desplegar no corresponde sin acreditarlos", async (t) => {
+  const result = await report(t);
+  assert.equal(result.exitCode, 0);
+  assert.match(result.text, /No corresponde a este evento; no se acredita despliegue/);
+});
+
+for (const state of ["failure", "cancelled", "skipped"]) {
+  test(`main: despliegue ${state} bloquea el resultado`, async (t) => {
+    const result = await report(t, { push: true, results: { dev: state } });
+    assert.equal(result.exitCode, 1);
+    assert.doesNotMatch(result.text, /todas las comprobaciones configuradas han pasado/);
+  });
+}

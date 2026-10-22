@@ -1,5 +1,60 @@
 # Guía práctica de DevOps de Foodtrucks
 
+## CI/CD propio autorizado el 22/10/2026
+
+El coordinador es [dev.yml](../../.github/workflows/dev.yml): PR, `push` de `main` y ejecución manual. Las ramas de trabajo necesitan PR borrador desde la primera subida. Solo las PR cancelan comprobaciones anteriores; una entrega de `main` nunca se cancela por una subida posterior. La app GitHub ECC se ha desinstalado y verificado en la lista de instalaciones; se conservan comentarios históricos y las cinco skills ECC locales.
+
+La rama de esta implantación parte del código confirmado, preservando el trabajo móvil paralelo. El APK contiene JavaScript y firma de pruebas, sin Firebase ni proveedores reales. Maestro comprueba el catálogo sintético, búsquedas, categorías, filtros, favoritos y perfil del código comprometido. **Las pantallas de cuentas reales aún no están en esta base; ese recorrido queda pendiente de su integración y bloquea la aceptación completa del hito.** Pagos, Next.js, iOS y tiendas no quedan acreditados.
+
+| Control | Evidencia y condición |
+| --- | --- |
+| Backend | Pint, Larastan, Composer audit, PHPUnit sobre PostgreSQL/PostGIS desechable; Redis desechable. `PostgresTestCase` rechaza otra base o entorno antes de migrar |
+| App/contrato | npm ci, OpenAPI generado sin diff, TypeScript, ESLint, Prettier y suite de catálogo |
+| Seguridad propia | Gitleaks sobre historial, npm audit, Semgrep CE con reglas locales PHP/TS, actionlint, Trivy configuración e imagen. No son una auditoría exhaustiva |
+| Android | Prebuild sin credenciales, APK release firmado solo para pruebas, emulador y Maestro; informe JUnit y APK retenidos siete días |
+| Release | Solo `push` de `main` con seis trabajos y gate correctos. Imagen única escaneada, paquete GHCR privado, SHA/digest, SBOM y manifiesto v1 retenido 30 días |
+| DEV | Deployment de GitHub con manifiesto; agente saliente fijo en VM, sin runner propio ni acceso entrante desde CI |
+| Producción | Environment `production`, aprobación por release y mismo digest de DEV. Cuatro condiciones verificadas obligatorias; desactivada hasta staging, host, configuración y backups externos |
+
+El manifiesto interno v1 contiene `version`, `sha`, `runId`, `image` con digest, `configHash`, `migrationHash` y enlace de evidencia. El agente vuelve a consultar GitHub: creador Actions, workflow/evento/rama, SHA actual de `main`, ocho comprobaciones correctas y configuración instalada idéntica. No descarga scripts o Compose para ejecutarlos como root. Un cambio de configuración o migraciones requiere revisión administrativa del hash permitido. El host conserva la imagen anterior; rollback automático DEV únicamente con hash de esquema idéntico, sin revertir datos.
+
+### Instalación administrativa revisable en la VM DEV
+
+**Estado:** código preparado; temporizadores, GHCR privado, credenciales mínimas, sonda y restauración real todavía no activados/verificados. El usuario SSH `miguel` no tiene sudo no interactivo. No compartir contraseñas ni tokens en el chat. La VM tiene disco raíz de unos 19 GB, con unos 7,5 GB libres en la consulta inicial; se exige al menos 3 GiB libres y tres veces el tamaño estimado de DB/fotos antes de copiar. Un rechazo por espacio conserva datos y última copia válida.
+
+1. Revisar la PR y su SHA en GitHub. Integración de PR requiere acción humana; la automatización no fusiona ni escribe commits. Descargar ese checkout en la VM y revisar `infrastructure/ops/install.sh`, `ops.py`, `restore.py`, Compose y los units. Usar archivos LF.
+2. En sesión administrativa de la VM, instalar `restic` desde Ubuntu y ejecutar `sudo sh infrastructure/ops/install.sh /ruta/checkout-revisado`. Solo instala archivos root-owned y units; **no inicia servicios**. El código queda en `/opt/foodtrucks/ops`, Compose fijo en `/opt/foodtrucks/runtime`, estado privado en `/var/lib/foodtrucks-ops` y repositorio cifrado en `/var/backups/foodtrucks-restic`.
+3. Copiar de forma privada y revisada `.private` de la instalación DEV actual a `/opt/foodtrucks/runtime/.private`, incluyendo APP_KEY, contraseñas, proveedores y token Tunnel. Conservar permisos de lectura UID 1000 de los archivos montados, directorios atravesables solo por lo necesario y ownership root del resto de configuración. La pila usa el mismo proyecto `foodtrucks-dev` y sus volúmenes existentes. No `down -v`, no `prune --volumes`, no restaurar sobre DEV.
+4. Completar `/etc/foodtrucks/ops.json` (0600 root) desde el ejemplo. Fijar destinatario técnico ya autorizado, remitente del dominio verificado y hashes de migraciones revisadas. Calcular los hashes con `python3 -c 'import sys; sys.path.insert(0,"infrastructure/ops"); from ops import config_hash,migration_hash; print(config_hash(".")); print(migration_hash("."))'` desde el checkout. `compatibleMigrationHashes` solo admite esquemas revisados; un hash nuevo no se autoriza automáticamente.
+5. Crear credenciales **separadas**, fuera de Git: token GitHub de este repositorio con Contents/Actions read y Deployments read/write en `github-deployments-token`; lectura GHCR con `read:packages` en el Docker config dedicado `registry` (login por stdin); clave Resend de envío del dominio para `resend-alert-token`. No copiar el OAuth administrativo del editor a la VM. Archivos 0600 root. La publicación usa el token efímero del job, jamás como credencial persistente.
+6. Generar una contraseña Restic de alta entropía en `/etc/foodtrucks/restic-password` (0600), guardarla también fuera de la VM y ejecutar `sudo restic -r /var/backups/foodtrucks-restic --password-file /etc/foodtrucks/restic-password init`. La copia local protege fallos lógicos DEV; **no cubre pérdida del domicilio y no habilita producción**.
+7. Registrar el manifiesto de la release inicial instalada como `/var/lib/foodtrucks-ops/current.json` tras verificar su digest, o preparar el primer despliegue desde `main`. Antes de activar el agente, comprobar lectura del paquete privado, Compose resuelto, backup y restore aislado. El primer backup sin manifiesto está admitido; la monitorización exige una release identificada para operar Compose.
+8. Ejecutar `sudo python3 /opt/foodtrucks/ops/ops.py backup`, `restore-check` y `alarm-test` por separado. `alarm-test` envía `[PRUEBA]` de las seis familias locales, prueba deduplicación y recuperación, sin interrumpir servicios. Confirmar recepción y guardar únicamente IDs/estados saneados. Una simulación unitaria no acredita correo recibido.
+9. Solo tras esos resultados, activar `foodtrucks-ops-agent.timer`, `foodtrucks-ops-monitor.timer`, `foodtrucks-ops-backup.timer` y `foodtrucks-ops-restore-check.timer` con systemctl. Revisar `systemctl list-timers`, `journalctl -u foodtrucks-ops-agent` y `systemd-analyze verify` de los units. Ante intento interrumpido en migración, revisar esquema/datos y `attempt.json`; no borrar ese marcador para reintentar a ciegas.
+
+Backup antes de desplegar y diario a **03:30 Europe/Madrid**: pg_dump custom, fotos y secretos/configuración necesarios, cifrados por Restic. Siete snapshots diarios y los dos últimos predeploy. La última copia debe pasar `restic check` antes de aplicar retención. El prune del repositorio es mantenimiento revisado después de restore correcto; no se ejecuta limpieza global de Docker. Restore semanal domingo 04:30: copia a directorio privado único, hashes de DB/fotos, rechazo de rutas/enlaces peligrosos, `pg_restore --exit-on-error` en contenedor PostGIS **sin red, sin API/worker, sin volúmenes DEV** y comprobación de migraciones. Solo se elimina ese contenedor desechable y su volumen anónimo.
+
+### Sonda externa y catálogo de avisos
+
+[Worker/KV](../../infrastructure/monitor/worker.mjs) consulta `/api/v1/foodtrucks` cada cinco minutos, valida JSON y rechaza redirecciones. Tres fallos abren incidencia, dos éxitos recuperan; un recordatorio diario mientras continúe. KV guarda estado y recibos; Resend recibe clave idempotente estable. Un envío incierto fuera de la ventana de 23 horas se detiene para revisión, evitando reenvío automático tras caducar la idempotencia del proveedor.
+
+Antes de desplegar el Worker: comprobar Workers Free y consumo real de cuenta, crear KV, sustituir el ID requerido en `wrangler.jsonc` y configurar `RESEND_API_KEY`, `ALERT_TO`, `MAIL_FROM` de forma privada. No activar Workers Paid ni otros planes. 288 sondeos diarios y una escritura habitual por sondeo caben en las cuotas públicas consultadas; verificar uso de otros Workers y KV de la cuenta antes de activarlo. No se usan ejecuciones Actions programadas cada cinco minutos que generarían correos de CI.
+
+| Evento | Canal y contenido |
+| --- | --- |
+| CI correcta/fallida/cancelada | Correo nativo de la ejecución coordinadora; enlace a informe español con SHA, trabajo y paso fallido. Cancelada/omitida nunca cuenta como superada |
+| DEV aplicado/fallido/agente desconectado | Resultado dentro de la misma ejecución, digest y Deployment de GitHub. Sin respuesta 15 minutos: error, sin éxito supuesto |
+| Solicitud productiva | Revisión de Environment, condiciones y release concreta; no despliegue productivo automático |
+| API pública/DNS/TLS/Internet/Tunnel | Sonda externa → Resend: incidencia, recordatorio diario y recuperación |
+| API/DB/Redis/Horizon/scheduler | Monitor local cada minuto, alarma tras tres fallos; silencio de servicios durante ventana de despliegue de máximo 15 minutos |
+| Outbox >15 min o intentos ≥5; failed_jobs | Monitor local → Resend: revisar Horizon/proveedor y evitar reenvíos económicos a ciegas |
+| Disco bajo / backup >30 h / restore >8 días | Monitor local → Resend; backup/restore fallidos notifican de inmediato |
+| Error de despliegue | Resend local y estado GitHub; conservación de datos y rollback compatible |
+
+Los correos operativos incluyen entorno, señal, impacto, hora de Madrid, release y acción. No incluyen cuerpos de respuesta, errores de proveedores, tokens ni datos de usuarios. Datos de prueba sintéticos. El correo nativo depende de preferencias de GitHub y su plantilla: un coordinador reduce avisos de Actions, pero no garantiza eliminar avisos independientes de PR, commits o servicios externos.
+
+Validaciones automáticas: `node --test .github/tests/*.test.mjs infrastructure/monitor/*.test.mjs` y `python3 -m unittest discover -s infrastructure/ops/tests -v` (Linux obligatorio para bloqueo de host). Ensayos reales pendientes: publicación/pull privados, instalación, despliegue/reintento/agente offline, backup/restore, correo `[PRUEBA]` recibido y sonda Cloudflare. No cerrar activación sin esas evidencias.
+
 **Consolidación:** 20 de octubre de 2026. Entrada a procedimientos y diagnóstico. Consultar [44](../44-politica-commits-ci-cd-tests.md) para obligaciones de Git/CI/CD y las [decisiones pertinentes](../23-decisiones-pendientes.md) para bloqueos. Los scripts y servicios futuros aún no existen/verifican en este paquete.
 
 ## Qué consultar según la tarea

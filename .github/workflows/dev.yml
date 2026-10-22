@@ -1,15 +1,21 @@
-name: Pruebas de Foodtrucks
+name: Pruebas y entrega de Foodtrucks
 run-name: >-
   Pruebas · ${{ github.event.pull_request.title || github.ref_name }}
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      promote_sha:
+        description: SHA ya comprobado en DEV para solicitar promoción productiva
+        type: string
+        required: false
 permissions:
   contents: read
 concurrency:
   group: validation-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   secrets:
     name: Detección de secretos
@@ -37,6 +43,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
+      redis:
+        image: redis:8.8.3-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
       postgres:
         image: postgis/postgis:17-3.6
         env:
@@ -64,6 +74,7 @@ jobs:
         run: >-
           docker run --rm --network host
           -e DB_HOST=127.0.0.1 -e DB_USERNAME=postgres -e DB_PASSWORD=ci-isolated-only
+          -e REDIS_HOST=127.0.0.1 -e REDIS_DB=15
           foodtrucks-checks php vendor/bin/phpunit --fail-on-warning --fail-on-risky
       - name: Comprobar el arranque del servidor y la protección de la API
         run: |
@@ -106,7 +117,9 @@ jobs:
       - name: Instalar las herramientas del contrato API
         run: npm ci
       - name: Probar los informes de éxito, fallo y cancelación
-        run: node --test .github/tests/ci-report.test.mjs
+        run: |
+          node --test .github/tests/*.test.mjs infrastructure/monitor/*.test.mjs
+          python3 -m unittest discover -s infrastructure/ops/tests -v
       - name: Comprobar que la app y la API comparten el contrato vigente
         run: npm run check:api
       - name: Instalar las dependencias de la app
@@ -143,10 +156,205 @@ jobs:
       - name: Detectar vulnerabilidades altas o críticas en dependencias de la app
         run: npm audit --audit-level=high
         working-directory: apps/mobile
+  security:
+    name: Seguridad del código y de Actions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Validar workflows con actionlint
+        run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 -shellcheck=
+      - name: Buscar patrones peligrosos en PHP y TypeScript
+        run: docker run --rm -v "$PWD:/src:ro" -w /src semgrep/semgrep:1.182.0 semgrep scan --config .github/semgrep.yml --error --metrics off backend/app apps/mobile/src
+      - name: Revisar configuración de contenedores con Trivy
+        run: docker run --rm -v "$PWD:/src:ro" aquasec/trivy:0.76.1 config --severity HIGH,CRITICAL --exit-code 1 /src
+  android:
+    name: APK y recorridos Android
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      FOODTRUCKS_CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_API_URL: http://127.0.0.1:1
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Preparar Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.14.1
+      - name: Preparar Java
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Instalar dependencias y generar Android sin credenciales
+        working-directory: apps/mobile
+        run: |
+          npm ci
+          npx expo prebuild --platform android --no-install
+      - name: Compilar APK con JavaScript incluido y firma solo de pruebas
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+      - name: Instalar Maestro desde su release oficial
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download cli-2.11.0 --repo mobile-dev-inc/Maestro --pattern maestro.zip --dir "$RUNNER_TEMP/maestro"
+          digest=$(gh api repos/mobile-dev-inc/Maestro/releases/tags/cli-2.11.0 --jq '.assets[] | select(.name == "maestro.zip") | .digest')
+          test "${digest#sha256:}" != "$digest"
+          printf '%s  %s\n' "${digest#sha256:}" "$RUNNER_TEMP/maestro/maestro.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/maestro/maestro.zip" -d "$RUNNER_TEMP/maestro"
+          echo "$RUNNER_TEMP/maestro/maestro/bin" >> "$GITHUB_PATH"
+      - name: Habilitar virtualización del emulador
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Ejecutar recorridos reales en emulador
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb install apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+            maestro test --format junit --output artifacts/android.xml apps/mobile/.maestro
+      - name: Conservar APK e informe sintético de Android
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-pruebas-${{ github.sha }}
+          path: |
+            apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+            artifacts/android.xml
+          retention-days: 7
+  verification:
+    name: Pruebas obligatorias
+    if: ${{ always() }}
+    needs: [secrets, laravel, mobile, mobile-security, security, android]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Bloquear ante fallo, cancelación o prueba ausente
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 -c 'import json,os; r=json.loads(os.environ["RESULTS"]); assert len(r)==6 and all(x["result"]=="success" for x in r.values()), "Hay pruebas pendientes o fallidas"'
+  image:
+    name: Construir y verificar la release
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.publish.outputs.image }}
+    steps:
+      - name: Obtener el código integrado
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Comprobar que el paquete existente es privado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status=$(curl --silent --output "$RUNNER_TEMP/package.json" --write-out '%{http_code}' -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/users/miguel-garciaa/packages/container/foodtruck-api)
+          if [ "$status" = 200 ]; then
+            jq -e '.visibility == "private"' "$RUNNER_TEMP/package.json" > /dev/null
+          else
+            test "$status" = 404
+          fi
+      - name: Construir una sola imagen de runtime
+        env:
+          SHA: ${{ github.sha }}
+        run: docker build --target runtime --label "org.opencontainers.image.revision=$SHA" --label org.opencontainers.image.source=https://github.com/miguel-garciaa/Foodtruck -t "ghcr.io/miguel-garciaa/foodtruck-api:$SHA" .
+      - name: Bloquear imágenes con vulnerabilidades altas o críticas
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.1 image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 "ghcr.io/miguel-garciaa/foodtruck-api:$SHA"
+          mkdir -p artifacts
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.1 image --format cyclonedx "ghcr.io/miguel-garciaa/foodtruck-api:$SHA" > artifacts/sbom.cdx.json
+      - name: Publicar la imagen privada y registrar su digest
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_ACTOR: ${{ github.actor }}
+          SHA: ${{ github.sha }}
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+          docker push "ghcr.io/miguel-garciaa/foodtruck-api:$SHA"
+          digest=$(docker inspect --format '{{index .RepoDigests 0}}' "ghcr.io/miguel-garciaa/foodtruck-api:$SHA")
+          echo "image=$digest" >> "$GITHUB_OUTPUT"
+          gh api users/miguel-garciaa/packages/container/foodtruck-api --jq .visibility | grep -x private
+          docker logout ghcr.io
+      - name: Guardar el manifiesto de la release
+        env:
+          RELEASE_IMAGE: ${{ steps.publish.outputs.image }}
+        run: python3 .github/scripts/release.py manifest
+      - name: Conservar manifiesto y SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-${{ github.sha }}
+          path: artifacts/
+          retention-days: 30
+  dev:
+    name: Despliegue automático DEV
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Obtener el procedimiento de entrega
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Solicitar al agente el digest verificado y esperar su resultado
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_IMAGE: ${{ needs.image.outputs.image }}
+        run: |
+          python3 .github/scripts/release.py manifest
+          python3 .github/scripts/release.py dev
+  production:
+    name: Promoción productiva con aprobación
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.promote_sha != '' && github.ref == 'refs/heads/main' }}
+    needs: verification
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 18
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Obtener el procedimiento de promoción
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Exigir condiciones productivas y promover el mismo artefacto
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROMOTE_SHA: ${{ inputs.promote_sha }}
+          STAGING_VERIFIED: ${{ vars.STAGING_VERIFIED }}
+          PRODUCTION_HOST_VERIFIED: ${{ vars.PRODUCTION_HOST_VERIFIED }}
+          OFFSITE_BACKUPS_VERIFIED: ${{ vars.OFFSITE_BACKUPS_VERIFIED }}
+          PRODUCTION_CONFIG_VERIFIED: ${{ vars.PRODUCTION_CONFIG_VERIFIED }}
+        run: python3 .github/scripts/release.py production
   ci-gate:
     name: Resultado general de las pruebas
     if: ${{ always() }}
-    needs: [secrets, laravel, mobile, mobile-security]
+    needs: [secrets, laravel, mobile, mobile-security, security, android, verification, image, dev, production]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -168,6 +376,8 @@ jobs:
             laravel: ['Cuentas, permisos y servidor', 'Registro, sesiones, permisos, aprobación de fichas, filtros, calidad PHP y arranque del servidor.'],
             mobile: ['Comprobaciones de la app', 'Contrato API, tipos, calidad de código, búsquedas, precios y favoritos.'],
             'mobile-security': ['Seguridad de dependencias de la app', 'Busca vulnerabilidades altas o críticas en las dependencias.'],
+            security: ['Seguridad del código y de Actions', 'Semgrep CE, actionlint y Trivy para configuración.'],
+            android: ['APK y recorridos Android', 'Compila un APK autónomo y prueba navegación, búsqueda, filtros y favoritos en emulador. Cuentas reales pendientes de integración móvil.'],
           };
           const labels = { success: 'Superada', failure: 'Fallida', cancelled: 'Cancelada', skipped: 'No ejecutada' };
           const escape = (value) => String(value ?? '').replace(/[\r\n]+/g, ' ')
@@ -198,8 +408,11 @@ jobs:
           } catch {
             reportError = 'No se pudo obtener el detalle de GitHub. Revisa los trabajos enlazados; el informe queda incompleto.';
           }
-          const passed = Object.keys(results).length === Object.keys(checks).length
-            && Object.keys(checks).every((id) => results[id]?.result === 'success');
+          const deliveryChecks = { verification: 'Pruebas obligatorias', image: 'Construir y verificar la release', dev: 'Despliegue automático DEV', production: 'Promoción productiva con aprobación' };
+          const expectedDelivery = event.head_commit ? ['verification', 'image', 'dev'] : ['verification'];
+          const passed = Object.keys(checks).every((id) => results[id]?.result === 'success')
+            && expectedDelivery.every((id) => results[id]?.result === 'success')
+            && (!event.inputs?.promote_sha || results.production?.result === 'success');
           const lines = [
             '# Resultado de las pruebas de Foodtrucks',
             '',
@@ -220,13 +433,22 @@ jobs:
             if (!job || job.conclusion !== result) reportError ||= 'Falta el detalle actualizado de una comprobación. El informe queda incompleto.';
             lines.push(`| [${escape(name)}](${link}) | ${labels[result] ?? 'Resultado no disponible'} | ${purpose} | ${escape(detail)} |`);
           }
+          lines.push('', '## Entrega del artefacto', '');
+          for (const [id, name] of Object.entries(deliveryChecks)) {
+            const result = results[id]?.result;
+            const required = expectedDelivery.includes(id) || (id === 'production' && event.inputs?.promote_sha);
+            const job = jobs.find((item) => item.name === name);
+            if (required && (!job || job.conclusion !== result)) reportError ||= 'Falta el detalle actualizado de la entrega.';
+            const explanation = result === 'skipped' && !required ? 'No corresponde a este evento; no se acredita despliegue.' : labels[result] ?? 'Resultado no disponible';
+            lines.push(`- **${name}:** ${explanation}`);
+          }
           lines.push('', passed && !reportError
             ? '**Resultado general: todas las comprobaciones configuradas han pasado.**'
             : '**Resultado general: cambio pendiente de corregir o verificar.**');
           if (reportError) lines.push('', reportError);
           lines.push('', '## Alcance y siguientes pasos', '',
             'Estas comprobaciones no acreditan un recorrido completo en un teléfono ni pagos, correos o notificaciones reales.',
-            'Los avisos de ECC se revisan por separado y no están incluidos en este resultado.',
+            'La app GitHub ECC se retira; se conservan las cinco skills locales. Seguridad y pruebas se definen en este repositorio.',
             passed && !reportError
               ? 'La siguiente revisión es el QA del comportamiento afectado. Este resultado no autoriza un despliegue a producción.'
               : 'Abre la comprobación señalada, revisa el paso fallido y corrige su causa. Una prueba omitida o cancelada necesita una ejecución completa.',

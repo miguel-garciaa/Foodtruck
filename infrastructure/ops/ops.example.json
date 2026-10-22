@@ -1,0 +1,13 @@
+{
+  "runtime": "/opt/foodtrucks/runtime",
+  "state": "/var/lib/foodtrucks-ops",
+  "dockerConfig": "/etc/foodtrucks/registry",
+  "githubToken": "/etc/foodtrucks/github-deployments-token",
+  "resendToken": "/etc/foodtrucks/resend-alert-token",
+  "resticRepository": "/var/backups/foodtrucks-restic",
+  "resticPassword": "/etc/foodtrucks/restic-password",
+  "minimumFreeBytes": 3221225472,
+  "mailFrom": "Foodtrucks Operaciones <operaciones@foodtruck.bid>",
+  "alertTo": "REQUIRED_AUTHORIZED_RECIPIENT",
+  "compatibleMigrationHashes": []
+}

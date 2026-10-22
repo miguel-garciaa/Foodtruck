@@ -1,0 +1,8 @@
+[Unit]
+Description=Consultar releases DEV autorizadas cada minuto
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+Unit=foodtrucks-ops-agent.service
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "foodtrucks-dev-health",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-22",
+  "workers_dev": false,
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "vars": { "HEALTH_URL": "https://api-dev.foodtruck.bid/api/v1/foodtrucks" },
+  "kv_namespaces": [{ "binding": "ALARMS", "id": "REQUIRED_BEFORE_ACTIVATION" }]
+}

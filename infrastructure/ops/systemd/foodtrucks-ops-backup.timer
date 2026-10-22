@@ -1,0 +1,8 @@
+[Unit]
+Description=Backup diario DEV a las 03:30 de Madrid
+[Timer]
+OnCalendar=*-*-* 03:30:00 Europe/Madrid
+Persistent=true
+Unit=foodtrucks-ops-backup.service
+[Install]
+WantedBy=timers.target
