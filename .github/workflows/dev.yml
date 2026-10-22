@@ -121,6 +121,12 @@ jobs:
       - name: Comprobar el formato de la app
         run: npm run format:check
         working-directory: apps/mobile
+      - name: Comprobar compatibilidad de dependencias con Expo
+        run: npm run check:dependencies
+        working-directory: apps/mobile
+      - name: Comprobar el bundle Android tras los parches de seguridad
+        run: npx expo export --platform android --output-dir dist-security
+        working-directory: apps/mobile
       - name: Probar búsquedas, precios y favoritos
         run: npm test
         working-directory: apps/mobile
@@ -141,7 +147,7 @@ jobs:
         run: npm ci
         working-directory: apps/mobile
       - name: Detectar vulnerabilidades altas o críticas en dependencias de la app
-        run: npm audit --audit-level=high
+        run: npm run security:audit
         working-directory: apps/mobile
   ci-gate:
     name: Resultado general de las pruebas
