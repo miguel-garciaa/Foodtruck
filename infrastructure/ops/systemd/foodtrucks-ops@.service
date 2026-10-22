@@ -1,0 +1,23 @@
+[Unit]
+Description=Foodtrucks DEV: @OPERATION@
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/python3 /opt/foodtrucks/ops/ops.py @OPERATION@
+TimeoutStartSec=3600
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/foodtrucks-ops /var/backups/foodtrucks-restic
+ReadOnlyPaths=/etc/foodtrucks /opt/foodtrucks
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true

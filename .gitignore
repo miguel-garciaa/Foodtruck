@@ -35,3 +35,6 @@ apps/mobile/modules/foodtrucks-google/android/*
 **/.phpunit.cache/
 **/.phpunit.result.cache
 **/.phpstan-cache/
+**/__pycache__/
+**/*.pyc
+**/.wrangler/

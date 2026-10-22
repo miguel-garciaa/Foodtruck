@@ -1,0 +1,8 @@
+[Unit]
+Description=Restauración semanal aislada de DEV
+[Timer]
+OnCalendar=Sun *-*-* 04:30:00 Europe/Madrid
+Persistent=true
+Unit=foodtrucks-ops-restore-check.service
+[Install]
+WantedBy=timers.target

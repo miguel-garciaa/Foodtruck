@@ -1,0 +1,8 @@
+[Unit]
+Description=Comprobar servicios y copias DEV cada minuto
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=1min
+Unit=foodtrucks-ops-monitor.service
+[Install]
+WantedBy=timers.target

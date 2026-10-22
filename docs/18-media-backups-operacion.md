@@ -1,5 +1,7 @@
 # Fotos locales, backups y operación
 
+**DEV autorizado 22/10/2026:** Restic cifrado local, previo a despliegue y diario 03:30 Madrid; siete diarios y dos predeploy. Restore semanal aislado sin red ni volúmenes activos, comprobación DB/fotos. Scripts preparados: **copia/restauración real y backup externo no acreditados todavía**. Producción bloqueada hasta destino externo verificado. [Instalación y recuperación](devops/README.md#instalacion-administrativa-revisable-en-la-vm-dev).
+
 **Cerrado:** fotografías persistentes en el servidor, sin S3, y backups externos. **Base propuesta:** organización, validación y recuperación.
 
 ## Subida y publicación

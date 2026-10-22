@@ -1,0 +1,17 @@
+# Fixed overlay installed by the administrator, never downloaded or executed from a deployment.
+services:
+  api:
+    image: ${FOODTRUCKS_IMAGE:?digest de release obligatorio}
+    pull_policy: missing
+  worker:
+    image: ${FOODTRUCKS_IMAGE:?digest de release obligatorio}
+    pull_policy: missing
+  scheduler:
+    image: ${FOODTRUCKS_IMAGE:?digest de release obligatorio}
+    pull_policy: missing
+  migrate:
+    image: ${FOODTRUCKS_IMAGE:?digest de release obligatorio}
+    pull_policy: missing
+  review:
+    image: ${FOODTRUCKS_IMAGE:?digest de release obligatorio}
+    pull_policy: missing

@@ -1,5 +1,7 @@
 # Protección de datos y gobernanza
 
+**Operación DEV 22/10/2026:** [alarmas propias](devops/README.md#sonda-externa-y-catalogo-de-avisos) usan exclusivamente el destinatario técnico autorizado. Estado/contadores sin datos de clientes; el correo técnico pendiente se guarda hasta confirmar entrega y los recibos KV caducan en 48 horas. KV creado con almacenamiento duradero UE; eso no garantiza que cachés o procesamiento permanezcan en UE. Restic cifra DB/fotos/APP_KEY para recuperar DEV; copia local no sustituye destino externo ni habilita producción. Activación de envíos, restore real DEV y acuerdos/retención afectados requieren su evidencia; no se declara cumplimiento jurídico.
+
 **Versión documental:** 1.9 · **Fecha:** 14 de octubre de 2026 · **Estado:** política y procedimientos documentados; implementación, operativa y pruebas pendientes. No acredita cumplimiento jurídico, certificación, auditoría de aplicación ni un tratamiento ya configurado.
 
 ## 1. Objetivo, alcance y autoridad

@@ -1,5 +1,7 @@
 # Entornos de Foodtrucks
 
+**Decisión 22/10/2026:** primera entrega automática sobre la VM DEV actual mediante agente saliente fijo; no es staging productivo. CI usa PostgreSQL/PostGIS y Redis desechables en GitHub, sin credenciales ni acceso a VM en PR externas. Se preservan proyecto Compose y volúmenes DEV. Producción bloqueada hasta staging, host, backup externo y configuración verificados. [Procedimiento y estado real](devops/README.md#cicd-propio-autorizado-el-22102026).
+
 **Actualización técnica, 22/10/2026 (D47):** Laravel/PHP es el backend principal. Composer y su lockfile, las migraciones Laravel y [OpenAPI](../contracts/openapi.json) son las fuentes ejecutables; comandos y operación DEV en la [guía del backend](../backend/README.md). Las reglas siguientes se aplican a Laravel; Go queda reservado para una necesidad futura aprobada.
 
 **Consolidación:** 20 de octubre de 2026. Este documento define aislamiento y configuración por entorno. El ciclo Git/CI/CD, sus gates y la promoción se definen en [44](44-politica-commits-ci-cd-tests.md); las pruebas en [40](40-testing-qa-github.md) y la operación en [DevOps](devops/README.md). Existen backend/móvil, Compose DEV y CI; el [backend](../backend/README.md) registra la evidencia DEV. Staging, producción y su promoción siguen pendientes.

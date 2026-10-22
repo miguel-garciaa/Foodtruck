@@ -29,6 +29,7 @@
       ],
       "expo-image",
       "expo-notifications",
+      "expo-status-bar",
       "@rnmapbox/maps",
       "./plugins/with-font-scale.cjs",
       "expo-secure-store",

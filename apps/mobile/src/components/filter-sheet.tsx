@@ -66,6 +66,7 @@ function FilterContent({ onClose }: { onClose: () => void }) {
             />
             <AccountField
               label="Hasta (€)"
+              testID="filter-max-price"
               initialValue={maximum}
               keyboardType="decimal-pad"
               onChangeText={setMaximum}

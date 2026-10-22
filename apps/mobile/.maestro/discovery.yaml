@@ -1,0 +1,81 @@
+appId: ${APP_ID}
+name: Catálogo y cuentas reales sobre API y PostgreSQL sintéticos
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: Buscar foodtrucks, comida o zona
+    timeout: 60000
+- tapOn: Buscar foodtrucks, comida o zona
+- inputText: taco
+- hideKeyboard
+- extendedWaitUntil:
+    visible: 'Ver La ruta del taco.*'
+    timeout: 15000
+- assertNotVisible: 'Ver Brasa sobre ruedas.*'
+- tapOn: Borrar búsqueda
+- tapOn: Tacos
+- extendedWaitUntil:
+    visible: 'Ver La ruta del taco.*'
+    timeout: 15000
+- tapOn: Todo
+- tapOn: Abrir filtros
+- tapOn:
+    id: filter-max-price
+- inputText: '6'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Aplicar filtros
+    direction: DOWN
+- tapOn: Aplicar filtros
+- extendedWaitUntil:
+    visible: 'Ver La ruta del taco.*'
+    timeout: 15000
+- assertNotVisible: 'Ver Brasa sobre ruedas.*'
+- tapOn: Abrir filtros
+- scrollUntilVisible:
+    element:
+      text: Restablecer filtros
+    direction: DOWN
+- tapOn: Restablecer filtros
+- tapOn: Perfil
+- tapOn: Iniciar sesión o registrarme
+- tapOn:
+    id: auth-email
+- inputText: android@example.test
+- tapOn:
+    id: auth-password
+- inputText: Synthetic-Android-2026!
+- hideKeyboard
+- tapOn:
+    id: auth-submit
+- extendedWaitUntil:
+    visible: Cuenta Android CI
+    timeout: 15000
+- tapOn: Explorar
+- extendedWaitUntil:
+    visible: Guardar Brasa sobre ruedas en favoritos
+    timeout: 15000
+- tapOn: Guardar Brasa sobre ruedas en favoritos
+- extendedWaitUntil:
+    visible: Quitar Brasa sobre ruedas de favoritos
+    timeout: 15000
+- tapOn: Ver favoritos
+- extendedWaitUntil:
+    visible: 'Ver Brasa sobre ruedas.*'
+    timeout: 15000
+- back
+- stopApp
+- launchApp
+- tapOn: Perfil
+- extendedWaitUntil:
+    visible: Cuenta Android CI
+    timeout: 15000
+- tapOn: Cerrar sesión
+- extendedWaitUntil:
+    visible: Iniciar sesión o registrarme
+    timeout: 15000
+- tapOn: 'Mis favoritos.*'
+- assertVisible: Inicia sesión para recuperar tus favoritos en tus dispositivos.
+- assertNotVisible: 'Ver Brasa sobre ruedas.*'

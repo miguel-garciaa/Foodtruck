@@ -115,6 +115,7 @@ export default function AuthScreen() {
         )}
         <AccountField
           label="Correo electrónico"
+          testID="auth-email"
           initialValue={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -126,6 +127,7 @@ export default function AuthScreen() {
         {mode !== 'forgot' && (
           <AccountField
             label={mode === 'login' ? 'Contraseña' : 'Contraseña (mínimo 12 caracteres)'}
+            testID="auth-password"
             onChangeText={setPassword}
             secureTextEntry
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -139,6 +141,7 @@ export default function AuthScreen() {
         ))}
         <Button
           label={busy ? 'Un momento…' : params.action === 'verify' ? 'Verificar mi correo' : title}
+          testID="auth-submit"
           disabled={busy}
           onPress={() => void perform(submit)}
         />
