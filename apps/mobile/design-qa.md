@@ -1,6 +1,18 @@
 # QA visual Android
 
-## Estado actual · 22/10/2026
+## Estado actual · 23/10/2026
+
+Pruebas contra Laravel desplegado en la VM, desde la build debug instalada en Pixel_10:
+
+- **Google y recuperación:** acceso con la cuenta autorizada y perfil verificado; tras detener la app y reconectar el development client a Metro, la sesión se recupera sin repetir el acceso. Evidencias locales: `artifacts/google-authenticated.png`, `google-deployed-4.xml` y `account-restored-7.xml`.
+- **Avatar privado:** selector de Android, recorte, subida y visualización autenticada comprobados. La imagen técnica se retiró al terminar y se conservó el nombre original. Evidencia: `artifacts/avatar-persisted.png`.
+- **FCM real:** permiso denegado primero y concedido después; registro y prueba desde Cuenta. La outbox/Horizon entrega el aviso en primer plano (`artifacts/fcm-foreground-received.png`) y en segundo plano (`fcm-background-received.png`). Partiendo de Mapa, pulsar el aviso abre Cuenta (`fcm-tap-account.png`). El contenido del sistema es genérico. No se infiere de estos casos rotación de token, cambio de cuenta ni entrega con la app terminada.
+- **Escritura:** el asistente «Try out your stylus» de Android interceptó inicialmente la automatización. Tras cancelarlo, los campos de anuncio conservaron nombre, descripción, contacto, dirección y coordenadas completos. No se aplicó una modificación especulativa al componente.
+- **Propietario y anuncio:** cambio de modo confirmado por la API. Se creó y reabrió «QA DEV Madrid», marcado explícitamente como prueba sin negocio real, con foto privada, ubicación, franja 00:00–24:00 y un plato de 0,29 €. El envío cambió a «En revisión» y bloqueó la edición; después se archivó con confirmación. Evidencias: `artifacts/owner-submitted-qa.png` y `owner-archived-qa.png`. No se publicó el anuncio técnico ni se probó la aprobación administrativa en esta sesión Android.
+
+Pendientes de aceptación real: varios anuncios con aprobación/publicación, favoritos, filtros AND y clusters con datos propios, rotación de token/cambio de cuenta, teléfono físico y TalkBack. Las capturas y dumps contienen datos de la cuenta DEV y permanecen locales, excluidos de Git. La implementación no se presenta como un hito completamente validado. El chat «Mejorar estética y animaciones» modifica simultáneamente la app en este checkout; las evidencias anteriores no validan su rediseño ni el nuevo asistente.
+
+## Comprobaciones previas · 22/10/2026
 
 La base histórica del apartado siguiente utilizaba fixtures. La implementación actual consulta Laravel en la VM y muestra un vacío real cuando no hay anuncios publicados. No se reutiliza la prueba histórica como evidencia de cuentas, favoritos remotos o push.
 

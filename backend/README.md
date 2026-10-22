@@ -40,7 +40,7 @@ Comprobación privada de la credencial FCM, sin imprimir el token ni enviar mens
 sudo docker compose -f compose.yaml -f compose.tunnel.yaml exec -T api foodtrucks-entrypoint php < infrastructure/check-dev-fcm.php
 ```
 
-Verificado el 22/10/2026 sobre la VM: HTTPS público `/up` y listado `200`, cuenta sin sesión `401`, `.env` y Horizon `404`; ruta exclusiva `api-dev.foodtruck.bid` hacia `http://caddy:8080`. Resend aceptó el correo técnico y su panel confirmó `Delivered`. La clave guardada inicialmente no correspondía a la activa: se sustituyó, se comprobó el envío y se revocó la anterior. Google aceptó la credencial FCM y el rol de la cuenta se verificó en IAM como Firebase Cloud Messaging API Admin. Esto todavía no acredita recepción push en Android ni los recorridos móviles completos.
+Verificado el 22/10/2026 sobre la VM: HTTPS público `/up` y listado `200`, cuenta sin sesión `401`, `.env` y Horizon `404`; ruta exclusiva `api-dev.foodtruck.bid` hacia `http://caddy:8080`. Resend aceptó el correo técnico y su panel confirmó `Delivered`. La clave guardada inicialmente no correspondía a la activa: se sustituyó, se comprobó el envío y se revocó la anterior. Google aceptó la credencial FCM y el rol de la cuenta se verificó en IAM como Firebase Cloud Messaging API Admin. El 23/10 se comprobó en Pixel_10 el acceso Google contra esta VM, la recuperación de sesión, el avatar privado y FCM real en primer/segundo plano con apertura desde el aviso. Los recorridos completos de anuncios y búsqueda, la rotación de token y el cambio de cuenta siguen en QA; [evidencia Android](../apps/mobile/design-qa.md).
 
 Para reconciliar una base DEV existente cuyo usuario de aplicación no coincide con el secreto privado actual:
 

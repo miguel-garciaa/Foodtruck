@@ -11,7 +11,7 @@ App React Native 0.88, Expo SDK 58 y TypeScript contra Laravel en la VM DEV. Ide
 - Mapbox nativo con agrupación/selección y panel persistente de Gorhom. Filtros con `@expo/ui`, tema automático y texto escalable; buscador 14 sp, corazones de 20 dp/área táctil 48 dp y dock de 60 dp adaptable.
 - Push nativo FCM: permiso contextual, registro/renovación del dispositivo, limpieza al salir y apertura autorizada del destino. El servidor usa outbox PostgreSQL y Horizon.
 
-El recorrido real de cuentas, propietario y push todavía está en verificación. No incluye compras, QR, cobros, Apple, iOS, web de producto, tiendas ni producción. No acredita 120 FPS ni cumplimiento jurídico. Se aplican [AGENTS](../../AGENTS.md), [decisiones](../../docs/23-decisiones-pendientes.md), [entornos](../../docs/21-entornos-ci-cd.md) y [política 44](../../docs/44-politica-commits-ci-cd-tests.md).
+Google, recuperación de sesión, avatar y entrega FCM están comprobados contra la VM en Pixel_10. El recorrido completo de anuncios, revisión/publicación, favoritos y filtros con datos publicados sigue en QA. No incluye compras, QR, cobros, Apple, iOS, web de producto, tiendas ni producción. No acredita 120 FPS ni cumplimiento jurídico. Se aplican [AGENTS](../../AGENTS.md), [decisiones](../../docs/23-decisiones-pendientes.md), [entornos](../../docs/21-entornos-ci-cd.md) y [política 44](../../docs/44-politica-commits-ci-cd-tests.md).
 
 ## Configuración local
 
@@ -75,11 +75,14 @@ npx expo export --platform android --output-dir dist-verified
 | Build debug x86_64 | Correcta, 729 tareas, 3 min 59 s; instalada y abierta en Pixel_10 API 37.1. |
 | VM y proveedores | HTTPS del catálogo 200, recurso privado 401 y archivos privados 404; Resend entregó el correo técnico y Google aceptó la credencial FCM. |
 | Mapbox | Tiles reales, atribución y panel visibles; interacción con anuncios y clusters reales pendiente. |
-| Google | La prueba real encontró un fallo al configurar el verificador del servidor; corregido con cuatro regresiones criptográficas. Requiere aplicar la revisión a la VM y repetir el acceso. |
-| Perfil, propietario y push real | Recorrido Android completo todavía pendiente; no se deduce de los tests de servidor. |
+| Google y sesión (23/10) | Corrección aplicada a la VM; acceso con cuenta real y recuperación tras detener/reabrir la app comprobados. Cuatro regresiones criptográficas cubren el verificador. |
+| Avatar (23/10) | Fotografía elegida con el selector Android, subida, mostrada mediante acceso autenticado y retirada después de la prueba. |
+| FCM (23/10) | Permiso denegado y posterior concesión; recepción en primer plano, aviso genérico en segundo plano y apertura de Cuenta desde el aviso, partiendo de Mapa. Rotación de token y cambio de cuenta aún requieren prueba real. |
+| Propietario (23/10) | Cambio de modo, creación/reapertura de borrador con foto/ubicación/horario/plato de 0,29 €, envío a revisión y archivo comprobados. Anuncio técnico privado, identificado como QA. |
+| Publicación, favoritos y búsqueda | Aprobación administrativa y recorrido Android con varios anuncios publicados todavía pendientes; no se deducen de los tests de servidor. |
 | Móvil físico, TalkBack, iOS y producción | No acreditados. |
 
-CI se comprueba por SHA; consultar la PR para el resultado vigente. La revisión `7238ab3` superó sus cinco trabajos, incluidos servidor/PostGIS y seguridad móvil. No acredita las modificaciones locales posteriores. [Backend y comandos de operación](../../backend/README.md), [evidencia visual y pendientes](design-qa.md).
+CI se comprueba por SHA; consultar la [PR](https://github.com/miguel-garciaa/Foodtruck/pull/1) para el resultado vigente. La revisión `d78d918` superó sus cinco trabajos, incluidos servidor/PostGIS y seguridad móvil: [ejecución 39832733801](https://github.com/miguel-garciaa/Foodtruck/actions/runs/39832733801). Una actualización posterior necesita su propia ejecución. [Backend y comandos de operación](../../backend/README.md), [evidencia visual y pendientes](design-qa.md).
 
 Los registros y capturas se guardan en `artifacts/`, fuera de Git. `providers-android-updated-build.log` documenta la última build; `mapbox-online.png` documenta la cartografía. No subir tokens, cuentas del dispositivo, dumps privados ni credenciales con las evidencias.
 
