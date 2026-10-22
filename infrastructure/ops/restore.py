@@ -43,19 +43,21 @@ def restore_check(ops):
         try:
             ops.run(['docker', 'run', '-d', '--name', name, '--network', 'none', '--memory', '1g', '--cpus', '2',
                      '--pids-limit', '128', '-e', 'POSTGRES_HOST_AUTH_METHOD=trust',
-                     '-e', 'POSTGRES_DB=foodtrucks_restore', 'postgis/postgis:17-3.6',
+                     '-e', 'POSTGRES_DB=postgres', 'postgis/postgis:17-3.6',
                      'postgres', '-c', 'shared_buffers=64MB', '-c', 'maintenance_work_mem=64MB',
                      '-c', 'max_parallel_maintenance_workers=0', '-c', 'max_connections=20'])
             for attempt in range(30):
                 try:
                     # The entrypoint's temporary initialization server exposes only a socket.
                     # TCP readiness waits until PostGIS initialization finishes and the final server starts.
-                    ops.run(['docker', 'exec', name, 'pg_isready', '-h', '127.0.0.1', '-U', 'postgres', '-d', 'foodtrucks_restore'])
+                    ops.run(['docker', 'exec', name, 'pg_isready', '-h', '127.0.0.1', '-U', 'postgres', '-d', 'postgres'])
                     break
                 except OperationError:
                     if attempt == 29:
                         raise
                     time.sleep(1)
+            # A pristine database avoids collisions with extension data created by image initialization.
+            ops.run(['docker', 'exec', name, 'createdb', '-U', 'postgres', '-T', 'template0', 'foodtrucks_restore'])
             with dump.open('rb') as source:
                 ops.run(['docker', 'exec', '-i', name, 'pg_restore', '--exit-on-error', '--no-owner', '--no-acl',
                          '-U', 'postgres', '-d', 'foodtrucks_restore'], stdin=source, timeout=1200)

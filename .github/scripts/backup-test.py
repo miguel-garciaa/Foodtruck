@@ -18,6 +18,16 @@ if not re.fullmatch(r'[a-f0-9]{12,64}', container):
 
 
 class FixtureOps(Ops):
+    def run(self, args, **kwargs):
+        try:
+            return super().run(args, **kwargs)
+        except Exception as error:
+            # This script accepts only the disposable CI DB with synthetic records, never DEV.
+            if 'pg_restore' in args:
+                diagnostic = getattr(error.__cause__, 'stderr', b'') or b''
+                print(diagnostic.decode(errors='replace')[-6000:], file=sys.stderr)
+            raise
+
     def compose(self, *args, **kwargs):
         if args[:3] == ('exec', '-T', 'db'):
             command = [arg.replace('foodtrucks_migrator', 'postgres').replace('foodtrucks', 'foodtrucks_testing') for arg in args[3:]]

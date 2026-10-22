@@ -22,7 +22,7 @@ module.exports = function withCiTls(config) {
         `<?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
   <base-config cleartextTrafficPermitted="false"><trust-anchors><certificates src="system" /></trust-anchors></base-config>
-  <domain-config cleartextTrafficPermitted="false"><domain>localhost</domain><trust-anchors><certificates src="@raw/ci_certificate" /></trust-anchors></domain-config>
+  <domain-config cleartextTrafficPermitted="false"><domain includeSubdomains="false">localhost</domain><trust-anchors><certificates src="@raw/ci_certificate" /></trust-anchors></domain-config>
 </network-security-config>`,
       );
       return result;
