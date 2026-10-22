@@ -1,9 +1,15 @@
 #!/bin/sh
 set -eu
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --set=app_password="$(cat /run/secrets/app_password)" <<'SQL'
-CREATE ROLE foodtrucks LOGIN PASSWORD :'app_password';
+psql -X --quiet -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<'SQL'
+\set app_password `cat /run/secrets/app_password`
+BEGIN;
+SELECT 'CREATE ROLE foodtrucks LOGIN' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'foodtrucks') \gexec
+ALTER ROLE foodtrucks WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD :'app_password';
 GRANT CONNECT ON DATABASE foodtrucks TO foodtrucks;
 GRANT USAGE ON SCHEMA public TO foodtrucks;
+GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO foodtrucks;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO foodtrucks;
 ALTER DEFAULT PRIVILEGES FOR ROLE foodtrucks_migrator IN SCHEMA public GRANT SELECT,INSERT,UPDATE,DELETE ON TABLES TO foodtrucks;
 ALTER DEFAULT PRIVILEGES FOR ROLE foodtrucks_migrator IN SCHEMA public GRANT USAGE ON SEQUENCES TO foodtrucks;
+COMMIT;
 SQL

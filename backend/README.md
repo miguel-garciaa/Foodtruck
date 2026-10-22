@@ -16,6 +16,14 @@ Compose construye la imagen compartida una sola vez desde `migrate`; API, colas,
 
 `.private/providers.env` contiene nombres de configuración; mantenerlo privado y fuera de Git. El registro por correo devuelve 503 hasta activar Resend y su allowlist. FCM necesita `.private/providers/fcm-service-account.json` mínimo; Google, `GOOGLE_WEB_CLIENT_ID`. No utilizar credenciales de otros proyectos. `google-services.json` se queda en Android y nunca sustituye la cuenta de servicio del servidor.
 
+Para reconciliar una base DEV existente cuyo usuario de aplicación no coincide con el secreto privado actual:
+
+```sh
+sudo docker compose exec -T db sh /docker-entrypoint-initdb.d/10-app.sh
+```
+
+Este ajuste idempotente conserva tablas y volúmenes, aplica el secreto existente al usuario `foodtrucks` sin privilegios de administración y repara los permisos de tablas actuales y futuras. No imprime la contraseña ni la pasa como argumento de proceso. `docker compose exec` omite el entrypoint del contenedor; para comandos Artisan que necesiten los secretos usa `sudo docker compose exec -T api foodtrucks-entrypoint php artisan ...` o `docker compose run`.
+
 Revisión por operador SSH (actor declarado, con auditoría y versión obligatorias):
 
 ```sh
