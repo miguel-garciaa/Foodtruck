@@ -66,13 +66,15 @@ jobs:
           docker compose build
           docker compose up -d --no-build --wait --wait-timeout 120
           curl --fail --retry 5 --retry-delay 2 http://127.0.0.1:8080/up
+          curl --fail --silent -H 'Accept: application/json' http://127.0.0.1:8080/api/v1/foodtrucks
+          docker compose exec -T api foodtrucks-entrypoint php artisan foodtrucks:outbox
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/v1/me)" = 401
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/.env)" = 404
       - name: Diagnose stack startup failure
         if: failure()
         run: |
           docker compose ps -a
-          docker compose logs --tail=50 caddy migrate api worker scheduler
+          docker compose logs --tail=250 caddy migrate api worker scheduler
       - name: Stop isolated CI containers
         if: always()
         run: docker compose down

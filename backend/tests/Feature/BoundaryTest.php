@@ -10,6 +10,13 @@ class BoundaryTest extends TestCase
     {
         $this->getJson('/api/v1/me')->assertUnauthorized()->assertJsonPath('code', 'unauthorized');
         $this->getJson('/api/v1/merchant/foodtrucks')->assertUnauthorized();
+        $this->get('/api/v1/me')->assertUnauthorized()->assertJsonPath('code', 'unauthorized');
+    }
+
+    public function test_health_supports_both_http_and_json_clients(): void
+    {
+        $this->get('/up')->assertOk();
+        $this->getJson('/up')->assertOk()->assertJsonPath('status', 'up');
     }
 
     public function test_input_errors_have_a_stable_api_shape(): void

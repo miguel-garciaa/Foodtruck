@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 umask 077
+mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views
 if [ -n "${DB_PASSWORD_FILE:-}" ]; then
     DB_PASSWORD="$(cat "$DB_PASSWORD_FILE")"
     export DB_PASSWORD
