@@ -46,7 +46,11 @@
     "doctor": "expo-doctor",
     "test": "node --experimental-strip-types --test src/features/discovery/catalog.test.ts",
     "format": "prettier --write src plugins app.json package.json tsconfig.json eslint.config.cjs .prettierrc.json",
-    "format:check": "prettier --check src plugins app.json package.json tsconfig.json eslint.config.cjs .prettierrc.json"
+    "format:check": "prettier --check src plugins app.json package.json tsconfig.json eslint.config.cjs .prettierrc.json",
+    "postinstall": "node scripts/dependency-patches.mjs",
+    "security:check": "node scripts/dependency-patches.mjs --check",
+    "security:test": "node --test scripts/dependency-security.test.mjs",
+    "security:audit": "npm run security:check && npm run security:test && node scripts/audit-security.mjs"
   },
   "private": true,
   "packageManager": "npm@11.11.0",
@@ -54,5 +58,10 @@
     "node": "^24.3.0",
     "npm": "^11.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "xcode": {
+      "uuid": "11.1.1"
+    }
+  }
 }

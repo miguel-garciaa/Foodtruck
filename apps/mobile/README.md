@@ -97,13 +97,13 @@ Las pruebas unitarias cubren la lógica nueva de filtrado/favoritos; no se añad
 
 Evidencia local ignorada: `artifacts/android-debug-build.log`, `artifacts/npm-audit.json` y capturas/XML citados por QA. APK debug: `android/app/build/outputs/apk/debug/app-debug.apk`, SHA-256 `cd734aa0f4c0526781bce7e963f37d48c75e892c5c86b2226967767d0387d35c`. No es un artefacto de release ni contiene un bundle autónomo de producción.
 
-### Dependencias y avisos pendientes
+### Dependencias y seguridad
 
-`npm audit`: **28 entradas (20 altas, 8 moderadas, 0 críticas)**, incluidas propagaciones Expo/React Native; no son 28 defectos independientes de esta pantalla. Causas: [braces](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), [node-forge](https://github.com/advisories/GHSA-86w9-cpqp-85rv) y [uuid](https://github.com/advisories/GHSA-w5hq-g745-h8pq).
+La revisión del 22/10/2026 incorpora parches locales verificados para braces 3.0.3 y node-forge 1.4.0, cuyos avisos aún no tienen release oficial corregida. uuid se actualiza a 11.1.1 mediante un override limitado a xcode. Instalación: `npm ci`; comprobación completa: `npm run security:audit`.
 
-Braces llega por micromatch/Metro (patrones de archivos); node-forge por tooling de certificados/firma Expo; uuid por xcode/config plugins. El alcance examinado es tooling, sin entradas remotas de negocio en esta base. La revisión completa de explotabilidad está pendiente: no se declara riesgo aceptado ni seguridad de producción. Mantener Metro local y usar fuentes de confianza limita la exposición de desarrollo.
+La [guía de seguridad de dependencias](security/README.md) explica el código aplicado, fuentes, regresiones, límites y revisión obligatoria antes del 21/11/2026. `npm audit` conserva los avisos de las versiones originales: el gate solo considera resueltos los dos identificadores cuyo código parcheado ha verificado y bloquea cualquier otro alto/crítico pendiente. CI también comprueba compatibilidad Expo y el bundle Android; el resultado vigente se consulta por SHA en la PR.
 
-`npm audit fix --dry-run` no resolvió el conjunto con cambios compatibles; npm proponía bajar Expo a 44 y React Native a 0.72. No se aplicó `--force` ni overrides de majors sin validar. Braces 3.0.3 y node-forge 1.4.0 eran las últimas versiones consultadas y seguían señaladas. Resolver con actualizaciones compatibles y repetir QA antes de una release; el gate de seguridad queda pendiente. ESLint 9 avisa de fin de soporte; eslint-plugin-react 7.37.5 y eslint-plugin-import 2.32.0 todavía declaran peers hasta ESLint 9. No se forzó ESLint 10 rompiendo ese contrato.
+ESLint 9 avisa de fin de soporte; eslint-plugin-react 7.37.5 y eslint-plugin-import 2.32.0 todavía declaran peers hasta ESLint 9. No se fuerza ESLint 10 rompiendo ese contrato.
 
 ## Recursos y decisiones visuales
 

@@ -1,0 +1,110 @@
+[
+  {
+    "package": "braces",
+    "version": "3.0.3",
+    "advisory": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+    "source": "https://github.com/micromatch/braces/pull/78",
+    "reviewBy": "2026-11-21",
+    "files": [
+      {
+        "path": "lib/compile.js",
+        "originalGitBlob": "dce69beb90ece5c3b0ca234a949418f9f34eedbc",
+        "replacements": [
+          {
+            "before": "const utils = require('./utils');\n\nconst compile = (ast, options = {}) => {\n  const walk = (node, parent = {}) => {\n    const invalidBlock = utils.isInvalidBrace(parent);\n    const invalidNode = node.invalid === true && options.escapeInvalid === true;\n    const invalid = invalidBlock === true || invalidNode === true;\n",
+            "after": "const utils = require('./utils');\n\nconst compile = (ast, options = {}) => {\n  const walk = (node, parent = {}, depth = 0) => {\n    utils.assertDepth(depth);\n    const invalidBlock = utils.isInvalidBrace(parent);\n    const invalidNode = node.invalid === true && options.escapeInvalid === true;\n    const invalid = invalidBlock === true || invalidNode === true;\n"
+          },
+          {
+            "before": "\n    if (node.nodes) {\n      for (const child of node.nodes) {\n        output += walk(child, node);\n      }\n    }\n\n",
+            "after": "\n    if (node.nodes) {\n      for (const child of node.nodes) {\n        output += walk(child, node, depth + 1);\n      }\n    }\n\n"
+          }
+        ]
+      },
+      {
+        "path": "lib/constants.js",
+        "originalGitBlob": "2bb3b8840382c56700869b3a9e1f958fcce01efd",
+        "replacements": [
+          {
+            "before": "\nmodule.exports = {\n  MAX_LENGTH: 10000,\n\n  // Digits\n  CHAR_0: '0', /* 0 */\n",
+            "after": "\nmodule.exports = {\n  MAX_LENGTH: 10000,\n  MAX_AST_DEPTH: 100,\n\n  // Digits\n  CHAR_0: '0', /* 0 */\n"
+          }
+        ]
+      },
+      {
+        "path": "lib/expand.js",
+        "originalGitBlob": "35b2c41d6afdb8f0197959e26079f266e48370d3",
+        "replacements": [
+          {
+            "before": "const expand = (ast, options = {}) => {\n  const rangeLimit = options.rangeLimit === undefined ? 1000 : options.rangeLimit;\n\n  const walk = (node, parent = {}) => {\n    node.queue = [];\n\n    let p = parent;\n",
+            "after": "const expand = (ast, options = {}) => {\n  const rangeLimit = options.rangeLimit === undefined ? 1000 : options.rangeLimit;\n\n  const walk = (node, parent = {}, depth = 0) => {\n    utils.assertDepth(depth);\n    node.queue = [];\n\n    let p = parent;\n"
+          },
+          {
+            "before": "      }\n\n      if (child.nodes) {\n        walk(child, node);\n      }\n    }\n\n",
+            "after": "      }\n\n      if (child.nodes) {\n        walk(child, node, depth + 1);\n      }\n    }\n\n"
+          }
+        ]
+      },
+      {
+        "path": "lib/parse.js",
+        "originalGitBlob": "3a6988e629f52aee6609dc5ec290a5e9ff47cecb",
+        "replacements": [
+          {
+            "before": "'use strict';\n\nconst stringify = require('./stringify');\n\n/**\n * Constants\n",
+            "after": "'use strict';\n\nconst stringify = require('./stringify');\nconst utils = require('./utils');\n\n/**\n * Constants\n"
+          },
+          {
+            "before": "     */\n\n    if (value === CHAR_LEFT_PARENTHESES) {\n      block = push({ type: 'paren', nodes: [] });\n      stack.push(block);\n      push({ type: 'text', value });\n",
+            "after": "     */\n\n    if (value === CHAR_LEFT_PARENTHESES) {\n      utils.assertDepth(stack.length);\n      block = push({ type: 'paren', nodes: [] });\n      stack.push(block);\n      push({ type: 'text', value });\n"
+          },
+          {
+            "before": "     */\n\n    if (value === CHAR_LEFT_CURLY_BRACE) {\n      depth++;\n\n      const dollar = prev.value && prev.value.slice(-1) === '$' || block.dollar === true;\n",
+            "after": "     */\n\n    if (value === CHAR_LEFT_CURLY_BRACE) {\n      utils.assertDepth(stack.length);\n      depth++;\n\n      const dollar = prev.value && prev.value.slice(-1) === '$' || block.dollar === true;\n"
+          }
+        ]
+      },
+      {
+        "path": "lib/stringify.js",
+        "originalGitBlob": "8bcf872c31894f81a8c64d9202fd607e4fd7ea2b",
+        "replacements": [
+          {
+            "before": "const utils = require('./utils');\n\nmodule.exports = (ast, options = {}) => {\n  const stringify = (node, parent = {}) => {\n    const invalidBlock = options.escapeInvalid && utils.isInvalidBrace(parent);\n    const invalidNode = node.invalid === true && options.escapeInvalid === true;\n    let output = '';\n",
+            "after": "const utils = require('./utils');\n\nmodule.exports = (ast, options = {}) => {\n  const stringify = (node, parent = {}, depth = 0) => {\n    utils.assertDepth(depth);\n    const invalidBlock = options.escapeInvalid && utils.isInvalidBrace(parent);\n    const invalidNode = node.invalid === true && options.escapeInvalid === true;\n    let output = '';\n"
+          },
+          {
+            "before": "\n    if (node.nodes) {\n      for (const child of node.nodes) {\n        output += stringify(child);\n      }\n    }\n    return output;\n",
+            "after": "\n    if (node.nodes) {\n      for (const child of node.nodes) {\n        output += stringify(child, {}, depth + 1);\n      }\n    }\n    return output;\n"
+          }
+        ]
+      },
+      {
+        "path": "lib/utils.js",
+        "originalGitBlob": "d19311fe044ad5157624077670dc297e8b53da49",
+        "replacements": [
+          {
+            "before": "'use strict';\n\nexports.isInteger = num => {\n  if (typeof num === 'number') {\n    return Number.isInteger(num);\n",
+            "after": "'use strict';\n\nconst { MAX_AST_DEPTH } = require('./constants');\n\n// Bound parser nesting and direct AST callers before recursive walkers run.\nexports.assertDepth = depth => {\n  if (depth > MAX_AST_DEPTH) {\n    throw new SyntaxError('AST nesting depth exceeds the maximum of ' + MAX_AST_DEPTH);\n  }\n};\n\nexports.isInteger = num => {\n  if (typeof num === 'number') {\n    return Number.isInteger(num);\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "package": "node-forge",
+    "version": "1.4.0",
+    "advisory": "https://github.com/advisories/GHSA-86w9-cpqp-85rv",
+    "source": "https://github.com/digitalbazaar/forge/pull/1152",
+    "reviewBy": "2026-11-21",
+    "files": [
+      {
+        "path": "lib/rsa.js",
+        "originalGitBlob": "a4264822b4dcd6dca44ca3e59e410c982eed7183",
+        "replacements": [
+          {
+            "before": "            parseAllBytes: options._parseAllDigestBytes\n          });\n\n          // validate DigestInfo structure and element count\n          var capture = {};\n          var errors = [];\n          if(!asn1.validate(obj, digestInfoValidator, capture, errors) ||\n            obj.value.length !== 2) {\n            var error = new Error(\n              'ASN.1 object does not contain a valid RSASSA-PKCS1-v1_5 ' +\n              'DigestInfo value.');\n",
+            "after": "            parseAllBytes: options._parseAllDigestBytes\n          });\n\n          // validate DigestInfo structure and element counts (outer DigestInfo\n          // and nested DigestAlgorithm). asn1.validate ignores extra children,\n          // so length must be checked explicitly at each nesting level to\n          // prevent low-exponent PKCS#1 v1.5 signature forgery (CVE-2026-85393).\n          var capture = {};\n          var errors = [];\n          if(!asn1.validate(obj, digestInfoValidator, capture, errors) ||\n            obj.value.length !== 2 ||\n            obj.value[0].value.length !==\n              (('parameters' in capture) ? 2 : 1)) {\n            var error = new Error(\n              'ASN.1 object does not contain a valid RSASSA-PKCS1-v1_5 ' +\n              'DigestInfo value.');\n"
+          }
+        ]
+      }
+    ]
+  }
+]
