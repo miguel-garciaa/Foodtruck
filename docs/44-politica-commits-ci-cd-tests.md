@@ -2,7 +2,7 @@
 
 **Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
 
-**Consolidación:** 20 de octubre de 2026. Fuente canónica del ciclo de cambios, controles CI y promoción. Política documentada; aplicación, Git/remoto, workflows y ejecución **NO VERIFICADOS**. [21](21-entornos-ci-cd.md) define entornos, [40](40-testing-qa-github.md) desarrolla pruebas y [DevOps](devops/README.md) ofrece procedimientos. Los detalles de implementación siguen siendo propuestas hasta verificarlos en el repositorio real.
+**Consolidación:** 20 de octubre de 2026. Fuente canónica del ciclo de cambios, controles CI y promoción. **Comprobación del 22/10/2026:** existen código Laravel/móvil, Git/remoto y ejecuciones de `.github/workflows/dev.yml`; esto no acredita que todas sus comprobaciones pasen. El resultado se verifica por SHA. [21](21-entornos-ci-cd.md) define entornos, [40](40-testing-qa-github.md) desarrolla pruebas y [DevOps](devops/README.md) ofrece procedimientos. Los controles adicionales siguientes conservan su condición de propuesta hasta implementarse y verificarse.
 
 ## 1. Objetivo, decisiones y autoridad
 
@@ -21,8 +21,8 @@ No imprimir `.env` ni crear módulos, infraestructura, versiones o comandos para
 1. Definir una unidad revisable de funcionalidad, corrección, configuración o documentación; no un commit por guardado ni agrupaciones de cambios independientes.
 2. Implementar junto con contratos/documentación y evaluar pruebas según §4; respetar cambios ajenos y datos privados.
 3. Ejecutar formato/lint/análisis/tests/build aplicables. Revisar status, diff y `diff --check`, permisos, secretos y archivos generados. Corregir fallos propios y hooks; no `--no-verify`, `[skip ci]` ni rebajar assertions/checks.
-4. Añadir solo archivos propios previstos, crear commit atómico e inspeccionar el commit final. Conventional Commits: feat/fix/test/ci/build/refactor/perf/docs/chore; `security` solo si el tooling lo admite, o `fix(security)`. Asunto específico; cuerpo con motivo/impacto/validación real cuando aporte.
-5. Con remoto/acceso autorizado, verificar origin/base/branch y actualizar refs sin sobrescribir trabajo; hacer push de la rama tras el bloque, sin volver a pedir permiso ya concedido. Abrir/actualizar la misma PR y adjuntarla al chat cuando exista.
+4. Añadir solo archivos propios previstos, crear commit atómico e inspeccionar el commit final. Conventional Commits: feat/fix/test/ci/build/refactor/perf/docs/chore; `security` solo si el tooling lo admite, o `fix(security)`. Asunto específico y explicativo en español, por ejemplo `fix(api): corregir acceso sin iniciar sesión`; cuerpo con motivo, impacto y validación realmente ejecutada, indicando límites o fallos pendientes. No reescribir commits anteriores para traducirlos.
+5. Con remoto/acceso autorizado, verificar origin/base/branch y actualizar refs sin sobrescribir trabajo; hacer push de la rama tras el bloque, sin volver a pedir permiso ya concedido. Abrir una PR borrador con la primera subida o actualizar la misma PR y adjuntarla al chat. Una rama de trabajo sin PR todavía no tiene la validación remota configurada: no cerrar el bloque hasta crearla y comprobar su SHA.
 6. Registrar SHA, origen y check esperado; observar CI de esa revisión. Si falla, investigar/corregir y cerrar otro bloque con pruebas, commit/push y CI nueva.
 7. Informar resultado y límites con evidencia. Sin Git/remoto/acceso, marcar commit/push/CI NO VERIFICADO y explicar la causa; no inicializar Git ni inventar hashes para aparentar trazabilidad.
 
@@ -51,7 +51,7 @@ Reutilizar workflows reales. Base propuesta: coordinador `ci.yml`, detección de
 
 | Responsabilidad futura | Eventos y condiciones | Resultado |
 | --- | --- | --- |
-| CI coordinada: Go, web, móvil, documentación y seguridad aplicable | Push a ramas de trabajo/integración; PR a rama protegida; manual | Evidencia por SHA, selección de componentes y `ci-gate` estable |
+| CI coordinada: backend, web, móvil, documentación y seguridad aplicable | PR de ramas de trabajo; push solo a main para comprobar el integrado; manual si se configura | Evidencia por SHA, selección de componentes y `ci-gate` estable, evitando duplicar push y PR |
 | Reusable por componente, si aporta valor | `workflow_call` desde coordinador; entradas y secretos explícitos | Contrato de checks sin duplicar activaciones |
 | Seguridad periódica/Dependabot | Programación acotada y manual; cambios de dependencias en CI | Informe y gestión de hallazgos, sin acceso a producción |
 | Construcción y publicación GHCR | Commit integrado de rama protegida después de CI; release/manual confiable | Imágenes escaneadas y digests asociados al commit |
@@ -74,6 +74,18 @@ La siguiente selección por rutas es propuesta y debe adaptarse al monorepo real
 El detector publica un plan verificable de jobs/checks; ninguna omisión pedida por código de PR puede reducir controles o conceder privilegios. No filtrar solo por carpeta de pantalla. El workflow requerido se activa para todos los eventos/ramas exigidos; la selección ocurre dentro del workflow, sin filtros que impidan crear el check.
 
 Rama principal protegida, ramas descriptivas y PR son la base propuesta. No crear `develop` por suposición; conservarlo si ya tiene función aprobada. Revisión proporcional, resolución de conversaciones, checks y owners se configuran con permisos y plan reales, sin bypass, borrado o force-push indiscriminados. Si se adopta merge queue, incluir `merge_group` y comprobar su candidato. [Rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets).
+
+### Avisos comprensibles y configuración vigente
+
+El workflow `Pruebas de Foodtrucks` conserva las comprobaciones de secretos, backend/servidor, app y dependencias móviles. Se ejecuta en PR, incluidas las borradoras, y en push a `main`; no en el push de la misma rama de trabajo. Un bloque coherente se sube una vez cuando termina su validación local aplicable. Una nueva subida cancela la CI anterior de esa PR; una cancelación no acredita éxito.
+
+Los nombres de trabajos/pasos y los nuevos títulos de commits/PR se escriben en español. El job `ci-gate` publica un resumen con cambio, commit enviado, revisión comprobada, propósito y resultado de cada comprobación, paso fallido enlazado y límites de cobertura. No obtiene registros completos ni imprime credenciales. Si falta una comprobación o el detalle necesario, el resultado general no puede ser verde. Los casos del informe se ejecutan con `node --test .github/tests/ci-report.test.mjs` y forman parte de CI.
+
+Se usan los correos nativos de GitHub, con un aviso principal por ejecución y explicación al abrir su enlace, sin nuevo servicio de envío. La plantilla y parte del idioma del email dependen de GitHub. Para recibir también éxitos, la cuenta debe tener Email activado en Actions y no limitarlo a fallos; comprobarlo en [notificaciones](https://github.com/settings/notifications), sin cambiar otras suscripciones por inferencia. Las PR, comentarios y apps tienen avisos independientes.
+
+ECC se conserva. Sus comentarios del 22/10 indican que la publicación de checks no está disponible o fue denegada. Revisar la solicitud concreta de `Checks: read and write` en su instalación y verificar después si desaparecen los seis comentarios por actualización. No ampliar otros permisos, desinstalar, silenciar hallazgos ni prometer que cambiar el YAML controla una app externa. Mientras no se pueda verificar, registrar esa reducción de avisos como pendiente. Las skills ECC locales y la app remota son componentes distintos; el resultado general de este workflow no incorpora las auditorías de ECC.
+
+Revisión de la cuenta del 22/10: el listado de apps no mostraba una solicitud pendiente de permisos para ECC; abrir su configuración exige confirmar acceso en GitHub. No se han cambiado sus permisos ni detenido sus auditorías. Actions tenía avisos solo de fallos; se ha activado también el aviso de éxitos solicitado. Esta preferencia de notificación es global para la cuenta.
 
 ## 6. Gate obligatorio y revisión exacta
 
