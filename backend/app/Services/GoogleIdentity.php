@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Firebase\JWT\JWK;
+use Firebase\JWT\JWT;
 use Google\Auth\OAuth2;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -18,10 +19,17 @@ class GoogleIdentity
 
             return $response->json();
         });
+        $previousLeeway = JWT::$leeway;
         try {
-            $claims = (new OAuth2(['audience' => config('foodtrucks.google_client_id'), 'idToken' => $token]))->verifyIdToken(JWK::parseKeySet($keys, 'RS256'));
+            // Google and the verifier may differ by a few seconds; keep the tolerance scoped here.
+            JWT::$leeway = 60;
+            $verifier = new OAuth2(['audience' => config('foodtrucks.google_client_id')]);
+            $verifier->setIdToken($token);
+            $claims = $verifier->verifyIdToken(JWK::parseKeySet($keys, 'RS256'));
         } catch (\Throwable) {
             abort(401, 'La identificación de Google no es válida.');
+        } finally {
+            JWT::$leeway = $previousLeeway;
         }
         abort_unless($claims && in_array($claims->iss ?? '', ['accounts.google.com', 'https://accounts.google.com'], true) && ($claims->email_verified ?? false) === true && is_string($claims->sub ?? null) && strlen($claims->sub) <= 255 && filter_var($claims->email ?? '', FILTER_VALIDATE_EMAIL) && is_string($claims->nonce ?? null), 401, 'La identificación de Google no es válida.');
 

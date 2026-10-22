@@ -6,7 +6,7 @@
     "@expo/ui": "~58.0.22",
     "@expo/vector-icons": "^15.0.2",
     "@rnmapbox/maps": "^10.3.11",
-    "expo": "~58.0.16",
+    "expo": "~58.0.17",
     "expo-constants": "~58.0.12",
     "expo-crypto": "~58.0.7",
     "expo-dev-client": "~58.0.14",
@@ -45,8 +45,12 @@
     "check:dependencies": "expo install --check",
     "doctor": "expo-doctor",
     "test": "node --experimental-strip-types --test src/features/discovery/catalog.test.ts",
-    "format": "prettier --write src plugins app.json app.config.ts package.json tsconfig.json eslint.config.cjs .prettierrc.json",
-    "format:check": "prettier --check src plugins app.json app.config.ts package.json tsconfig.json eslint.config.cjs .prettierrc.json"
+    "format": "prettier --write src plugins scripts/*.mjs security/*.json app.json app.config.ts package.json tsconfig.json eslint.config.cjs .prettierrc.json",
+    "format:check": "prettier --check src plugins scripts/*.mjs security/*.json app.json app.config.ts package.json tsconfig.json eslint.config.cjs .prettierrc.json",
+    "postinstall": "node scripts/dependency-patches.mjs",
+    "security:check": "node scripts/dependency-patches.mjs --check",
+    "security:test": "node --test scripts/dependency-security.test.mjs",
+    "security:audit": "npm run security:check && npm run security:test && node scripts/audit-security.mjs"
   },
   "private": true,
   "packageManager": "npm@11.11.0",
