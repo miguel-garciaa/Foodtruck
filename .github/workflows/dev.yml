@@ -128,7 +128,7 @@ jobs:
           cp package.json package-lock.json app.json "$dependency_workspace/"
           ln -s "$GITHUB_WORKSPACE/apps/mobile/node_modules" "$dependency_workspace/node_modules"
           cd "$dependency_workspace"
-          node "$GITHUB_WORKSPACE/apps/mobile/node_modules/expo/bin/cli" install --fix -- --package-lock-only --ignore-scripts
+          npm install --package-lock-only --ignore-scripts "@expo/ui@~58.0.22" "expo@~58.0.17" "expo-linking@~58.0.14" "expo-router@~58.0.25" "expo-splash-screen@~58.0.11" "expo-status-bar@~58.0.4"
           node --input-type=module <<'DEPENDENCY_DATA'
           import { readFileSync } from 'node:fs';
           const original = JSON.parse(readFileSync(process.env.GITHUB_WORKSPACE + '/apps/mobile/package-lock.json'));
