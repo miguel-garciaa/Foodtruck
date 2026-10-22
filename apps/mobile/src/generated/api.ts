@@ -2557,6 +2557,8 @@ export interface operations {
         maxPriceCents?: number;
         minRating?: 0 | 4 | 4.5;
         bbox?: string;
+        /** @description Hasta 100 UUID separados por comas; combina con los demás filtros y solo devuelve anuncios públicos. */
+        ids?: string;
       };
       header?: never;
       path?: never;

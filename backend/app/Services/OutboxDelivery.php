@@ -57,7 +57,7 @@ class OutboxDelivery
             if (! $active) {
                 continue;
             }
-            $response = Http::withToken($access)->connectTimeout(3)->timeout(8)->post('https://fcm.googleapis.com/v1/projects/'.config('foodtrucks.fcm_project').'/messages:send', ['message' => ['token' => Crypt::decryptString($device->token_cipher), 'notification' => ['title' => 'Foodtrucks', 'body' => 'Tienes una actualización en tu cuenta.'], 'data' => ['eventId' => $event->id, 'truckId' => $payload['truckId'] ?? ''], 'android' => ['ttl' => '600s', 'notification' => ['channel_id' => 'account', 'tag' => $event->id]]]]);
+            $response = Http::withToken($access)->connectTimeout(3)->timeout(8)->post('https://fcm.googleapis.com/v1/projects/'.config('foodtrucks.fcm_project').'/messages:send', ['message' => ['token' => Crypt::decryptString($device->token_cipher), 'notification' => ['title' => 'Foodtrucks', 'body' => 'Tienes una actualización en tu cuenta.'], 'data' => ['eventId' => $event->id, 'userId' => $user->id, 'truckId' => $payload['truckId'] ?? ''], 'android' => ['ttl' => '600s', 'notification' => ['channel_id' => 'account', 'tag' => $event->id]]]]);
             $invalid = collect($response->json('error.details', []))->contains(fn ($detail) => ($detail['errorCode'] ?? '') === 'UNREGISTERED');
             if ($invalid) {
                 DB::table('devices')->where('installation_id', $device->installation_id)->where('token_hash', $device->token_hash)->delete();

@@ -56,4 +56,18 @@ class ListingsTest extends PostgresTestCase
         $this->getJson('/api/v1/foodtrucks?minPriceCents=501')->assertJsonCount(0, 'items');
         $this->getJson('/api/v1/foodtrucks?locality=Toledo')->assertJsonCount(0, 'items');
     }
+
+    public function test_favorite_ids_are_bounded_validated_and_never_expose_drafts(): void
+    {
+        $owner = User::factory()->create();
+        $public = new FoodTruck;
+        $public->forceFill(['owner_id' => $owner->id, 'draft' => $this->draft(), 'published' => $this->draft(), 'version' => 1, 'status' => 'published', 'starting_price_cents' => 500])->save();
+        $private = new FoodTruck;
+        $private->forceFill(['owner_id' => $owner->id, 'draft' => $this->draft(), 'version' => 1, 'status' => 'draft'])->save();
+        $this->getJson('/api/v1/foodtrucks?ids='.$public->id.','.$private->id)->assertOk()->assertJsonCount(1, 'items')->assertJsonPath('items.0.id', $public->id);
+        $this->getJson('/api/v1/foodtrucks?ids=not-a-uuid')->assertUnprocessable();
+        $this->getJson('/api/v1/foodtrucks?ids[]='.$public->id)->assertUnprocessable();
+        $this->getJson('/api/v1/foodtrucks?ids='.$public->id.','.$public->id)->assertUnprocessable();
+        $this->getJson('/api/v1/foodtrucks?ids='.implode(',', array_map(fn () => (string) Str::uuid(), range(1, 101))))->assertUnprocessable();
+    }
 }

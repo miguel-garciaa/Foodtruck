@@ -28,6 +28,12 @@ class TruckController extends Controller
             throw ValidationException::withMessages(['maxPriceCents' => ['El máximo debe ser igual o superior al mínimo.']]);
         }
         $query = $this->published();
+        $selection = $request->validate(['ids' => ['sometimes', 'string', 'max:3699']]);
+        if ($request->has('ids')) {
+            $ids = explode(',', $selection['ids']);
+            validator(['ids' => $ids], ['ids' => ['required', 'array', 'min:1', 'max:100'], 'ids.*' => ['required', 'uuid', 'distinct']])->validate();
+            $query->whereIn('id', $ids);
+        }
         if (isset($data['q']) && $data['q'] !== '') {
             $query->whereRaw("strpos(lower(unaccent(concat_ws(' ', published->>'name', published->>'description', published->>'locality', published->>'province'))), lower(unaccent(?))) > 0", [$data['q']]);
         }
