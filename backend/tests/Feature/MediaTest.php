@@ -19,7 +19,8 @@ class MediaTest extends PostgresTestCase
         ob_start();
         imagepng($image);
         $bytes = ob_get_clean().'synthetic-private-metadata';
-        $response = $this->withToken($session['accessToken'])->call('POST', '/api/v1/me/media', [], [], [], ['CONTENT_TYPE' => 'image/png', 'HTTP_ACCEPT' => 'application/json'], $bytes);
+        $this->withToken($session['accessToken']);
+        $response = $this->call('POST', '/api/v1/me/media', [], [], [], $this->transformHeadersToServerVars(['Content-Type' => 'image/png', 'Accept' => 'application/json']), $bytes);
         $id = $response->assertCreated()->json('id');
         $stored = Storage::disk('local')->get('media/'.$id.'.jpg');
         $this->assertSame('image/jpeg', (new \finfo(FILEINFO_MIME_TYPE))->buffer($stored));
@@ -39,8 +40,9 @@ class MediaTest extends PostgresTestCase
         Storage::fake('local');
         $owner = User::factory()->create();
         $session = DB::transaction(fn () => app(Sessions::class)->issue($owner));
-        $this->withToken($session['accessToken'])->call('POST', '/api/v1/me/media', [], [], [], ['CONTENT_TYPE' => 'image/jpeg', 'HTTP_ACCEPT' => 'application/json'], '<svg xmlns="http://www.w3.org/2000/svg"></svg>')->assertUnprocessable();
-        $this->call('POST', '/api/v1/me/media', [], [], [], ['CONTENT_TYPE' => 'image/jpeg', 'HTTP_ACCEPT' => 'application/json'], str_repeat('x', 8 * 1024 * 1024 + 1))->assertStatus(413);
+        $this->withToken($session['accessToken']);
+        $this->call('POST', '/api/v1/me/media', [], [], [], $this->transformHeadersToServerVars(['Content-Type' => 'image/jpeg', 'Accept' => 'application/json']), '<svg xmlns="http://www.w3.org/2000/svg"></svg>')->assertUnprocessable();
+        $this->call('POST', '/api/v1/me/media', [], [], [], $this->transformHeadersToServerVars(['Content-Type' => 'image/jpeg', 'Accept' => 'application/json']), str_repeat('x', 8 * 1024 * 1024 + 1))->assertStatus(413);
         $this->assertDatabaseCount('media_assets', 0);
         $this->assertSame([], Storage::disk('local')->allFiles('media'));
     }
