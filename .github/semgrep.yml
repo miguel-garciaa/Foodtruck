@@ -15,7 +15,7 @@ rules:
           - focus-metavariable: $SQL
           - metavariable-regex:
               metavariable: $METHOD
-              regex: '^(select|statement|unprepared|update|delete|insert)$'
+              regex: "^(select|statement|unprepared|update|delete|insert)$"
   - id: php-command-input
     languages: [php]
     severity: ERROR

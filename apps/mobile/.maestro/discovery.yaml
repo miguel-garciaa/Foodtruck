@@ -1,9 +1,11 @@
-appId: com.foodtrucks.dev
+appId: ${APP_ID}
 name: Arranque, búsqueda, filtros, favoritos y navegación
 ---
 - launchApp:
     clearState: true
-- assertVisible: Buscar foodtrucks, comida o zona
+- extendedWaitUntil:
+    visible: Buscar foodtrucks, comida o zona
+    timeout: 60000
 - tapOn: Buscar foodtrucks, comida o zona
 - inputText: taco
 - hideKeyboard
@@ -18,8 +20,13 @@ name: Arranque, búsqueda, filtros, favoritos y navegación
 - tapOn: 'Ver .* resultados'
 - tapOn: 'Guardar Brasa sobre ruedas en favoritos'
 - tapOn: Ver favoritos
+- assertVisible: '.*1 foodtruck guardado.*'
+- tapOn: Ver 1 paradas guardadas
 - assertVisible: 'Ver Brasa sobre ruedas.*'
 - back
 - tapOn: Perfil
 - assertVisible: Mis favoritos
-- assertVisible: '.*Sin cuenta iniciada.*'
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Sin cuenta iniciada.*'
+    direction: DOWN

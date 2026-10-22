@@ -35,6 +35,10 @@ class OperationError(RuntimeError):
     pass
 
 
+class OperationBusy(OperationError):
+    pass
+
+
 def atomic(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -159,18 +163,20 @@ class Ops:
             env['FOODTRUCKS_IMAGE'] = image
         elif (self.state / 'current.json').exists():
             env['FOODTRUCKS_IMAGE'] = load(self.state / 'current.json')['image']
+        else:
+            env['FOODTRUCKS_IMAGE'] = self.config.get('bootstrapImage', 'foodtrucks-dev:local')
         return self.run(['docker', 'compose', '--project-directory', str(self.root), '-p', 'foodtrucks-dev',
                          '-f', str(self.root / 'compose.yaml'), '-f', str(self.root / 'compose.tunnel.yaml'),
                          '-f', str(self.root / 'compose.release.yaml'), *args], env=env, **kwargs)
 
     @contextlib.contextmanager
-    def lock(self):
+    def lock(self, name='operations', wait=False):
         import fcntl
-        with (self.state / 'operations.lock').open('a') as handle:
+        with (self.state / (name + '.lock')).open('a') as handle:
             try:
-                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(handle, fcntl.LOCK_EX | (0 if wait else fcntl.LOCK_NB))
             except BlockingIOError as error:
-                raise OperationError('Otra operación está en curso') from error
+                raise OperationBusy('Otra operación está en curso') from error
             yield
 
     def api(self, path, body=None):
@@ -178,6 +184,10 @@ class Ops:
                        self.secret('githubToken'), body)
 
     def alert(self, family, healthy, immediate=False, test=False):
+        with self.lock('alarm-' + family, wait=True):
+            self._alert(family, healthy, immediate, test)
+
+    def _alert(self, family, healthy, immediate=False, test=False):
         now = int(time.time())
         path = self.state / ('alarms-test' if test else 'alarms') / (family + '.json')
         state = load(path, {})
@@ -192,9 +202,11 @@ class Ops:
         title, impact, action = FAMILIES[family]
         label = {'incidencia': 'ALERTA', 'recordatorio': 'RECORDATORIO', 'recuperacion': 'RECUPERACIÓN'}[event['kind']]
         current = load(self.state / 'current.json', {})
-        body = {'from': self.config['mailFrom'], 'to': [self.config['alertTo']],
+        body = event.get('mail') or {'from': self.config['mailFrom'], 'to': [self.config['alertTo']],
                 'subject': f"{'[PRUEBA] ' if test else ''}[Foodtrucks DEV] {label}: {title}",
-                'text': f"Entorno: DEV\nSeñal: {title}\nHora de Madrid: {dt.datetime.now(ZoneInfo('Europe/Madrid')).isoformat()}\nRelease: {current.get('sha', 'no disponible')}\nImpacto: {'Servicio recuperado.' if event['kind'] == 'recuperacion' else impact}\nAcción: {action}\n"}
+                'text': f"Entorno: DEV\nSeñal: {title}\nHora de Madrid: {dt.datetime.fromtimestamp(event['created'], ZoneInfo('Europe/Madrid')).isoformat()}\nRelease: {current.get('sha', 'no disponible')}\nImpacto: {'Servicio recuperado.' if event['kind'] == 'recuperacion' else impact}\nAcción: {action}\n"}
+        event['mail'] = body
+        atomic(path, state)
         key = f"foodtrucks-{'test-' if test else ''}{family}-{event['incident']}-{event['kind']}-{event['day']}"
         request('https://api.resend.com/emails', self.secret('resendToken'), body, {'Idempotency-Key': key})
         state.pop('pending')
@@ -231,6 +243,9 @@ class Ops:
             with (scratch / name).open('rb') as source:
                 files[name] = hashlib.file_digest(source, 'sha256').hexdigest()
         atomic(scratch / 'files.json', files)
+        counts = self.compose('exec', '-T', 'db', 'psql', '-U', 'foodtrucks_migrator', '-d', 'foodtrucks', '-Atc',
+                              "SELECT json_build_object('migrations',count(*)) FROM migrations")
+        atomic(scratch / 'counts.json', json.loads(counts))
         # Include secrets encrypted by Restic: APP_KEY is required to recover encrypted outbox/tokens.
         paths = [str(scratch), str(self.root / '.private'), str(self.root / 'compose.yaml')]
         if (self.state / 'current.json').exists():
@@ -346,7 +361,7 @@ class Ops:
         self.alert('services', healthy)
         if healthy:
             value = self.compose('exec', '-T', 'db', 'psql', '-U', 'foodtrucks_migrator', '-d', 'foodtrucks', '-Atc',
-                                 "SELECT count(*) FROM outbox_events WHERE status = 'pending' AND (available_at < now() - interval '15 minutes' OR attempts >= 5)").strip()
+                                 "SELECT count(*) FROM outbox_events WHERE status = 'failed' OR (status = 'pending' AND (available_at < now() - interval '15 minutes' OR attempts >= 5))").strip()
             failed = self.compose('exec', '-T', 'db', 'psql', '-U', 'foodtrucks_migrator', '-d', 'foodtrucks', '-Atc', 'SELECT count(*) FROM failed_jobs').strip()
             self.alert('queues', value == b'0' and failed == b'0')
 
@@ -359,7 +374,7 @@ def main():
     os.umask(0o077)
     ops = Ops(load(args.config))
     try:
-        with ops.lock():
+        with ops.lock('monitor' if args.operation == 'monitor' else 'operations'):
             if args.operation == 'alarm-test':
                 for family in FAMILIES:
                     ops.alert(family, False, immediate=True, test=True)
@@ -371,6 +386,9 @@ def main():
                 restore_check(ops)
             else:
                 getattr(ops, args.operation)()
+    except OperationBusy:
+        print('Operación ya en curso; se comprobará de nuevo en el siguiente intervalo.')
+        return 0
     except OperationError as error:
         print(str(error), file=sys.stderr)
         if args.operation in ('backup', 'restore-check'):

@@ -85,6 +85,7 @@ class AlarmsTest(unittest.TestCase):
                 ops.alert('services', False, test=True)
             self.assertEqual(len(sent), 2)
             self.assertEqual(sent[0][1], sent[1][1])
+            self.assertEqual(sent[0][0], sent[1][0])
             self.assertTrue(sent[1][0]['subject'].startswith('[PRUEBA]'))
             self.assertNotIn('synthetic-never-log', json.dumps(sent))
 
@@ -117,6 +118,41 @@ class DeployTest(unittest.TestCase):
                 self.assertEqual(bool(rollback_calls), compatible)
                 self.assertEqual(json.loads((self.ops.state / 'current.json').read_text())['sha'], 'previous')
                 self.assertEqual(json.loads((self.ops.state / 'maintenance.json').read_text())['until'], 0)
+
+    def test_success_records_actual_release_and_runs_migrations_once_after_backup(self):
+        calls = []
+        def compose(*args, **kwargs):
+            calls.append(args)
+            return b'container-id'
+        with patch.object(self.ops, 'disk'), patch.object(self.ops, 'backup', side_effect=lambda _tag: calls.append(('backup',))), patch.object(self.ops, 'run', return_value=b'new\n'), patch.object(self.ops, 'compose', side_effect=compose), patch.object(self.ops, 'smoke'):
+            self.ops.deploy(self.release)
+        migrations = [index for index, args in enumerate(calls) if args[:2] == ('run', '--rm')]
+        self.assertEqual(len(migrations), 1)
+        self.assertLess(calls.index(('backup',)), migrations[0])
+        self.assertEqual(json.loads((self.ops.state / 'current.json').read_text())['sha'], 'new')
+        self.assertEqual(json.loads((self.ops.state / 'previous.json').read_text())['sha'], 'previous')
+
+    def test_same_release_is_acknowledged_without_repeating_deployment(self):
+        deployment = {'id': 7, 'sha': 'previous', 'payload': {'runId': 42, 'sha': 'previous'}}
+        replies = [[deployment], {'commit': {'sha': 'previous'}}, [], {'id': 42}, {'jobs': []}, {}]
+        with patch.object(self.ops, 'api', side_effect=replies) as api, patch('ops.validate_release'), patch('ops.config_hash'), patch.object(self.ops, 'deploy') as deploy:
+            self.ops.agent()
+        deploy.assert_not_called()
+        self.assertEqual(api.call_args.args[1]['state'], 'success')
+
+    def test_offline_github_preserves_the_installed_release(self):
+        with patch.object(self.ops, 'api', side_effect=OperationError('network unavailable')), patch.object(self.ops, 'deploy') as deploy:
+            with self.assertRaises(OperationError):
+                self.ops.agent()
+        deploy.assert_not_called()
+        self.assertEqual(json.loads((self.ops.state / 'current.json').read_text()), self.previous)
+
+    def test_insufficient_space_does_not_mutate_or_prune_backups(self):
+        with patch.object(self.ops, 'disk', side_effect=OperationError('disk full')), patch.object(self.ops, 'restic') as restic, patch.object(self.ops, 'compose') as compose:
+            with self.assertRaises(OperationError):
+                self.ops.backup()
+        restic.assert_not_called()
+        compose.assert_not_called()
 
     @unittest.skipUnless(importlib.util.find_spec('fcntl'), 'Exclusión del host se verifica en Linux')
     def test_second_operation_cannot_take_existing_lock(self):

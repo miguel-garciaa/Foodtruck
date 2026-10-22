@@ -4,7 +4,11 @@
   "main": "worker.mjs",
   "compatibility_date": "2026-10-22",
   "workers_dev": false,
+  "preview_urls": false,
+  "keep_vars": true,
   "triggers": { "crons": ["*/5 * * * *"] },
   "vars": { "HEALTH_URL": "https://api-dev.foodtruck.bid/api/v1/foodtrucks" },
-  "kv_namespaces": [{ "binding": "ALARMS", "id": "REQUIRED_BEFORE_ACTIVATION" }]
+  "kv_namespaces": [
+    { "binding": "ALARMS", "id": "0f49d14d75424a9c96ac546f7c78a074" },
+  ],
 }

@@ -59,7 +59,13 @@ def restore_check(ops):
                              '-Atc', 'SELECT count(*) FROM migrations']).strip()
             if not count.isdigit() or int(count) < 1:
                 raise OperationError('El esquema restaurado no es válido')
+            restored = ops.run(['docker', 'exec', name, 'psql', '-U', 'postgres', '-d', 'foodtrucks_restore', '-Atc',
+                                "SELECT json_build_object('migrations',(SELECT count(*) FROM migrations),'users',(SELECT count(*) FROM users),'food_trucks',(SELECT count(*) FROM food_trucks),'media_assets',(SELECT count(*) FROM media_assets))"])
+            counts = json.loads(restored)
+            if counts['migrations'] != json.loads((dump.parent / 'counts.json').read_text())['migrations']:
+                raise OperationError('La base restaurada no conserva el esquema de la copia')
         finally:
             # Only this generated container and its anonymous test volume; never named DEV volumes.
             ops.run(['docker', 'rm', '-fv', name])
         atomic(ops.state / 'restore.json', {'time': int(time.time()), 'verified': True})
+        return counts

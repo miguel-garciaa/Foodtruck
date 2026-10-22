@@ -5,5 +5,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   if (process.env.FOODTRUCKS_CI !== '1') return config as ExpoConfig;
   const android = { ...config.android };
   delete android.googleServicesFile;
+  android.package = 'com.foodtrucks.ci';
   return { ...config, name: 'Foodtrucks Pruebas', slug: 'foodtrucks-dev', android } as ExpoConfig;
 };

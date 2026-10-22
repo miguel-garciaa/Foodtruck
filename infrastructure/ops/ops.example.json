@@ -2,6 +2,7 @@
   "runtime": "/opt/foodtrucks/runtime",
   "state": "/var/lib/foodtrucks-ops",
   "dockerConfig": "/etc/foodtrucks/registry",
+  "bootstrapImage": "foodtrucks-dev:local",
   "githubToken": "/etc/foodtrucks/github-deployments-token",
   "resendToken": "/etc/foodtrucks/resend-alert-token",
   "resticRepository": "/var/backups/foodtrucks-restic",

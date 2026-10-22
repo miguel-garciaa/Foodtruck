@@ -31,11 +31,20 @@ const checks = {
   image: "Construir y verificar la release",
   dev: "Despliegue automático DEV",
   production: "Promoción productiva con aprobación",
+  "external-monitor": "Actualizar sonda externa",
 };
 
 async function report(
   t,
-  { results = {}, missing, unavailable, title, push = false, mismatch } = {},
+  {
+    results = {},
+    missing,
+    unavailable,
+    title,
+    push = false,
+    mismatch,
+    monitorEnabled = false,
+  } = {},
 ) {
   const directory = await mkdtemp(join(tmpdir(), "foodtrucks-ci-report-"));
   assert.equal(dirname(directory), resolve(tmpdir()));
@@ -45,7 +54,17 @@ async function report(
   const outcome = Object.fromEntries(
     Object.keys(checks)
       .filter((id) => id !== missing)
-      .map((id) => [id, { result: results[id] ?? (!push && ["image", "dev", "production"].includes(id) ? "skipped" : "success") }]),
+      .map((id) => [
+        id,
+        {
+          result:
+            results[id] ??
+            (id === "external-monitor" ||
+            (!push && ["image", "dev", "production"].includes(id))
+              ? "skipped"
+              : "success"),
+        },
+      ]),
   );
   const jobs = Object.entries(checks).map(([id, name], index) => ({
     id: index + 1,
@@ -104,6 +123,7 @@ async function report(
           GITHUB_API_URL: "https://api.github.com",
           HEAD_SHA: sha,
           CHECKED_SHA: "b".repeat(40),
+          EXTERNAL_MONITOR_ENABLED: monitorEnabled ? "true" : "false",
         },
       },
     );
@@ -193,13 +213,28 @@ test("la ejecución de main no se presenta como una integración de PR", async (
 test("una PR explica que publicar y desplegar no corresponde sin acreditarlos", async (t) => {
   const result = await report(t);
   assert.equal(result.exitCode, 0);
-  assert.match(result.text, /No corresponde a este evento; no se acredita despliegue/);
+  assert.match(
+    result.text,
+    /No corresponde a este evento; no se acredita despliegue/,
+  );
 });
 
 for (const state of ["failure", "cancelled", "skipped"]) {
   test(`main: despliegue ${state} bloquea el resultado`, async (t) => {
     const result = await report(t, { push: true, results: { dev: state } });
     assert.equal(result.exitCode, 1);
-    assert.doesNotMatch(result.text, /todas las comprobaciones configuradas han pasado/);
+    assert.doesNotMatch(
+      result.text,
+      /todas las comprobaciones configuradas han pasado/,
+    );
   });
 }
+
+test("la sonda activada también exige ejecución correcta en main", async (t) => {
+  const result = await report(t, { push: true, monitorEnabled: true });
+  assert.equal(result.exitCode, 1);
+  assert.match(
+    result.text,
+    /Actualizar sonda externa:.*No ejecutada|Actualizar sonda externa\*\*: No ejecutada/,
+  );
+});
