@@ -7,7 +7,14 @@ import type { components } from '@/generated/api';
 import { PageShell } from '@/components/page-shell';
 import { AccountField, AccountForm } from '@/components/account-form';
 import { useAccount } from '@/features/account/account-context';
-import { api, ApiError, clearSession, jsonBody } from '@/lib/api';
+import {
+  api,
+  ApiError,
+  assertSessionVersion,
+  clearSession,
+  jsonBody,
+  sessionVersion,
+} from '@/lib/api';
 import { clearLocalPush, enablePush, testPush } from '@/lib/push';
 import { useTheme } from '@/theme';
 import { PrivatePhoto } from '@/components/private-photo';
@@ -39,6 +46,7 @@ export default function AccountScreen() {
     }
   }
   async function avatar() {
+    const expected = sessionVersion();
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
@@ -52,6 +60,7 @@ export default function AccountScreen() {
       throw new Error('Elige una fotografía de hasta 8 MB.');
     const file = await fetch(asset.uri);
     const bytes = await file.blob();
+    assertSessionVersion(expected);
     const media = await api<components['schemas']['Media']>('/me/media', {
       method: 'POST',
       headers: { 'Content-Type': asset.mimeType ?? 'image/jpeg' },
