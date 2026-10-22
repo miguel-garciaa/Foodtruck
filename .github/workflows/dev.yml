@@ -121,6 +121,26 @@ jobs:
       - name: Comprobar el formato de la app
         run: npm run format:check
         working-directory: apps/mobile
+      - name: Obtener actualización compatible de Expo para el lockfile
+        run: |
+          dependency_workspace="$RUNNER_TEMP/mobile-dependency-update"
+          mkdir -p "$dependency_workspace"
+          cp package.json package-lock.json app.json "$dependency_workspace/"
+          ln -s "$GITHUB_WORKSPACE/apps/mobile/node_modules" "$dependency_workspace/node_modules"
+          cd "$dependency_workspace"
+          node "$GITHUB_WORKSPACE/apps/mobile/node_modules/expo/bin/cli" install --fix -- --package-lock-only --ignore-scripts
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const original = JSON.parse(readFileSync(process.env.GITHUB_WORKSPACE + '/apps/mobile/package-lock.json'));
+          const updated = JSON.parse(readFileSync('package-lock.json'));
+          const changed = Object.fromEntries(Object.entries(updated.packages).filter(([path, entry]) =>
+            JSON.stringify(entry) !== JSON.stringify(original.packages[path])));
+          const removed = Object.keys(original.packages).filter(path => !Object.hasOwn(updated.packages, path));
+          console.log('DEPENDENCY_UPDATE=' + JSON.stringify({
+            manifest: JSON.parse(readFileSync('package.json')), changed, removed,
+          }));
+          NODE
+        working-directory: apps/mobile
       - name: Comprobar compatibilidad de dependencias con Expo
         run: npm run check:dependencies
         working-directory: apps/mobile
