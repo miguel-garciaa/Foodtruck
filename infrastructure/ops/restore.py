@@ -48,7 +48,9 @@ def restore_check(ops):
                      '-c', 'max_parallel_maintenance_workers=0', '-c', 'max_connections=20'])
             for attempt in range(30):
                 try:
-                    ops.run(['docker', 'exec', name, 'pg_isready', '-U', 'postgres', '-d', 'foodtrucks_restore'])
+                    # The entrypoint's temporary initialization server exposes only a socket.
+                    # TCP readiness waits until PostGIS initialization finishes and the final server starts.
+                    ops.run(['docker', 'exec', name, 'pg_isready', '-h', '127.0.0.1', '-U', 'postgres', '-d', 'foodtrucks_restore'])
                     break
                 except OperationError:
                     if attempt == 29:
@@ -70,6 +72,9 @@ def restore_check(ops):
             # Inspect only the safe resource signal, never dump restored records or SQL.
             try:
                 exhausted = ops.run(['docker', 'inspect', '--format', '{{.State.OOMKilled}}', name]).strip() == b'true'
+                if not exhausted:
+                    counters = ops.run(['docker', 'exec', name, 'cat', '/sys/fs/cgroup/memory.events']).decode().splitlines()
+                    exhausted = any(line.split()[0] == 'oom_kill' and int(line.split()[1]) > 0 for line in counters)
             except OperationError:
                 exhausted = False
             if exhausted:
