@@ -179,7 +179,7 @@ class Ops:
 
     def alert(self, family, healthy, immediate=False, test=False):
         now = int(time.time())
-        path = self.state / ('test-' if test else '') / (family + '.json') if test else self.state / (family + '.json')
+        path = self.state / ('alarms-test' if test else 'alarms') / (family + '.json')
         state = load(path, {})
         if not state.get('pending'):
             state = alarm_transition(state, healthy, now, failures=1 if immediate else 3)

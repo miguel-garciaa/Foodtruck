@@ -20,6 +20,10 @@ def validate_archive(path):
 
 def restore_check(ops):
     ops.disk()
+    stats = json.loads(ops.restic('stats', 'latest', '--host', 'foodtrucks-dev', '--mode', 'restore-size', '--json'))
+    import shutil
+    if shutil.disk_usage(ops.state).free < int(stats['total_size']) * 3 + ops.config.get('minimumFreeBytes', 3 * 1024**3):
+        raise OperationError('Espacio insuficiente para restauración aislada; última copia preservada')
     ops.restic('check', '--read-data')
     with tempfile.TemporaryDirectory(prefix='foodtrucks-restore-', dir=ops.state) as directory:
         destination = Path(directory)
@@ -30,7 +34,9 @@ def restore_check(ops):
         dump = dumps[0]
         files = json.loads((dump.parent / 'files.json').read_text())
         for name in ('database.dump', 'uploads.tar'):
-            if hashlib.file_digest((dump.parent / name).open('rb'), 'sha256').hexdigest() != files[name]:
+            with (dump.parent / name).open('rb') as source:
+                digest = hashlib.file_digest(source, 'sha256').hexdigest()
+            if digest != files[name]:
                 raise OperationError('No coincide el contenido restaurado')
         validate_archive(dump.parent / 'uploads.tar')
         name = 'foodtrucks-restore-' + uuid.uuid4().hex
