@@ -6,20 +6,30 @@ use App\Models\FoodTruck;
 use App\Models\OutboxEvent;
 use App\Models\User;
 use App\Services\Sessions;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Tests\PostgresTestCase;
 
 class AccountBoundariesTest extends PostgresTestCase
 {
+    private string $accessToken;
+
     private function login(User $user): void
     {
         app('auth')->forgetGuards();
         $session = DB::transaction(fn () => app(Sessions::class)->issue($user));
+        $this->accessToken = $session['accessToken'];
         $this->withToken($session['accessToken']);
+    }
+
+    private function upload(string $bytes): TestResponse
+    {
+        return $this->call('POST', '/api/v1/me/media', [], [], [], ['CONTENT_TYPE' => 'image/png', 'HTTP_ACCEPT' => 'application/json', 'HTTP_AUTHORIZATION' => 'Bearer '.$this->accessToken], $bytes);
     }
 
     public function test_invalid_credentials_and_payloads_do_not_create_accounts(): void
@@ -112,12 +122,14 @@ class AccountBoundariesTest extends PostgresTestCase
         Storage::fake('local');
         $owner = User::factory()->create();
         $this->login($owner);
-        $this->call('POST', '/api/v1/me/media', [], [], [], ['CONTENT_TYPE' => 'image/jpeg', 'HTTP_ACCEPT' => 'application/json'], '<script>synthetic</script>')->assertUnprocessable();
+        $this->upload(str_repeat('x', 8 * 1024 * 1024 + 1))->assertStatus(413);
+        $this->upload('<script>synthetic</script>')->assertUnprocessable();
         $image = imagecreatetruecolor(2, 2);
         ob_start();
         imagepng($image);
         $bytes = ob_get_clean();
-        $response = $this->call('POST', '/api/v1/me/media', [], [], [], ['CONTENT_TYPE' => 'image/png', 'HTTP_ACCEPT' => 'application/json'], $bytes)->assertCreated();
+        $this->upload(substr_replace($bytes, pack('N', 24000001), 16, 4))->assertUnprocessable();
+        $response = $this->upload($bytes)->assertCreated();
         $id = $response->json('id');
         Storage::disk('local')->assertExists('media/'.$id.'.jpg');
         $this->getJson('/api/v1/media/'.$id)->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
@@ -125,7 +137,7 @@ class AccountBoundariesTest extends PostgresTestCase
         $this->getJson('/api/v1/media/'.$id)->assertNotFound();
         $this->putJson('/api/v1/me', ['displayName' => 'Synthetic', 'avatarId' => $id, 'mode' => 'client', 'pushEnabled' => false])->assertUnprocessable();
         $this->login(User::factory()->unverified()->create());
-        $this->call('POST', '/api/v1/me/media', [], [], [], ['HTTP_ACCEPT' => 'application/json'], $bytes)->assertForbidden();
+        $this->upload($bytes)->assertForbidden();
     }
 
     public function test_google_provider_failure_does_not_create_identity_or_leak_response(): void
@@ -139,5 +151,19 @@ class AccountBoundariesTest extends PostgresTestCase
         $this->assertStringNotContainsString('synthetic provider failure', $response->getContent());
         $this->assertDatabaseCount('auth_identities', 0);
         $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_failed_image_storage_never_creates_a_dangling_database_record(): void
+    {
+        $this->login(User::factory()->create());
+        $disk = $this->createStub(FilesystemAdapter::class);
+        $disk->method('put')->willReturn(false);
+        Storage::shouldReceive('disk')->with('local')->andReturn($disk);
+        $image = imagecreatetruecolor(2, 2);
+        ob_start();
+        imagepng($image);
+        $bytes = ob_get_clean();
+        $this->upload($bytes)->assertServiceUnavailable();
+        $this->assertDatabaseCount('media_assets', 0);
     }
 }

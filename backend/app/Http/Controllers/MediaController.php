@@ -28,7 +28,7 @@ class MediaController extends Controller
         $encoded = ob_get_clean();
         $id = (string) Str::uuid();
         $filename = $id.'.jpg';
-        Storage::disk('local')->put('media/'.$filename, $encoded);
+        abort_unless(Storage::disk('local')->put('media/'.$filename, $encoded), 503, 'No se ha podido guardar la imagen. Inténtalo de nuevo.');
         try {
             DB::table('media_assets')->insert(['id' => $id, 'user_id' => $request->user()->id, 'filename' => $filename, 'created_at' => now(), 'updated_at' => now()]);
         } catch (\Throwable $exception) {

@@ -12,7 +12,7 @@ class GoogleAccountsTest extends PostgresTestCase
     {
         config(['foodtrucks.google_client_id' => 'synthetic-client.apps.googleusercontent.com']);
         $challenge = $this->postJson('/api/v1/auth/google/challenge')->assertOk()->json();
-        $verifier = $this->createMock(GoogleIdentity::class);
+        $verifier = $this->createStub(GoogleIdentity::class);
         $verifier->method('verify')->willReturn((object) ['sub' => 'synthetic-google-subject', 'email' => $email, 'email_verified' => true, 'nonce' => $challenge['nonce'], 'name' => 'Persona']);
         $this->app->instance(GoogleIdentity::class, $verifier);
 
