@@ -1,11 +1,12 @@
 # Guía práctica de DevOps de Foodtrucks
 
-**Consolidación:** 20 de octubre de 2026. Entrada a procedimientos y diagnóstico. Consultar [44](../44-politica-commits-ci-cd-tests.md) para obligaciones de Git/CI/CD y las [decisiones pertinentes](../23-decisiones-pendientes.md) para bloqueos. Los scripts y servicios futuros aún no existen/verifican en este paquete.
+**Consolidación:** 20 de octubre de 2026. Entrada a procedimientos y diagnóstico. Consultar [44](../44-politica-commits-ci-cd-tests.md) para obligaciones de Git/CI/CD y las [decisiones pertinentes](../23-decisiones-pendientes.md) para bloqueos. Existen backend Laravel, Compose, scripts en infrastructure/ y CI DEV; la [guía del backend](../../backend/README.md) contiene los comandos ejecutables y límites. Staging/PROD, GHCR y observabilidad requieren su evidencia específica.
 
 ## Qué consultar según la tarea
 
 | Necesidad | Documento y procedimiento |
 | --- | --- |
+| Backend Laravel DEV | [Arranque, proveedores, tests, migraciones y recuperación](../../backend/README.md); [política Laravel](../09-backend-go.md) |
 | Arquitectura | [Monorepo](../07-arquitectura-monorepo.md), [servidor doméstico](../38-servidor-domestico.md) y política CI/CD: flujo commit → release |
 | CI/CD y GitHub Actions | [Política operativa](../44-politica-commits-ci-cd-tests.md): cambios, eventos, gate, GHCR y fases |
 | Pruebas locales/CI | [Testing y QA](../40-testing-qa-github.md): matriz de casos, aislamiento, comandos y evidencia |

@@ -111,8 +111,8 @@ Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consulta
 | [26. Skills del proyecto](docs/26-skills-proyecto.md) | Selección, instalación verificada y carga por tarea |
 | [27. Marketing Google Ads](docs/27-marketing-google-ads.md) | Captación B2C/B2B, fases, medición y presupuesto pendiente |
 | [28. Revisión skills.sh](docs/28-revision-skills-sh.md) | Comparación, 12 complementos, descartes y límites |
-| [29. Cloudflare y dominio](docs/29-cloudflare-dominio-dns.md) | Compra prevista, DNS, HTTPS/Caddy, caché, protección y verificaciones |
-| [30. Correo Resend](docs/30-correo-resend.md) | DNS de correo, envíos Go, webhooks, consentimiento y operación |
+| [29. Cloudflare y dominio](docs/29-cloudflare-dominio-dns.md) | Dominio comprado, Tunnel DEV y propuestas DNS/TLS/caché de producción |
+| [30. Correo Resend](docs/30-correo-resend.md) | DNS de correo, envíos Laravel, webhooks, consentimiento y operación |
 | [31. Política de marketing](docs/31-marketing-digital-maestro.md) | Objetivos, controles, responsabilidades, procedimientos y aceptación |
 | [32. SEO local y Next.js](docs/32-seo-local-nextjs.md) | Rutas, metadatos, sitemap, JSON-LD, Search Console, GBP y CWV |
 | [33. AdSense y AdMob](docs/33-monetizacion-adsense-admob.md) | Elegibilidad, formatos, integración de prueba y comparación de ingresos |

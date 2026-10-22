@@ -2,7 +2,7 @@
 
 **Estado: especificación propuesta, sin instrumentación instalada ni cuentas conectadas.** El prompt de marketing amplía la planificación a GA4, Firebase Analytics, Search Console y medición de anuncios. Este documento concreta contratos, configuración futura y pruebas; no atribuye eventos o resultados a una aplicación inexistente. Fuentes oficiales contrastadas el **13 de octubre de 2026**. Skills leídas: `analytics`, sus referencias de GA4/eventos/GTM y `expo-overview`.
 
-La prioridad es adquirir clientes que compran y recogen, y negocios que realmente pueden recibir pedidos. Foodtrucks no ofrece reparto. La [auth propia](14-autenticacion.md), PostgreSQL y Go/Stripe siguen siendo la autoridad; Firebase Analytics no introduce Firebase Authentication, Firestore ni otro backend comercial.
+La prioridad es adquirir clientes que compran y recogen, y negocios que realmente pueden recibir pedidos. Foodtrucks no ofrece reparto. La [auth propia](14-autenticacion.md), PostgreSQL y Laravel/Stripe siguen siendo la autoridad; Firebase Analytics no introduce Firebase Authentication, Firestore ni otro backend comercial.
 
 ## 1. Arquitectura y aislamiento por entorno
 
@@ -12,7 +12,7 @@ La prioridad es adquirir clientes que compran y recogen, y negocios que realment
 | --- | --- | --- |
 | Next.js + etiqueta GA4 | Navegación e interacción web consentidas | No confirma pagos; un solo mecanismo de etiquetado |
 | Expo + SDK nativo Analytics | Pantallas, uso y embudo móvil consentidos | Requiere integración nativa verificada |
-| Go/PostgreSQL + outbox | Registro, pago, activación, recogida y refund confirmados | Datos de negocio; exportación externa condicionada |
+| Laravel/PostgreSQL + outbox | Registro, pago, activación, recogida y refund confirmados | Datos de negocio; exportación externa condicionada |
 | Search Console | Impresiones, clics, CTR, consultas y páginas orgánicas | Agregado de Google Search, no historial del comprador |
 | Google Ads | Gasto y atribución de adquisición | Ventanas y objetivos propios; no contabilidad |
 | AdSense/AdMob, si se habilitan | Rendimiento e ingresos publicitarios | Estimados/finalizados separados de comida y Billing |
@@ -49,13 +49,13 @@ El nombre interno describe negocio; el adaptador puede mapearlo al nombre recome
 | Detalle de producto | `view_item` | Detalle realmente mostrado, si existe esa pantalla |
 | `add_to_cart` | `add_to_cart` | Cambio efectivo de cantidad; no clic fallido o reintento |
 | `begin_checkout` | `begin_checkout` | Inicio de intención de compra válido, no cada render |
-| Compra de comida confirmada | `purchase` | Go verifica pago y registra transición duradera |
-| Reembolso confirmado | `refund` | Go confirma refund; importe/ítems parciales correctos |
+| Compra de comida confirmada | `purchase` | Laravel verifica pago y registra transición duradera |
+| Reembolso confirmado | `refund` | Laravel confirma refund; importe/ítems parciales correctos |
 | `sign_up` | `sign_up` | Alta efectiva confirmada, no clic en enviar formulario |
 | `app_open` | `app_open` | Apertura/foreground según contrato, evitar doble registro del SDK |
 | `first_open` | Automático nativo | Primera ejecución medida tras instalación/reinstalación; no fabricarlo |
 | `vendor_registration` | `vendor_registration` | Solicitud comercial creada una vez; no negocio activado |
-| `merchant_activated` | `merchant_activated` | Go valida requisitos de activación adoptados |
+| `merchant_activated` | `merchant_activated` | Laravel valida requisitos de activación adoptados |
 | `pickup_completed` | `pickup_completed` | Canje QR autorizado y commit único de recogida |
 | `first_purchase_confirmed` | Personalizado opcional | Primera compra pagada según definición y unicidad del backend |
 | Cobro/renovación de membresía cliente | `customer_membership_paid` | Confirmación de Billing o proveedor elegido; flujo separado |
@@ -71,7 +71,7 @@ Registrar solo dimensiones de baja cardinalidad necesarias para decisiones. `tra
 
 ## 4. Pago, QR, primera compra y deduplicación
 
-1. Go verifica origen firmado, entorno, cuenta Stripe, importe/moneda y relación con el pedido. Persistir pago/transición y evento outbox dentro de la transacción apropiada. La pantalla de éxito y el cliente no declaran `purchase`.
+1. Laravel verifica origen firmado, entorno, cuenta Stripe, importe/moneda y relación con el pedido. Persistir pago/transición y evento outbox dentro de la transacción apropiada. La pantalla de éxito y el cliente no declaran `purchase`.
 2. El worker construye un payload externo permitido desde el registro autoritativo. Seleccionar **un stream de origen**, web o app; abrir el mismo pedido en otro dispositivo no crea otra compra. No reenviar `purchase` desde cliente y servidor para compensar navegación perdida.
 3. Unicidad duradera por entorno, tipo/versión de evento, recurso y destino. `transaction_id` opaco, estable y exclusivo del pedido/circuito, sin email, QR, Stripe secret o ID de sesión. Separar espacios de comida, cliente Billing y comerciante Billing.
 4. Recogida QR produce `pickup_completed`; nunca otro `purchase`. Pago recibido, pedido aceptado, recogido y reembolsado son estados diferentes.
@@ -85,7 +85,7 @@ La outbox conserva estado mínimo de exportación —origen, destino, intentos, 
 
 ## 5. Valores económicos y refunds
 
-Go mantiene dinero entero en unidades mínimas. El adaptador convierte al formato monetario exigido por Analytics con la escala de la moneda; no calcula leyendo texto del DOM ni sumando flotantes. Contrato propuesto para `purchase.value`: valor de ítems después de descuentos, excluyendo impuestos; `tax` separado si se conoce y resulta pertinente. Conciliar también total realmente cobrado, comisiones y descuentos financiados en el ledger interno. Falta de valor no se reemplaza por un cero inventado.
+Laravel mantiene dinero entero en unidades mínimas. El adaptador convierte al formato monetario exigido por Analytics con la escala de la moneda; no calcula leyendo texto del DOM ni sumando flotantes. Contrato propuesto para `purchase.value`: valor de ítems después de descuentos, excluyendo impuestos; `tax` separado si se conoce y resulta pertinente. Conciliar también total realmente cobrado, comisiones y descuentos financiados en el ledger interno. Falta de valor no se reemplaza por un cero inventado.
 
 Separar en dashboards:
 
@@ -156,7 +156,7 @@ Acceso administrativo de mínimo privilegio, MFA y cambios de tags/configuració
 | Panel futuro | Datos y límites |
 | --- | --- |
 | Cliente | Sus pedidos/recogidas, membresía y movimientos de puntos desde API autorizada; no historial publicitario de terceros |
-| Comerciante | Sus ventas, refunds, conversión disponible, disponibilidad y recogidas; filtro de negocio aplicado por Go, sin compradores identificables en GA4 |
+| Comerciante | Sus ventas, refunds, conversión disponible, disponibilidad y recogidas; filtro de negocio aplicado por Laravel, sin compradores identificables en GA4 |
 | Admin/producto | Agregados por ciudad/plataforma, cohortes, funnel, vendedores operativos y salud de datos; acceso auditado |
 | Marketing autorizado | SEO, campañas, coste y conversión consentida, frecuencia/retención y cobertura; informes sin exposición de pedidos individuales |
 

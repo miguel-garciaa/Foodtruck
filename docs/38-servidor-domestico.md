@@ -2,7 +2,7 @@
 
 **Decisión cerrada U09:** Foodtrucks se alojará en un servidor en casa para desarrollo y producción. Esta decisión sustituye el VPS como alojamiento base; un VPS futuro sería una alternativa que requiere una decisión nueva. **Base propuesta:** separar los entornos y validar capacidad, conectividad, recuperación y coste antes del piloto. En este trabajo no se ha comprado hardware, modificado un router, instalado servicios, publicado un dominio ni desplegado la aplicación. La propiedad previa del equipo no se ha confirmado.
 
-Se conservan Ubuntu Server 26.04, Docker Compose, Caddy, Go, Next.js, PostgreSQL/PostGIS, Redis, Mapbox, Stripe y Resend. Las fotos siguen siendo locales y persistentes, sin S3. La compra del dominio sigue prevista en Cloudflare; el control del nombre de referencia `foodtrucks.com` continúa sin verificar.
+Se conservan Ubuntu Server 26.04, Docker Compose, Caddy, Laravel, Next.js, PostgreSQL/PostGIS, Redis, Mapbox, Stripe y Resend. Las fotos siguen siendo locales y persistentes, sin S3. foodtruck.bid ya está comprado y DEV usa api-dev.foodtruck.bid por Tunnel. Las alternativas de red siguientes son propuestas para entornos futuros; [guía DEV](../backend/README.md).
 
 Los **4 vCPU, 8 GB RAM y 40 GB NVMe** corresponden a la VM VMware de desarrollo ya indicada. No describen el servidor físico, no suman todos los entornos y no aprueban el dimensionamiento de producción. Número de equipos, CPU física, RAM total, discos, hipervisor de producción, consumo, conexión, SAI y presupuesto de hardware siguen pendientes.
 
@@ -85,17 +85,17 @@ Con proxy Cloudflare conservar Full (strict), hostname válido y certificado de 
 
 ## Frontera de confianza y exposición
 
-La aplicación mantiene rutas web y API del documento 29; Tunnel no cambia contratos, autenticación ni autorización Go. API móvil, callbacks OAuth y webhooks Stripe/Resend conservan sus firmas/tokens y no reciben challenges de navegador ni una pantalla de Cloudflare Access incompatible con su protocolo. Reservar Access/VPN para administración o staging apropiado; no envolver indiscriminadamente todos los hostnames públicos.
+La aplicación mantiene rutas web y API del documento 29; Tunnel no cambia contratos, autenticación ni autorización Laravel. API móvil, callbacks OAuth y webhooks Stripe/Resend conservan sus firmas/tokens y no reciben challenges de navegador ni una pantalla de Cloudflare Access incompatible con su protocolo. Reservar Access/VPN para administración o staging apropiado; no envolver indiscriminadamente todos los hostnames públicos.
 
 La IP real debe verificarse para cada ruta:
 
 - **Origen directo:** Caddy confía solo en los peers Cloudflare permitidos y verifica qué IP TCP ve realmente tras NAT/Docker.
 - **Tunnel:** el peer de Caddy es `cloudflared` local, no una IP del borde Cloudflare. Confiar únicamente en ese peer/listener y red dedicada; proteger el listener de acceso LAN/directo que permita falsificar `CF-Connecting-IP`.
-- **Caddy → Go:** normalizar las cabeceras y aceptar identidad reenviada solo desde Caddy. No confiar en todas las redes privadas ni autorizar pedidos por IP.
+- **Caddy → Laravel:** normalizar las cabeceras y aceptar identidad reenviada solo desde Caddy. No confiar en todas las redes privadas ni autorizar pedidos por IP.
 
 Separar listeners o controles si coexisten acceso LAN y Tunnel. Probar cabeceras inventadas, duplicadas y peticiones que evitan el proxy. Definir confianza acotada en Caddy en función del peer real, no copiar una allowlist de otra topología. [Proxies confiables de Caddy](https://caddyserver.com/docs/caddyfile/options).
 
-PostgreSQL/PostGIS, Redis, Next.js, Go, Prometheus/exporters, Grafana administrativo, Caddy admin y gestión del hipervisor permanecen privados. SSH solo mediante acceso administrativo restringido con claves y verificación de host. Docker puede desviar tráfico publicado antes de las reglas UFW: comprobar reglas efectivas y no asumir aislamiento por una configuración del router. [Firewall y Docker](https://docs.docker.com/engine/network/packet-filtering-firewalls/).
+PostgreSQL/PostGIS, Redis, Next.js, Laravel, Prometheus/exporters, Grafana administrativo, Caddy admin y gestión del hipervisor permanecen privados. SSH solo mediante acceso administrativo restringido con claves y verificación de host. Docker puede desviar tráfico publicado antes de las reglas UFW: comprobar reglas efectivas y no asumir aislamiento por una configuración del router. [Firewall y Docker](https://docs.docker.com/engine/network/packet-filtering-firewalls/).
 
 SSE/WebSocket, si se implementan, requieren comprobar timeout, reconexión y estado recuperable durante reinicios/redes móviles. Tunnel puede bufferizar respuestas sin `Content-Type: text/event-stream`; una conexión abierta no sustituye PostgreSQL ni una consulta de estado tras reconectar. [Resolución de problemas Tunnel](https://developers.cloudflare.com/tunnel/troubleshooting/).
 
@@ -170,4 +170,4 @@ El QR conserva canje online atómico. No inventar una recogida offline para salv
 
 Cuando existan hardware, cuentas y código: demostrar aislamiento DEV/PROD; acceso administrativo de recuperación; ausencia de puertos de datos públicos en IPv4/IPv6; TLS/renovación y cabeceras confiables de la ruta elegida; API móvil/OAuth/webhooks sin challenges; reintento y reconexión sin doble pago/punto/canje; subida de fotos y backups sin saturar; alarma externa ante caída y restore tras pérdida simulada del host.
 
-Anotar medidas de CPU/RAM/disco/subida, consumo, autonomía SAI, tiempo de recuperación y pruebas realmente ejecutadas. Coordinar las comprobaciones con [seguridad/DevSecOps](39-seguridad-devsecops.md) y [testing/QA](40-testing-qa-github.md). **Este documento es diseño y operación propuesta: no acredita instalación, capacidad para un número de usuarios, disponibilidad garantizada ni comprobaciones de aplicación realizadas.**
+Anotar medidas de CPU/RAM/disco/subida, consumo, autonomía SAI, tiempo de recuperación y pruebas realmente ejecutadas. Coordinar las comprobaciones con [seguridad/DevSecOps](39-seguridad-devsecops.md) y [testing/QA](40-testing-qa-github.md). **Las propuestas de este documento no acreditan por sí solas instalación, capacidad para un número de usuarios, disponibilidad garantizada ni comprobaciones de aplicación realizadas.**

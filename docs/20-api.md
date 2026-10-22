@@ -1,6 +1,6 @@
 # API REST propuesta
 
-**Estado:** contrato preliminar para desarrollar; no hay endpoints implementados ni OpenAPI generado. Prefijo propuesto /api/v1. Go es la autoridad de validación y reglas de negocio.
+**Estado a 22/10/2026:** existen endpoints DEV Laravel y [OpenAPI canónico](../contracts/openapi.json), con tipos móviles generados. Las rutas siguientes son diseño de alcance ampliado, no un inventario de funcionalidades terminadas; contrastar con [rutas Laravel](../backend/routes/api.php). Prefijo vigente `/api/v1`; Laravel es la autoridad de validación y reglas de negocio. `npm run check:api` comprueba la sincronización de tipos desde la raíz.
 
 ## Convenciones
 
@@ -72,7 +72,7 @@ PUT de horarios/location es propuesta de reemplazo completo; diseñar PATCH dist
 }
 ~~~
 
-El cliente no fija total, comisión, precio, cuenta Stripe ni estado. Go puede aceptar IDs de opciones y los valida contra el producto. pickup_slot_id solo tendrá sentido si se aprueba ese modelo.
+El cliente no fija total, comisión, precio, cuenta Stripe ni estado. Laravel puede aceptar IDs de opciones y los valida contra el producto. pickup_slot_id solo tendrá sentido si se aprueba ese modelo.
 
 ## Respuesta de error propuesta
 
@@ -123,12 +123,12 @@ No exponer una API pública de envío a direcciones arbitrarias. Preferencias so
 
 ## Datos públicos SEO y medición
 
-Los GET públicos de negocios/catálogo solo devolverán establecimientos publicables y campos permitidos, con vigencia de ubicación/horarios/precios. Una baja pública no elimina internamente pedidos/evidencia económica. Fichas desconocidas/no visibles y cambios de slug tendrán estados/redirecciones coherentes entre Go y Next.js. [DTO/rutas propuestos](32-seo-local-nextjs.md).
+Los GET públicos de negocios/catálogo solo devolverán establecimientos publicables y campos permitidos, con vigencia de ubicación/horarios/precios. Una baja pública no elimina internamente pedidos/evidencia económica. Fichas desconocidas/no visibles y cambios de slug tendrán estados/redirecciones coherentes entre Laravel y Next.js. [DTO/rutas propuestos](32-seo-local-nextjs.md).
 
-No crear un endpoint público que permita al navegador declarar una purchase confirmada, recogida o ingreso de publicidad. Los hechos de negocio proceden de Go/Stripe/QR; el envío a GA4/Firebase depende de finalidad/consentimiento y deduplicación. Dashboards del cliente y vendedor filtran su ámbito; admin usa agregados/roles propios. Contrato de reportes y consentimiento se definirá al implementar. [Eventos](34-analitica-consentimiento.md).
+No crear un endpoint público que permita al navegador declarar una purchase confirmada, recogida o ingreso de publicidad. Los hechos de negocio proceden de Laravel/Stripe/QR; el envío a GA4/Firebase depende de finalidad/consentimiento y deduplicación. Dashboards del cliente y vendedor filtran su ámbito; admin usa agregados/roles propios. Contrato de reportes y consentimiento se definirá al implementar. [Eventos](34-analitica-consentimiento.md).
 
 ## Inventario verificable y métricas operativas
 
 [Doc39](39-seguridad-devsecops.md) amplía el inventario futuro de cada endpoint: autenticación, recurso/rol, entrada/salida, límites, riesgos y pruebas. La tabla de API continúa propuesta, sin endpoints probados. No publicar un endpoint /metrics como parte de la API cliente; habilitar recolección únicamente en una superficie interna/privada si se instrumenta.
 
-Separar health mínimo público de readiness/detalle interno. Métricas normalizan rutas y no llevan IDs de usuarios/pedidos, tokens, querystrings o coordenadas. Pedidos/pagos/QR/puntos permanecen autoritativos en Go/PostgreSQL y no se modifican por una alerta o dashboard. [Observabilidad](41-observabilidad-grafana-prometheus-sentry.md).
+Separar health mínimo público de readiness/detalle interno. Métricas normalizan rutas y no llevan IDs de usuarios/pedidos, tokens, querystrings o coordenadas. Pedidos/pagos/QR/puntos permanecen autoritativos en Laravel/PostgreSQL y no se modifican por una alerta o dashboard. [Observabilidad](41-observabilidad-grafana-prometheus-sentry.md).

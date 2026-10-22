@@ -1,12 +1,12 @@
 # Autenticación propia y autorización
 
-**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+**Actualización técnica, 22/10/2026 (D47):** Laravel/PHP es el backend principal. Composer y su lockfile, las migraciones Laravel y [OpenAPI](../contracts/openapi.json) son las fuentes ejecutables; comandos y operación DEV en la [guía del backend](../backend/README.md). Las reglas siguientes se aplican a Laravel; Go queda reservado para una necesidad futura aprobada.
 
 **Cerrado:** email/contraseña, Google y Apple, sin Supabase ni Firebase Authentication. FCM puede utilizarse solo para avisos.
 
 ## Identidad local
 
-Backend Go con usuarios en PostgreSQL. Argon2id fue la base propuesta; usar biblioteca mantenida, sal única y parámetros calibrados con presupuesto de CPU/memoria. No diseñar criptografía propia ni guardar contraseñas reversibles.
+Backend Laravel con usuarios en PostgreSQL y Hash/Argon2id en la implementación DEV; parámetros calibrados con presupuesto de CPU/memoria. No diseñar criptografía propia ni guardar contraseñas reversibles.
 
 Registro, verificación de email, recuperación con token aleatorio, expiración y consumo único. Guardar hashes de tokens de verificación/renovación. Respuestas que eviten enumeración, límites de intentos y auditoría mínima sin secretos.
 
@@ -18,13 +18,13 @@ OIDC/OAuth con comprobación backend de firma, issuer, audience/client ID, expir
 
 Vincular identidad por proveedor y subject, no solo por email. No fusionar automáticamente cuentas por coincidencia de correo. Para vincular, exigir sesión válida y prueba de control de ambas identidades.
 
-Apple puede facilitar email privado y nombre solo en ocasiones concretas; no depender de recibirlos en cada login. URLs, client IDs, bundle IDs y credenciales de proveedores no existen aún.
+Apple puede facilitar email privado y nombre solo en ocasiones concretas; no depender de recibirlos en cada login. Verificar IDs, audiencias, nonces y configuración de cada build contra el código y secretos del entorno; Apple y las pruebas completas en dispositivo siguen pendientes.
 
 La inclusión de Apple es requisito actual. Antes de distribuir revisar reglas de tienda vigentes; no tratar una recomendación histórica de cumplimiento como evaluación final.
 
 ## Sesiones, base propuesta
 
-Access tokens cortos y refresh con rotación, revocación y detección de reutilización. Guardar refresh hasheado con familia/expiración. Diseño exacto JWT frente a token opaco y duración pendiente.
+Access tokens cortos y refresh con rotación, revocación y detección de reutilización. Guardar refresh hasheado con familia/expiración. DEV implementa tokens opacos Sanctum de 15 minutos y refresh hasheado rotatorio de 30 días; son la base móvil vigente, no una sesión web ya implementada.
 
 Móvil: Keychain/Keystore mediante solución Expo compatible. Web: cookies Secure/HttpOnly con SameSite apropiado al flujo y protección CSRF para mutaciones. No guardar refresh tokens en localStorage.
 
@@ -42,7 +42,7 @@ Una cuenta puede ser cliente y propietaria. Modelo multiempleado/varios negocios
 
 Enumeración, acceso entre usuarios/negocios, recuperación reutilizada/expirada, token con issuer/audience incorrectos, OAuth sin state/nonce válido, vinculación fraudulenta, refresh concurrente y acceso después de revocar.
 
-No hay autenticación implementada, correo configurado ni cuentas OAuth creadas.
+Auth email/contraseña y Google están implementadas en DEV; el correo técnico Resend se ha entregado según la [guía del backend](../backend/README.md). Esto no acredita todos los recorridos móviles, Apple ni la sesión web.
 
 ## Derechos de membresía y saldo privado
 

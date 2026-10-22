@@ -10,11 +10,11 @@
 4. Añadir productos y complementos admitidos. Mostrar cantidades y total estimado.
 5. Elegir recogida inmediata o franja si esa opción se aprueba. Mostrar dónde se recoge y cuándo.
 6. Identificarse antes de comprar según la política pendiente de invitado. El backend vuelve a validar productos, precio, stock, horario y acceso comercial.
-7. Confirmar el resumen calculado por Go y abrir Stripe PaymentSheet en móvil. Para web, elegir Checkout o Elements antes de implementar.
+7. Confirmar el resumen calculado por Laravel y abrir Stripe PaymentSheet en móvil. Para web, elegir Checkout o Elements antes de implementar.
 8. Mostrar “comprobando pago” cuando proceda. El retorno visual del SDK no confirma el pedido.
 9. Tras confirmación verificada del servidor, mostrar pedido, ticket y progreso. El código existe para un pedido pagado; el canje se permite cuando esté listo.
 10. Recibir avisos de aceptación y de pedido listo. Consultar la ubicación de recogida fijada para ese pedido.
-11. Presentar QR en el puesto. El comerciante lo escanea y Go valida y registra la entrega una sola vez.
+11. Presentar QR en el puesto. El comerciante lo escanea y Laravel valida y registra la entrega una sola vez.
 
 ## Estados separados
 
@@ -60,7 +60,7 @@ Probar recuperación tras cierre, doble toque en pagar, webhook retrasado, dos e
 
 Añadir acceso a suscripción, beneficios y saldo/historial desde Perfil; ubicación final en UX pendiente. Antes de contratar mostrar **5,99 €/mes**, renovación, cancelación y tratamiento de impuestos, estos últimos aún pendientes de definir.
 
-En checkout, el cliente solicita una oferta/canje; Go calcula descuento y total, reserva puntos/cupo de forma atómica y confirma o libera al resolver la compra. Mostrar precio base, descuento y quién/qué oferta lo concede. Pago y entrega generan puntos una sola vez según la política de acreditación por definir. Pedidos cancelados/reembolsados requieren ajustes auditados. [Detalles](25-suscripcion-clientes-fidelizacion.md).
+En checkout, el cliente solicita una oferta/canje; Laravel calcula descuento y total, reserva puntos/cupo de forma atómica y confirma o libera al resolver la compra. Mostrar precio base, descuento y quién/qué oferta lo concede. Pago y entrega generan puntos una sola vez según la política de acreditación por definir. Pedidos cancelados/reembolsados requieren ajustes auditados. [Detalles](25-suscripcion-clientes-fidelizacion.md).
 
 ## Novedades y permisos de la ampliación v1.8
 

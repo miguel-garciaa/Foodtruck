@@ -2,7 +2,7 @@
 
 **Cerrado:** APNs/FCM, Live Activities y Android Live Updates con adaptación al dispositivo. Seguimiento de preparación para recogida, sin repartidor.
 
-**Actualización DEV, 22/10/2026:** backend principal Laravel, con outbox PostgreSQL y Horizon. Proyecto Firebase y Android registrados, FCM HTTP v1 habilitado y cuenta exclusiva de envío con rol Firebase Cloud Messaging API Admin. Google ha aceptado la credencial privada montada en la VM; la entrega real y los estados de la app siguen pendientes de probar en Android. No hay Firebase Authentication ni Analytics. Las menciones Go siguientes conservan el diseño histórico y no describen el runtime actual. Operación y evidencias: [backend](../backend/README.md).
+**Actualización DEV, 22/10/2026:** backend principal Laravel, con outbox PostgreSQL y Horizon. Proyecto Firebase y Android registrados, FCM HTTP v1 habilitado y cuenta exclusiva de envío con rol Firebase Cloud Messaging API Admin. Google ha aceptado la credencial privada montada en la VM; la entrega real y los estados de la app siguen pendientes de probar en Android. No hay Firebase Authentication ni Analytics. El diseño siguiente se aplica a Laravel/Horizon; las capacidades no implementadas siguen propuestas. Operación y evidencias: [backend](../backend/README.md).
 
 ## Canales
 
@@ -14,13 +14,13 @@
 | Android compatible | Live Updates/progreso mediante integración Kotlin |
 | Sin soporte o permisos | Pantalla de pedido y avisos disponibles; push convencional si autorizado |
 | Web | Estado dentro de la página; Web Push solo si se aprueba |
-| Email transaccional | Resend desde Go/worker para identidad y avisos acordados; no reemplaza seguimiento/push |
+| Email transaccional | Resend desde Laravel/worker para identidad y avisos acordados; no reemplaza seguimiento/push |
 
 C03 dejó WebSocket/SSE como alternativas. C06 propuso WebSocket; mantener como preferencia provisional, pendiente de escoger y probar. No prometer conexión permanente en segundo plano.
 
 ## Evento duradero
 
-Cambio autorizado de estado → transacción PostgreSQL con pedido y outbox → worker Go → aviso/push/actualización de app. Redis acelera distribución; no conserva la única copia.
+Cambio autorizado de estado → transacción PostgreSQL con pedido y outbox → worker Laravel → aviso/push/actualización de app. Redis acelera distribución; no conserva la única copia.
 
 Eventos con ID y versión por pedido. Tras reconectar o recibir push, cliente consulta API y converge al estado actual; no retrocede por un aviso antiguo. Reintentos limitados y consumidores idempotentes.
 

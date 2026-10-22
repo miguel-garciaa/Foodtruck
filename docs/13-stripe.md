@@ -38,7 +38,7 @@ Si se aprueban cargos directos, crear/consultar pagos en el contexto de la cuent
 
 ## Flujo económico propuesto
 
-1. Go valida compra y crea intención/pedido pendiente con importe y moneda calculados.
+1. Laravel valida compra y crea intención/pedido pendiente con importe y moneda calculados.
 2. Solicita pago Stripe con clave de idempotencia persistida y contexto de cuenta correcto.
 3. Cliente completa PaymentSheet; web usa Checkout o Elements según selección pendiente.
 4. Webhook verificado o conciliación autenticada confirma pago y relación con pedido.
@@ -63,4 +63,4 @@ La consulta del conector Stripe requirió reautenticación; se utilizaron refere
 
 U01 solicita ofertas/promociones y puntos por compra; U02 confirma **5,99 €/mes en EUR**. Impuestos y condiciones de beneficios pendientes. Proponer Billing para contratación web; al implementarlo, precio base 599 unidades mínimas EUR e intervalo mensual, con configuración fiscal por definir. No se ha creado un precio real en Stripe. Verificar clasificación/canal móvil antes de dar por permitido Stripe dentro de la app.
 
-Separar derechos de membresía de cliente de la licencia del puesto y del pago de comida. No aplicar un cupón Billing a una factura de software para simular un descuento en un pedido Connect. Go calcula el total de comida y conserva regla/financiador; compensación al comerciante depende del modelo acordado. [Especificación completa](25-suscripcion-clientes-fidelizacion.md).
+Separar derechos de membresía de cliente de la licencia del puesto y del pago de comida. No aplicar un cupón Billing a una factura de software para simular un descuento en un pedido Connect. Laravel calcula el total de comida y conserva regla/financiador; compensación al comerciante depende del modelo acordado. [Especificación completa](25-suscripcion-clientes-fidelizacion.md).

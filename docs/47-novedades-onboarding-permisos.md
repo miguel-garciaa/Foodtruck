@@ -87,7 +87,7 @@ No copiar el diálogo del SO, simular que un toggle propio lo concede, dibujar l
 
 La API candidata es `getForegroundPermissionsAsync` / `requestForegroundPermissionsAsync`; en iOS, primer plano corresponde a `When In Use`. Interpretar precisión reducida/coarse como un resultado válido. Si los servicios de ubicación están apagados o la lectura falla, distinguirlo de permiso denegado y ofrecer entrada manual. No exigir precisión exacta para descubrir puestos. [Expo Location](https://docs.expo.dev/versions/latest/sdk/location/).
 
-No solicitar `Always`/background, iniciar servicios de rastreo, geofencing o seguir al comerciante/cliente en segundo plano por este diseño. Detener suscripciones al salir de la función o perder actividad. Para el puesto, obtener una posición no publica automáticamente la ubicación: Go valida y autoriza negocio/coordenadas, y las reglas sobre cambios con pedidos activos continúan pendientes. [Mapbox y ubicaciones](12-mapbox.md).
+No solicitar `Always`/background, iniciar servicios de rastreo, geofencing o seguir al comerciante/cliente en segundo plano por este diseño. Detener suscripciones al salir de la función o perder actividad. Para el puesto, obtener una posición no publica automáticamente la ubicación: Laravel valida y autoriza negocio/coordenadas, y las reglas sobre cambios con pedidos activos continúan pendientes. [Mapbox y ubicaciones](12-mapbox.md).
 
 ### Notificaciones
 
@@ -99,11 +99,11 @@ Mantener contenido mínimo en pantalla bloqueada y asociación de token con usua
 
 ### Cámara y fotografías
 
-Comprobar cámara al abrir el escáner y desmontarla cuando la pantalla pierda foco. Restringir la lectura al tipo QR; no ejecutar enlaces o instrucciones arbitrarias contenidos en él. Escanear no acredita pago ni canje: Go valida autorización, negocio, estado y uso único conforme al contrato existente. No inventar un canje offline como alternativa a cámara denegada. [Expo Camera](https://docs.expo.dev/versions/latest/sdk/camera/), [QA de QR](40-testing-qa-github.md).
+Comprobar cámara al abrir el escáner y desmontarla cuando la pantalla pierda foco. Restringir la lectura al tipo QR; no ejecutar enlaces o instrucciones arbitrarias contenidos en él. Escanear no acredita pago ni canje: Laravel valida autorización, negocio, estado y uso único conforme al contrato existente. No inventar un canje offline como alternativa a cámara denegada. [Expo Camera](https://docs.expo.dev/versions/latest/sdk/camera/), [QA de QR](40-testing-qa-github.md).
 
 Para uploads, el selector del SO da acceso a elementos elegidos; evitar solicitar acceso general por anticipado. `launchImageLibraryAsync` es candidato para imágenes. La documentación Expo distingue excepciones de vídeo en iOS; no extrapolar «sin permisos» a cualquier flujo multimedia. No incorporar captura de foto/vídeo por estas referencias. [Android Photo Picker](https://developer.android.com/training/data-storage/shared/photo-picker), [Expo ImagePicker](https://docs.expo.dev/versions/latest/sdk/imagepicker/).
 
-Cancelar conserva el formulario sin subir nada. Manejar pérdida de actividad/resultado según la integración elegida. Go autoriza el puesto y valida tamaño, MIME real, decodificación, dimensiones y almacenamiento; el filtro del picker no sustituye controles de subida. Mantener fotos persistentes locales y backups, conforme a [media](18-media-backups-operacion.md).
+Cancelar conserva el formulario sin subir nada. Manejar pérdida de actividad/resultado según la integración elegida. Laravel autoriza el puesto y valida tamaño, MIME real, decodificación, dimensiones y almacenamiento; el filtro del picker no sustituye controles de subida. Mantener fotos persistentes locales y backups, conforme a [media](18-media-backups-operacion.md).
 
 ## 7. Estado real, denegación y vuelta desde ajustes
 
@@ -139,7 +139,7 @@ Los siguientes casos complementan QA16–19 y la [política de pruebas por cambi
 | Área | Comportamiento que debe demostrar la implementación |
 | --- | --- |
 | Novedades | Cambios relevantes de una actualización se agrupan en una presentación automática; varias filas/páginas o un cambio de rol no generan otra apertura; irrelevante/incompatible/flag apagado no aparece; CTA, «Ahora no», atrás, reinicio y almacenamiento fallido no causan bucles |
-| Disponibilidad y acceso | Destino retirado no navega; cliente manipulado no accede a acciones del comerciante/admin; Go rechaza directamente operaciones ajenas aunque se eluda la UI |
+| Disponibilidad y acceso | Destino retirado no navega; cliente manipulado no accede a acciones del comerciante/admin; Laravel rechaza directamente operaciones ajenas aunque se eluda la UI |
 | Momento seguro | Pago/retorno, carrito, pedido activo, QR/escáner y datos sin guardar no sufren interrupción; presentación pospuesta conserva estado correcto |
 | Pasos y accesibilidad | Sin autoplay; anterior/siguiente, salida, posición textual, foco, lector, texto ampliado, movimiento reducido y ambos temas funcionan |
 | Onboarding | Completar/omitir no fuerza permisos ni repite introducción; consulta voluntaria no reinicia Novedades |

@@ -4,7 +4,7 @@
 
 ## Implementación DEV
 
-Laravel 13 sobre PHP 8.5, PostgreSQL/PostGIS, Sanctum para tokens móviles, Horizon sobre Redis y scheduler Laravel. Composer y su lock fijan dependencias reales. API, worker y scheduler comparten imagen; Caddy solo escucha en loopback del servidor DEV. No se incluye un frontend Laravel ni un segundo sistema de autenticación.
+Laravel 13 sobre PHP 8.5, PostgreSQL/PostGIS, Sanctum para tokens móviles, Horizon sobre Redis y scheduler Laravel. Composer y su lock fijan dependencias reales. API, worker y scheduler comparten imagen; Caddy solo publica en loopback del servidor DEV; Cloudflare Tunnel da entrada HTTPS a api-dev.foodtruck.bid conforme a D50. No se incluye un frontend Laravel ni un segundo sistema de autenticación.
 
 Form Requests/validación del servidor, Policies para propiedad, Resources para respuestas, Eloquent y SQL parametrizado donde PostGIS lo necesita. No Repository Pattern ni una clase por operación trivial. Contrato canónico: [OpenAPI](../contracts/openapi.json), con tipos móviles generados. Migraciones en backend/database/migrations; no otra fuente de esquema Go/sqlc.
 
@@ -26,7 +26,7 @@ Fotos JPEG/PNG con límites de bytes y píxeles, decodificación y nueva codific
 
 Guardar intención de aviso y cambio de negocio en la misma transacción PostgreSQL. Reclamar lotes con SKIP LOCKED, lease recuperable y reintentos limitados. Horizon transporta solamente IDs opacos; el payload permanece cifrado en PostgreSQL y se elimina al entregar, caducar o agotar intentos. Redis no decide permisos ni es autoridad duradera. Llamadas externas fuera de transacciones y con timeout; entrega al menos una vez, con IDs estables para deduplicar.
 
-Resend usa el transporte nativo de Laravel y resend/resend-php; claves solo servidor. DEV limita destinatarios. FCM HTTP v1 usa una cuenta de servicio independiente pendiente y comprueba sesión/dispositivo vigentes antes de enviar. Sin Firebase Authentication, Analytics ni servicios adicionales.
+Resend usa el transporte nativo de Laravel y resend/resend-php; claves solo servidor. DEV limita destinatarios. FCM HTTP v1 usa una cuenta de servicio independiente configurada en DEV y comprueba sesión/dispositivo vigentes antes de enviar. Sin Firebase Authentication, Analytics ni servicios adicionales.
 
 ## Alcance posterior y pruebas
 

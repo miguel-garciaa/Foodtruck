@@ -11,7 +11,7 @@ Foodtrucks facilita descubrir vendedores, consultar sus menús y hacer pedidos p
 | Objetivo | Resultado que se debe evaluar | Regla de medición |
 | --- | --- | --- |
 | Descubrimiento gastronómico útil | Búsqueda orgánica y visitas a oferta real por ciudad/categoría | Search Console y navegación consentida; no fabricar demanda ni páginas locales vacías |
-| Activación de la oferta | Vendedores verificados con carta, ubicación y capacidad de recibir pedidos | Datos operativos de Go/PostgreSQL; un registro no equivale a un negocio activo |
+| Activación de la oferta | Vendedores verificados con carta, ubicación y capacidad de recibir pedidos | Datos operativos de Laravel/PostgreSQL; un registro no equivale a un negocio activo |
 | Conversión y recurrencia | Compras confirmadas, pedidos recogidos y repetición | Pagos y recogida autoritativos, deduplicados y conciliados; no usar impresiones como sustituto |
 | Adquisición móvil | Instalaciones, primera apertura y uso que termina en pedido | Separar datos de tienda de eventos de la app; no equiparar descarga, apertura y compra |
 | Monetización sostenible | Ingreso y contribución por fuente/ciudad, frente a impacto en conversión | Separar GMV de ingresos de plataforma y publicidad; comparar periodos y cohortes equivalentes |
@@ -23,7 +23,7 @@ Las metas numéricas de adquisición, conversión, retención y rentabilidad est
 | --- | --- |
 | Next.js web; React Native + Expo + TypeScript móvil | Verificar versión y router en el repositorio. Expo Go solo permite comprobación parcial compatible; Mapbox, pagos, avisos y SDK nativos requieren development/native builds y pruebas propias. No acreditar esos flujos con Expo Go |
 | Mapbox para web y app; PostgreSQL/PostGIS para datos propios | Google Maps Platform se evalúa solo si hay una necesidad justificada; no sustituir Mapbox ni añadir otro SDK automáticamente. Business Profile es un servicio distinto |
-| Go/Chi/pgx/sqlc, auth propia, Redis justificado | Marketing no crea otro backend comercial, proveedor de identidad o plataforma genérica de eventos |
+| Laravel/PHP, Eloquent y migraciones, auth propia, Redis justificado | Marketing no crea otro backend comercial, proveedor de identidad o plataforma genérica de eventos |
 | Servidor en casa, Compose/Caddy, fotos locales y backups externos fuera del domicilio | Mantener este alojamiento; marketing no introduce S3, Supabase o Firestore para contenido, imágenes o autenticación |
 | Cloudflare para dominio/DNS; Resend para correo | Dominio y comunicaciones siguen sus guías. Header en Next.js incluso en navegador móvil; dock solo en app nativa |
 | Membresía cliente de **5,99 €/mes en EUR** | Importe confirmado; impuestos, beneficios, puntos y financiación pendientes. No prometer ahorro, equivalencias o plan sin anuncios no aprobados |
@@ -84,7 +84,7 @@ La cadencia de revisión se propone semanal durante un piloto activo y al cierre
 
 ## Estado comprobado y prioridades pendientes
 
-En esta carpeta se ha comprobado un paquete documental bajo `outputs/Foodtrucks`, sin `package.json`, `go.mod`, `app.json` o `next.config.*` del producto. No se aportaron accesos a Search Console, GA4/Firebase, tiendas ni cuentas de anunciantes/editores. La ausencia de código aquí no acredita ausencia de funcionalidades en otro repositorio ni un defecto del producto.
+La revisión histórica inicial comprobó un paquete documental bajo `outputs/Foodtrucks`, sin `package.json`, `go.mod`, `app.json` o `next.config.*` del producto. No se aportaron accesos a Search Console, GA4/Firebase, tiendas ni cuentas de anunciantes/editores. Ese inventario es histórico: hoy existen Laravel/móvil y CI en este repositorio; consultar README y sus guías. La revisión documental inicial no acreditaba funciones ni defectos del producto.
 
 | Comprobación | Resultado documental del 13 de octubre de 2026 |
 | --- | --- |

@@ -1,6 +1,6 @@
 # Decisiones cerradas y preguntas pendientes
 
-**Base documental:** v1.10 · **Actualización local:** 20 de octubre de 2026.
+**Base documental:** v1.10 · **Actualización local:** 22 de octubre de 2026.
 
 Consultar las decisiones y preguntas pertinentes antes de implementar; el historial se usa para contexto o conflictos. C01–C11 corresponden a [procedencia](00-procedencia.md). S indica la solicitud inicial de documentación; U01 identifica la ampliación de membresía cliente y U02 confirma su precio mensual. “Cerrado” no significa implementado.
 
@@ -68,7 +68,7 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 
 Monolito modular; app única con modos cliente/comerciante; roles customer/truck_owner/admin; Expo Router; Reanimated/Worklets/Gesture Handler; Skia/FlashList según uso; cache-aside con TTL iniciales; outbox PostgreSQL; cargos directos Connect; Checkout/Portal para Billing; automático de tema por defecto; paleta marfil/coral/azul noche; aprobación administrativa; WebSocket preferente con SSE alternativo.
 
-Herramientas auxiliares goose, slog, OpenTelemetry, Testcontainers, go-redis y stripe-go fueron recomendadas. Versiones e incorporación concreta se verificarán al implementar.
+goose, slog, go-redis y stripe-go pertenecen a la propuesta Go sustituida por D47; no se adoptan para Laravel. La base activa utiliza Composer, migraciones/Eloquent, Sanctum, Horizon, Pint, Larastan y PHPUnit según el repositorio. OpenTelemetry, Testcontainers y cualquier integración futura requieren necesidad y compatibilidad verificadas.
 
 Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implementación/hitos concretan el proyecto como **propuestas**. Los cierres explícitos de commit/push, GitHub Actions, GHCR, staging automático y aprobación manual de producción prevalecen sobre su antigua clasificación como propuesta.
 
@@ -109,11 +109,11 @@ Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implem
 | --- | --- |
 | P17 | Versiones compatibles, gestor npm/pnpm, SDK Expo y mínimos iOS/Android |
 | P18 | WebSocket o SSE, protocolo/versionado y reconexión |
-| P19 | JWT/token opaco, duración de sesiones y revocación |
+| P19 | DEV móvil usa Sanctum opaco de 15 min y refresh rotatorio de 30 días; verificar concurrencia/revocación y definir sesión web |
 | P20 | OAuth IDs/redirects, APNs/FCM y firma móvil; proveedor de correo ya cerrado en Resend |
 | P21 | Acceso MCP, licencias y selección final 21st.dev |
 | P22 | Tokens/paleta/fuentes definitivos y estilos Mapbox publicados |
-| P23 | foodtrucks.com indicado como referencia en U08: verificar control/disponibilidad y uso de producción; hardware doméstico/WAN o Tunnel, staging, presupuesto y disco |
+| P23 | foodtruck.bid comprado y api-dev.foodtruck.bid por Tunnel en DEV; dominio/hostnames de producción, hardware/WAN, staging, presupuesto y disco por verificar |
 | P24 | Cuotas de fotos, conversión, retención y política de privacidad |
 | P25 | Destino backups, cifrado, frecuencia, retención, RPO/RTO y restore |
 | P26 | SLO API, carga esperada, dispositivos y umbrales de frames |
@@ -134,7 +134,7 @@ Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implem
 | P51 | Hardware existente/nuevo, total CPU/RAM/discos, reservas DEV/PROD/observabilidad, hipervisor y coste |
 | P52 | ISP/contrato, subida real, IPv4 pública/CGNAT/IPv6, Tunnel o directo, administración y firewall |
 | P53 | Consumo W/kWh, tarifa, horarios, SAI/autonomía y coste de red/refrigeración/mantenimiento |
-| P54 | Repo Git/remoto/ramas/gestor/versiones, scripts/tests/gate configurado, plan/visibilidad GitHub, revisores/protecciones, mecanismo de aprobación/acceso y rollback probado; política principal ya cerrada |
+| P54 | Git/remoto, npm/Composer/locks y CI DEV existentes; verificar baseline del SHA, plan/visibilidad GitHub, revisores/protecciones, mecanismo de aprobación/acceso y rollback probado; política principal ya cerrada |
 | P55 | Modalidad Grafana/Prometheus/Sentry, cuotas/retención/series, instrumentación, alertas y destinatarios autorizados |
 | P56 | SLI/SLO/error budget, sonda externa, incidentes, mantenimiento y disponibilidad de producción doméstica |
 | P57 | Selección final 21st.dev por pantalla, fuente/version/hash/licencia, dependencias, runtime, accesibilidad y pruebas en app/web; catálogo preliminar 45–46 |
@@ -147,7 +147,7 @@ Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implem
 
 ## Historial y conflictos resueltos
 
-Flutter sustituido por React Native; NestJS/ORM sustituidos por Go/SQL; Google Maps sustituido por Mapbox; S3 eliminado; dock web eliminado. Recomendaciones PHP/Laravel generales del usuario no cambian el stack Go explícito de Foodtrucks.
+Flutter sustituido por React Native; NestJS/ORM sustituidos inicialmente por Go/SQL, a su vez sustituido por Laravel/PHP en D47 (21/10/2026). Google Maps sustituido por Mapbox; S3 eliminado; dock web eliminado. Laravel es la decisión específica vigente; Go queda reservado sin segundo backend activo.
 
 99 €, 29 €/mes, 0 % y 2 % son ejemplos no definitivos. Costes externos y tamaños de producción no son presupuestos aprobados. Ninguna arquitectura de este paquete acredita rendimiento o capacidad real.
 
@@ -173,7 +173,7 @@ U06 refuerza búsqueda/selección en skills.sh evitando duplicados. Resultado: 2
 
 La elección del registrador y del proveedor de envío ya no es una pregunta abierta. [Cloudflare](29-cloudflare-dominio-dns.md) y [Resend](30-correo-resend.md) contienen configuración propuesta y criterios de comprobación. Nombre/IP, valores generados, plan, recepción y condiciones de operación siguen pendientes; ningún marcador es una configuración real.
 
-No se ha comprado el dominio, creado cuentas, modificado DNS o enviado mensajes. La petición se incorpora al paquete documental y no sustituye las decisiones Go/Expo/Next.js/Caddy ni autoriza gastos de Google Ads; U09 modifica posteriormente el alojamiento base a servidor doméstico.
+No se ha comprado el dominio, creado cuentas, modificado DNS o enviado mensajes. La petición se incorpora al paquete documental y no sustituía las decisiones de stack vigentes en U07; D47 fija posteriormente Laravel/PHP, conservando Expo/Next.js/Caddy ni autoriza gastos de Google Ads; U09 modifica posteriormente el alojamiento base a servidor doméstico.
 
 ## Actualización U08 — marketing digital completo
 

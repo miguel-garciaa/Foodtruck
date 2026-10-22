@@ -7,10 +7,10 @@
 | Riesgo | Control exigido o propuesto |
 | --- | --- |
 | IDOR entre clientes/negocios | Filtrar por identidad y membresía; comprobar en cada endpoint |
-| Manipulación de precio/pago | Calcular en Go; verificar importe, moneda, cuenta y pedido |
+| Manipulación de precio/pago | Calcular en Laravel; verificar importe, moneda, cuenta y pedido |
 | Webhook falsificado/repetido | Firma original, idempotencia y conciliación |
 | Canje QR duplicado | Token opaco, autorización del puesto y transacción única |
-| SQL injection | Consultas parametrizadas pgx/sqlc |
+| SQL injection | Eloquent/Query Builder y bindings en SQL/PostGIS; allowlist de columnas y orden |
 | XSS | Escape de salida, contenido permitido, CSP revisada; sin HTML arbitrario |
 | CSRF | Protección de mutaciones con cookies; excepciones delimitadas para webhooks firmados |
 | Robo de sesión | Tokens cortos/rotación, cookies seguras y almacenamiento nativo seguro |
@@ -76,7 +76,7 @@ No cargar tracking no esencial antes de la elección conforme a la base propuest
 
 ## Seguridad avanzada y QA del prompt U10
 
-[Doc39](39-seguridad-devsecops.md) concreta controles, matriz API, dependencias/secretos y evidencia; [doc40](40-testing-qa-github.md) los vincula a tests/gates/revisión/CI/CD. No existen código/Git en esta carpeta para validar findings o cobertura. OWASP y los ejemplos no se convierten en defectos descubiertos.
+[Doc39](39-seguridad-devsecops.md) concreta controles, matriz API, dependencias/secretos y evidencia; [doc40](40-testing-qa-github.md) los vincula a tests/gates/revisión/CI/CD. Existen código Laravel/móvil y Git; validar findings y cobertura contra el SHA y los comandos reales, sin presentar esta actualización documental como auditoría de código. OWASP y los ejemplos no se convierten en defectos descubiertos.
 
 Servidor doméstico: separar entornos, gestión y datos de la LAN; aceptar IP/cabeceras solo por la ruta confiable real. Observabilidad debe mantener /metrics, exporters, datos y administración privados, con redacción de logs/traces/Sentry y secretos solo servidor. [Servidor](38-servidor-domestico.md), [observabilidad](41-observabilidad-grafana-prometheus-sentry.md).
 

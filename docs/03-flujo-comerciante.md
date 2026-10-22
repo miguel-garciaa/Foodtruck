@@ -24,11 +24,11 @@ Alta de negocio y onboarding de Stripe son procesos diferentes. Volver de Stripe
 - Escanear ticket QR, ver una confirmación del pedido y completar el canje.
 - Consultar historial, incidencias y estado de facturación.
 
-El usuario propietario puede utilizar también el modo cliente. Todos los permisos se validan en Go para el negocio concreto; cambiar de modo en la interfaz no concede acceso.
+El usuario propietario puede utilizar también el modo cliente. Todos los permisos se validan en Laravel para el negocio concreto; cambiar de modo en la interfaz no concede acceso.
 
 ## Recogida segura
 
-Escanear requiere permiso de cámara contextual. Go resuelve el token, identifica el negocio y comprueba pago, estado listo, vigencia y ausencia de canje. El cambio a entregado y el registro de canje ocurren en la misma transacción.
+Escanear requiere permiso de cámara contextual. Laravel resuelve el token, identifica el negocio y comprueba pago, estado listo, vigencia y ausencia de canje. El cambio a entregado y el registro de canje ocurren en la misma transacción.
 
 Si dos dispositivos escanean a la vez, solo uno completa la operación. El segundo recibe un resultado coherente indicando que ya se registró. Un propietario no puede canjear pedidos de otro negocio.
 

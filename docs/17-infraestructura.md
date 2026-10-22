@@ -1,6 +1,6 @@
 # Infraestructura: servidor doméstico, VMware, Ubuntu y Compose
 
-**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+**Actualización técnica, 22/10/2026 (D47):** Laravel/PHP es el backend principal. Composer y su lockfile, las migraciones Laravel y [OpenAPI](../contracts/openapi.json) son las fuentes ejecutables; comandos y operación DEV en la [guía del backend](../backend/README.md). Las reglas siguientes se aplican a Laravel; Go queda reservado para una necesidad futura aprobada.
 
 ## Base cerrada y dimensionamiento
 
@@ -14,7 +14,7 @@ Ubuntu 26.04 figura como LTS en [notas oficiales](https://documentation.ubuntu.c
 
 | Ordenador anfitrión | VM Ubuntu |
 | --- | --- |
-| Editor, Node/TypeScript, Expo/Next.js | API y worker Go |
+| Editor, Node/TypeScript, Expo/Next.js | API PHP-FPM, Horizon y scheduler Laravel |
 | Android Studio SDK/emulador | PostgreSQL/PostGIS y Redis |
 | Navegador/Mapbox Studio | Compose y Caddy |
 | MCP de 21st.dev | Fotos locales y pruebas backend |
@@ -31,9 +31,9 @@ El emulador se conecta a la IP accesible de la VM. 10.0.2.2 suele referirse al h
 
 HTTPS para entornos compartidos y producción. HTTP de desarrollo, si se usa, solo en red de pruebas y variante debug; ninguna excepción TLS debe llegar a release. Para TLS local configurar confianza de certificados correctamente, sin desactivar verificaciones.
 
-## Servicios Compose propuestos
+## Servicios Compose
 
-Caddy, Next.js, API Go, worker Go, PostgreSQL con PostGIS y Redis. Imágenes con versiones fijadas, restart policy, healthchecks y límites adecuados. Ajustar logging para evitar llenar disco. Arranque de Compose no garantiza readiness; clientes reintentan con límites.
+DEV ya define Caddy, API PHP-FPM, Horizon, scheduler, migrador y revisión CLI, PostgreSQL/PostGIS y Redis en [Compose](../compose.yaml); API/worker/scheduler usan la misma imagen. Next.js y la topología staging/PROD siguen propuestos. Imágenes con versiones fijadas, restart policy, healthchecks y límites adecuados. Ajustar logging para evitar llenar disco. Arranque de Compose no garantiza readiness; clientes reintentan con límites.
 
 Separar servicios públicos de datos internos. Solo Caddy publica HTTP/HTTPS; SSH restringido a acceso administrativo. PostgreSQL, Redis y puertos de aplicaciones no se exponen a Internet.
 
@@ -41,9 +41,9 @@ Precaución: puertos publicados por Docker pueden interactuar con firewall del h
 
 ## Caddy
 
-Proxy inverso con rutas propuestas para web, API y medios; nombre del dominio pendiente. **La compra se hará en Cloudflare (U07)**, con DNS en Cloudflare. Proxy/CDN y plan son propuestas por definir. Certificados y estado de Caddy en almacenamiento persistente. HTTPS automático requiere requisitos DNS/red y configuración correctos. [Caddy HTTPS](https://caddyserver.com/docs/automatic-https).
+DEV enruta únicamente API/salud hacia PHP-FPM privado en `api:9000` mediante FastCGI; no es un upstream HTTP en `api:8080`. [Caddyfile vigente](../infrastructure/Caddyfile). foodtruck.bid está comprado en Cloudflare y api-dev.foodtruck.bid usa Tunnel; web y medios públicos siguen propuestos. Proxy/CDN y plan son propuestas por definir. Certificados y estado de Caddy en almacenamiento persistente. HTTPS automático requiere requisitos DNS/red y configuración correctos. [Caddy HTTPS](https://caddyserver.com/docs/automatic-https).
 
-No configurar listado de directorios de uploads, ni servir backups/configuración. Cabeceras de proxy solo desde Caddy confiable. Timeouts y límites de uploads coherentes entre proxy y Go.
+No configurar listado de directorios de uploads, ni servir backups/configuración. Cabeceras de proxy solo desde Caddy confiable. Timeouts y límites de uploads coherentes entre proxy y Laravel.
 
 ## Persistencia y capacidad
 

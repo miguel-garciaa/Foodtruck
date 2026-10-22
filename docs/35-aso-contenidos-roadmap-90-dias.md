@@ -38,7 +38,7 @@ Capturas y descripción deben explicar recogida y zona operativa. Botones de des
 
 Registrar un mapa de rutas compartibles: ficha de vendedor, menú y vista del pedido autorizado. Android App Links y iOS Universal Links se especifican en [frontend](08-frontend.md); el dominio confirmado, assetlinks/AASA, firmas y capacidades deben verificarse. Mantener fallback web útil y no forzar descarga para acceder a toda la información pública.
 
-Cuando la app abra un pedido, autenticar y autorizar mediante Go; el enlace no concede acceso ni acredita pago. Los enlaces de auth no mutan por GET. No utilizar Firebase Dynamic Links para la propuesta nueva; verificar vigencia del mecanismo elegido antes de añadir un proveedor. [Analítica/enlaces](34-analitica-consentimiento.md).
+Cuando la app abra un pedido, autenticar y autorizar mediante Laravel; el enlace no concede acceso ni acredita pago. Los enlaces de auth no mutan por GET. No utilizar Firebase Dynamic Links para la propuesta nueva; verificar vigencia del mecanismo elegido antes de añadir un proveedor. [Analítica/enlaces](34-analitica-consentimiento.md).
 
 Probar una hipótesis por experimento: primera captura de mapa frente a menú; claridad de recogida; icono legible. Separar plataformas/idiomas, documentar muestra/periodo y conversión a instalación/primera apertura, y después compra/recogida. No elegir ganador con una muestra pequeña o varias variables cambiadas a la vez. Emplear herramientas de las tiendas cuando estén disponibles y corresponda el estado de la app. [Experimentos Play](https://support.google.com/googleplay/android-developer/answer/12053285?hl=en), [optimización Apple](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/run-a-test).
 
