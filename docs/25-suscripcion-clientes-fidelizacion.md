@@ -25,11 +25,11 @@ Propuesta: comprar comida continúa disponible sin membresía; la suscripción c
 
 1. Consultar beneficios desde Perfil y una sección de ofertas. Mantener dock solo nativo/header web; no añadir automáticamente una pestaña nueva por esta función.
 2. Ver importe, moneda, periodo, renovación, cancelación y condiciones antes de contratar. Mostrar el precio confirmado **5,99 €/mes** y cerrar la presentación fiscal antes de vender.
-3. Completar el pago mediante el canal aprobado para esa superficie. Go activa derechos solo con evidencia autenticada de cobro/estado vigente.
+3. Completar el pago mediante el canal aprobado para esa superficie. Laravel activa derechos solo con evidencia autenticada de cobro/estado vigente.
 4. Ver ofertas elegibles con condiciones, negocios, vigencia y límites. La membresía no garantiza recibir promociones si no existen campañas publicadas.
 5. Realizar una compra; el backend calcula y registra los puntos de acuerdo con la regla versionada que corresponda.
 6. Consultar saldo disponible, puntos pendientes/reservados e historial. Mostrar cuándo se acreditan, si caducan y para qué sirven.
-7. Elegir una oferta o canje en checkout. Go calcula precio base, descuento y total; el cliente acepta el resumen antes del pago.
+7. Elegir una oferta o canje en checkout. Laravel calcula precio base, descuento y total; el cliente acepta el resumen antes del pago.
 8. Consultar o cancelar la suscripción mediante un flujo claro, sin impedir ver pedidos, facturas o movimientos previos.
 
 No prometer ahorro fijo, recuperación automática de la cuota, puntos ilimitados ni descuentos mínimos sin acuerdo.
@@ -52,7 +52,7 @@ Si se requiere cobro de tienda, adaptar verificación de transacciones/notificac
 
 ## Puntos: autoridad y cálculo
 
-PostgreSQL conserva un registro de movimientos inmutable y auditable; Redis puede cachear una vista, pero nunca decidir el saldo gastable. Calcular en Go con enteros y reglas versionadas; no admitir un saldo o descuento enviado por el teléfono.
+PostgreSQL conserva un registro de movimientos inmutable y auditable; Redis puede cachear una vista, pero nunca decidir el saldo gastable. Calcular en Laravel con enteros y reglas versionadas; no admitir un saldo o descuento enviado por el teléfono.
 
 **Base propuesta:** marcar puntos pendientes tras pago y acreditarlos después de entrega/recogida confirmada, para limitar acumulación por compras canceladas. Alternativa de acreditación al pagar pendiente de decisión. Cada compra elegible debe producir su crédito exactamente una vez, aunque el webhook o evento se repita.
 

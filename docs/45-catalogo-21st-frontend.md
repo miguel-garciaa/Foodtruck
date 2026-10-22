@@ -71,7 +71,7 @@ Lectura estática acotada: DOM/Tailwind, Motion, ancho fijo y colores directos r
 | --- | --- |
 | Descubrimiento/mapa | Conservar búsqueda, chips rápidos, fichas y dock de 06. A01 aporta filtros detallados. Mapbox y alternativa de lista comparten selección sin duplicar consultas innecesarias. |
 | Carta/producto | Conservar tarjetas y jerarquía actuales. Mostrar disponibilidad, precio y alérgenos del negocio; los filtros nunca sustituyen esa información. A07 y A08 cubren carga/fallo. |
-| Compra/recogida | A02 organiza el resumen; importes/stock/recogida se confirman con Go. Checkout de 06 no sustituye PaymentSheet. Progreso de preparación y QR permanecen separados del estado de pago. |
+| Compra/recogida | A02 organiza el resumen; importes/stock/recogida se confirman con Laravel. Checkout de 06 no sustituye PaymentSheet. Progreso de preparación y QR permanecen separados del estado de pago. |
 | Membresía/ofertas/puntos | A03–A05 organizan presentación y movimientos. El cliente no concede beneficios tras una redirección, calcula saldo gastable ni decide un descuento. |
 | Comerciante | Reutilizar campos, listas, estados vacíos/carga/error para carta y disponibilidad. Cambiar estado de pedido o canjear QR exige negocio autorizado y confirmación del servidor. No habilitar canje offline. |
 | Administración/web | Header y navegación contextual conforme a 46; no reutilizar el dock nativo ni convertir la app en una WebView administrativa. |
@@ -95,15 +95,15 @@ Esta matriz organiza **pruebas futuras propuestas** sobre los flujos existentes.
 | N07 | Ficha de puesto | Negocio inexistente/no disponible, ubicación/horario vigentes y recuperación de errores. |
 | N08 | Carta | Carga, carta vacía, categorías, productos agotados y actualización de disponibilidad. |
 | N09 | Detalle de producto | Precio, alérgenos visibles, límites de complementos cuando se aprueben y cambio de stock antes de añadir. |
-| N10 | Carrito | Vacío, cantidades límite, producto retirado y revisión del total devuelto por Go. |
-| N11 | Checkout/pago | Cancelación/fallo Stripe, doble toque, pérdida de red y resultado confirmado desde Go. |
+| N10 | Carrito | Vacío, cantidades límite, producto retirado y revisión del total devuelto por Laravel. |
+| N11 | Checkout/pago | Cancelación/fallo Stripe, doble toque, pérdida de red y resultado confirmado desde Laravel. |
 | N12 | Historial de pedidos | Vacío, paginación, fallo recuperable y protección frente a pedidos de otra cuenta. |
 | N13 | Pedido activo/seguimiento | Preparación/listo/recogido, desconexión y reconexión; ninguna llegada de repartidor o ETA inventada. |
 | N14 | Ticket QR | Legibilidad en ambos temas, token no válido/canjeado y estado actualizado desde servidor; no QR en logs/capturas de QA. |
 | N15 | Perfil/apariencia | Sistema/Día/Noche, persistencia, cierre de sesión y texto ampliado sin controles solapados. |
 | N16 | Membresía/gestión | Estado pendiente/activo/inactivo según contrato final; renovación/condiciones y resultado recuperado tras contratación. |
 | N17 | Ofertas | Vacío, expirada/no elegible, condiciones completas y acceso sin depender de autoplay. |
-| N18 | Puntos/movimientos/canje | Saldo y signos correctos, vacío, reservado/pendiente y conflicto de canje concurrente resuelto por Go. |
+| N18 | Puntos/movimientos/canje | Saldo y signos correctos, vacío, reservado/pendiente y conflicto de canje concurrente resuelto por Laravel. |
 | N19 | Comerciante: carta/disponibilidad | Editar/guardar pendiente, rechazo de validación, actualización fallida y acceso a negocio ajeno denegado. |
 | N20 | Comerciante: pedidos/recogida QR | Transición permitida/prohibida, doble escaneo, permiso de cámara denegado y confirmación atómica del canje. |
 

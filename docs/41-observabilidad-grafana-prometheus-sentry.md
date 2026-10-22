@@ -3,10 +3,11 @@
 **Avisos autorizados 22/10/2026:** GitHub nativo para el coordinador; Resend para alarmas/recuperaciones. [Catálogo y activación](devops/README.md#sonda-externa-y-catalogo-de-avisos): Worker/KV externo cada cinco minutos (3 fallos/2 éxitos), monitor local cada minuto, deduplicación persistente y recordatorio diario. Scripts preparados; activación y recepción real pendientes de credenciales/bootstrap. No se dan por instalados Prometheus/Grafana/Sentry. Este hito utiliza Laravel D47 y dominio propio `foodtruck.bid`; Go y dominio histórico siguientes no describen el backend actual.
 
 **Versión:** 1.9. **Fecha:** 14 de octubre de 2026. **Estado:** política documentada; implementación pendiente. Integra los 36 apartados de requisitos de observabilidad recibidos como obligaciones, procedimientos y criterios de aceptación. No conserva copias de prompts ni interpreta sus instrucciones de ejecución como evidencia de trabajo realizado. No existe en este paquete código de aplicación, un repositorio Git conectado ni acceso comprobado al servidor doméstico. No se han instalado servicios, conectado cuentas, creado dashboards funcionales, capturado eventos ni enviado alertas.
+**Actualización técnica:** 22/10/2026, D47. Política de observabilidad para Laravel/PHP; integra los requisitos como obligaciones, procedimientos y criterios de aceptación. Existen backend/móvil, Git, CI y DEV con evidencias en la [guía del backend](../backend/README.md). Esta revisión documental no acredita instalación de Prometheus/Grafana/Sentry, dashboards, captura de eventos o envío de alertas.
 
-**Decisiones cerradas:** Prometheus, Grafana y Sentry forman parte del requisito de observabilidad. Foodtrucks conserva Go + Chi + pgx/sqlc, PostgreSQL/PostGIS, Redis cuando aporte valor, Next.js y React Native + Expo + TypeScript, Mapbox y autenticación propia con email/contraseña, Google y Apple. La aplicación se alojará en un servidor en casa para desarrollo y producción; el VPS queda sustituido como alojamiento base. La ubicación/modalidad de las herramientas de observabilidad, retención, presupuesto, destinatarios, DSN, versiones y parámetros operativos siguen pendientes. Los **4 vCPU, 8 GB RAM y 40 GB NVMe** describen únicamente la VM de desarrollo prevista; no prueban la capacidad física del servidor ni dimensionan producción. `foodtrucks.com` es el nombre de referencia recibido: propiedad, compra, DNS y disponibilidad reales siguen sin verificarse.
+**Decisiones cerradas:** Prometheus, Grafana y Sentry forman parte del requisito de observabilidad. Foodtrucks conserva Laravel/PHP con Eloquent y SQL parametrizado, PostgreSQL/PostGIS, Redis cuando aporte valor, Next.js y React Native + Expo + TypeScript, Mapbox y autenticación propia con email/contraseña, Google y Apple. La aplicación se alojará en un servidor en casa para desarrollo y producción; el VPS queda sustituido como alojamiento base. La ubicación/modalidad de las herramientas de observabilidad, retención, presupuesto, destinatarios, DSN, versiones y parámetros operativos siguen pendientes. Los **4 vCPU, 8 GB RAM y 40 GB NVMe** describen únicamente la VM de desarrollo prevista; no prueban la capacidad física del servidor ni dimensionan producción. foodtruck.bid es el dominio comprado y verificado para Resend; api-dev.foodtruck.bid es la entrada DEV por Tunnel. Staging/PROD y sus hostnames siguen por definir.
 
-Aplicar esta política junto a [API](20-api.md), [backend Go](09-backend-go.md), [datos](10-datos-postgresql-postgis.md), [autenticación propia](14-autenticacion.md), [Redis](11-redis-cache.md), [correo Resend](30-correo-resend.md), [operación y backups](18-media-backups-operacion.md), [seguridad](19-seguridad.md) y [entornos/CI](21-entornos-ci-cd.md). También integra el [presupuesto](37-costes-presupuesto.md), el [servidor doméstico](38-servidor-domestico.md), [DevSecOps](39-seguridad-devsecops.md), [QA y GitHub](40-testing-qa-github.md) y la [política de commits, CI/CD y tests](44-politica-commits-ci-cd-tests.md). Foodtrucks sigue siendo un marketplace de compra y recogida presencial, sin reparto. Observabilidad operativa y analítica comercial tienen finalidades y accesos diferentes.
+Aplicar esta política junto a [API](20-api.md), [backend Laravel](09-backend-go.md), [datos](10-datos-postgresql-postgis.md), [autenticación propia](14-autenticacion.md), [Redis](11-redis-cache.md), [correo Resend](30-correo-resend.md), [operación y backups](18-media-backups-operacion.md), [seguridad](19-seguridad.md) y [entornos/CI](21-entornos-ci-cd.md). También integra el [presupuesto](37-costes-presupuesto.md), el [servidor doméstico](38-servidor-domestico.md), [DevSecOps](39-seguridad-devsecops.md), [QA y GitHub](40-testing-qa-github.md) y la [política de commits, CI/CD y tests](44-politica-commits-ci-cd-tests.md). Foodtrucks sigue siendo un marketplace de compra y recogida presencial, sin reparto. Observabilidad operativa y analítica comercial tienen finalidades y accesos diferentes.
 
 ## 0. Objetivos, obligaciones y responsables
 
@@ -20,7 +21,7 @@ Los siguientes roles son **propuestos y pendientes de asignación nominal**. Una
 | --- | --- |
 | Propietario de producto/servicio | Definir horario, funciones críticas, SLO, presupuesto, destinatarios autorizados y aprobación manual de promoción productiva |
 | Responsable de operación | Inventario, aislamiento, configuración/retención, sonda externa, alertas, runbooks, backups y registro de incidentes/despliegues |
-| Responsable backend/datos | Contratos de métricas Go/Chi/pgx/sqlc, transiciones duraderas, deduplicación, exporters y carga de consultas |
+| Responsable backend/datos | Contratos de métricas Laravel/PHP, Eloquent y migraciones, transiciones duraderas, deduplicación, exporters y carga de consultas |
 | Responsable web/móvil | SDK compatible, privacidad, releases, source maps/símbolos, cobertura Next.js/Expo y prueba en builds reales |
 | Responsable de QA/revisión | Revisar reglas/configuración y evidencias, ejecutar pruebas controladas, comprobar aceptación y limitaciones |
 | Responsable de seguridad/privacidad | Revisar accesos, secretos, redacción, retención, destinos y tratamiento de telemetría |
@@ -31,16 +32,16 @@ Revisar la política antes del piloto, tras incidentes relevantes y cuando cambi
 
 ## 1. Auditoría inicial y alcance real
 
-Antes de instrumentar, completar un inventario con evidencia: ruta del repositorio, rama/SHA, módulos desplegables, versiones de Next.js/React Native/Expo/Go/PostgreSQL/PostGIS/Redis, router web, librerías, configuración de compilación, Docker Compose, Caddy, imágenes/digests, puertos, volúmenes, límites, pipeline, permisos y ubicaciones de secretos. Registrar por separado servidor físico, hipervisor, VM de desarrollo y entorno productivo, red/ISP, alimentación, almacenamiento, backups y restauración. Examinar logging, health checks y SDKs de observabilidad existentes para reutilizarlos.
+Antes de instrumentar, completar un inventario con evidencia: ruta del repositorio, rama/SHA, módulos desplegables, versiones de Next.js/React Native/Expo/PHP/Laravel/Composer/PostgreSQL/PostGIS/Redis, router web, librerías, configuración de compilación, Docker Compose, Caddy, imágenes/digests, puertos, volúmenes, límites, pipeline, permisos y ubicaciones de secretos. Registrar por separado servidor físico, hipervisor, VM de desarrollo y entorno productivo, red/ISP, alimentación, almacenamiento, backups y restauración. Examinar logging, health checks y SDKs de observabilidad existentes para reutilizarlos.
 
-**Responsable propuesto:** operación, con web/móvil y backend/datos. **Aceptación:** inventario fechado con alcance, versiones verificadas, acceso autorizado y diferencias entre lo existente y lo pendiente. El inventario debe conservar Go/Chi/pgx/sqlc, Mapbox y autenticación propia; una librería de observabilidad no justifica sustituir esos componentes. Las referencias a Kubernetes, serverless u otros modelos se revisan únicamente si la auditoría detecta una realidad nueva o se aprueba un cambio de arquitectura.
+**Responsable propuesto:** operación, con web/móvil y backend/datos. **Aceptación:** inventario fechado con alcance, versiones verificadas, acceso autorizado y diferencias entre lo existente y lo pendiente. El inventario debe conservar Laravel/PHP, Eloquent y migraciones, Mapbox y autenticación propia; una librería de observabilidad no justifica sustituir esos componentes. Las referencias a Kubernetes, serverless u otros modelos se revisan únicamente si la auditoría detecta una realidad nueva o se aprueba un cambio de arquitectura.
 
 No incluir valores de secretos en el inventario. Un archivo Compose previsto no prueba que sus servicios estén ejecutándose. No asumir Kubernetes, réplicas, despliegue serverless ni métricas del router/UPS disponibles. Si aparecen, adaptar la solución después del inventario. Registrar cada componente como **existente y verificado / configurado sin verificar / propuesto / no aplicable**; no confundir esas categorías.
 
 | Componentes previstos | Señales y objetivo | Estado actual |
 | --- | --- | --- |
 | Next.js web, cliente y servidor | Errores, renderizado, rutas, latencia, versión | Instrumentación pendiente |
-| Go + Chi, pgx/sqlc y worker | HTTP, negocio, dependencias, pool y trabajos | Instrumentación pendiente |
+| Laravel/PHP-FPM, Eloquent, Horizon y scheduler | HTTP, negocio, dependencias, conexiones y trabajos | Instrumentación de observabilidad pendiente |
 | Expo/React Native iOS y Android | Errores JS, crashes nativos y regresiones por release | Instrumentación pendiente; comprobar builds reales |
 | PostgreSQL/PostGIS y Redis | Disponibilidad, saturación, consultas/caché | Exporters y consultas pendientes |
 | Linux, VM, Docker Compose, Caddy | Recursos, servicios, disco, reinicios, red/TLS | Capacidad y acceso pendientes |
@@ -66,7 +67,7 @@ Arquitectura lógica prevista:
 ```text
 Web / app móvil ───────────────> Sentry (errores filtrados, release, símbolos)
        │
-       └──> Caddy / Next.js / API Go / worker ──> PostgreSQL, Redis, externos
+       └──> Caddy / Next.js / API Laravel / worker ──> PostgreSQL, Redis, externos
                           │
            métricas privadas + logs JSON
                           │
@@ -97,18 +98,18 @@ Etiquetas permitidas por lista cerrada: `service`, `environment`, `method`, `rou
 | `foodtrucks_api_errors_total` | Counter, errores | Error semántico clasificado por código cerrado; no replicar ciegamente cada 4xx |
 | `foodtrucks_external_service_failures_total` | Counter, fallos | Proveedor/operación/tipo acotados; diferenciar intento de resultado final |
 | `foodtrucks_external_request_duration_seconds` | Histogram, segundos | Latencia de dependencia con timeout, sin nombres de recursos individuales |
-| `foodtrucks_db_pool_connections` | Gauge, conexiones | Estado disponible/en uso del pool; fuente real pgxpool |
+| `foodtrucks_db_connections` | Gauge, conexiones | Fuente PostgreSQL/exporter verificada; no asumir un pool pgx en PHP-FPM ni sumar cifras de distinto alcance |
 | `foodtrucks_background_jobs` | Gauge, trabajos | Pendientes/en proceso por clase finita; sin ID de trabajo |
 | `foodtrucks_last_business_aggregation_timestamp_seconds` | Gauge, Unix time | Última agregación correcta; detectar frescura, no asumir cero como actualizado |
 | `foodtrucks_build_info` | Gauge, constante 1 | Servicio, entorno y versión activa; limpiar versiones de instancias retiradas |
 
 Buckets de latencia deben cubrir objetivos reales y permitir alertas útiles. Consultas abajo usan **histogramas clásicos** como ejemplo compatible; evaluar histogramas nativos si librería, servidor, almacenamiento y Grafana los soportan, con sus consultas específicas. No cambiar formato manteniendo consultas incompatibles. p95 no se obtiene promediando p95 de instancias. [Histogramas](https://prometheus.io/docs/practices/histograms/).
 
-## 4. Instrumentación de Go y Next.js
+## 4. Instrumentación de Laravel y Next.js
 
-**Go/Chi:** middleware HTTP con route template al terminar la petición, estado y duración; registrar abortos/timeouts con semántica precisa. Conservar interfaces requeridas del ResponseWriter al envolverlo. Separar health/scrape de métricas de tráfico comercial. Evitar registrar cuerpos o SQL con parámetros. Medir pool pgx, timeouts, resultados de consultas por nombre lógico acotado y workers. Recovery y Sentry deben tener un orden comprobado que capture el panic una vez, finalice el request y preserve la respuesta segura; no recuperar dos veces y ocultar errores. La integración oficial `sentry-go/http` trabaja con `net/http`, compatible con el modelo de middleware de Chi. [Sentry HTTP](https://github.com/getsentry/sentry-go/blob/master/http/README.md), [Chi](https://github.com/go-chi/chi).
+**Laravel/PHP:** instrumentar middleware/eventos HTTP, ruta normalizada, estado, duración y excepciones con el ciclo real de Laravel. Separar salud y scrapes del tráfico de negocio. Observar consultas lentas sin parámetros privados, conexiones PostgreSQL, saturación/cola de PHP-FPM y memoria/reinicios/antigüedad de trabajos Horizon. No asumir memoria compartida entre procesos PHP-FPM: verificar agregación/persistencia del colector para métricas multiproceso. Para errores evaluar el SDK `sentry/sentry-laravel` compatible con Laravel 13/PHP y su integración de excepciones/jobs; un evento lógico por fallo, sin doble captura. No está instalado por escribir esta política. No exponer Horizon/Telescope/FPM status, profiler ni métricas públicamente. La configuración se contrasta con el [backend vigente](../backend/README.md) y la [documentación Sentry Laravel](https://docs.sentry.io/platforms/php/guides/laravel/) antes de implementarla.
 
-**Next.js:** comprobar versión, App/Pages Router, Node/Edge y estrategia de despliegue. Usar SDK oficial `@sentry/nextjs` y los puntos de instrumentación correspondientes a esa versión; `instrumentation.ts` configura el servidor, con imports por runtime cuando sea necesario. Instrumentar errores de browser/SSR, API routes/Route Handlers/Server Actions existentes, renderizado y llamadas al backend. No crear API Routes de negocio duplicadas para obtener métricas: la API Go sigue siendo autoritativa. [Instrumentation API](https://nextjs.org/docs/app/guides/instrumentation), [guía Sentry Next.js](https://docs.sentry.io/platforms/javascript/guides/nextjs/).
+**Next.js:** comprobar versión, App/Pages Router, Node/Edge y estrategia de despliegue. Usar SDK oficial `@sentry/nextjs` y los puntos de instrumentación correspondientes a esa versión; `instrumentation.ts` configura el servidor, con imports por runtime cuando sea necesario. Instrumentar errores de browser/SSR, API routes/Route Handlers/Server Actions existentes, renderizado y llamadas al backend. No crear API Routes de negocio duplicadas para obtener métricas: la API Laravel sigue siendo autoritativa. [Instrumentation API](https://nextjs.org/docs/app/guides/instrumentation), [guía Sentry Next.js](https://docs.sentry.io/platforms/javascript/guides/nextjs/).
 
 Medir RPS, 4xx/5xx, p50/p95/p99, timeouts, rutas lentas y CPU/memoria **solo donde la plataforma lo permita**. Si Next se ejecuta en un proceso persistente privado, evaluar exposición de métricas por instancia o telemetría OTel. Si cambia a serverless, usar la integración/exportación soportada por el proveedor o un colector compatible: un contador local por función no representa el total global ni conserva historia fiable. Prometheus no scrapea directamente el navegador o teléfonos.
 
@@ -116,11 +117,11 @@ Crear un mapa de ownership: Sentry para excepciones y, si se selecciona, tracing
 
 ## 5. Sentry: web, móvil y backend
 
-Propuesta de proyectos lógicos: web, API Go y móvil, con dev/staging/prod diferenciados; decidir si se requieren proyectos totalmente separados por entorno para aislamiento. iOS/Android pueden compartir proyecto móvil con plataforma identificada si el acceso y el plan lo permiten. Nombres reales, región de tratamiento, plan, responsables y permisos pendientes. No se ha consultado ninguna cuenta Sentry.
+Propuesta de proyectos lógicos: web, API Laravel y móvil, con dev/staging/prod diferenciados; decidir si se requieren proyectos totalmente separados por entorno para aislamiento. iOS/Android pueden compartir proyecto móvil con plataforma identificada si el acceso y el plan lo permiten. Nombres reales, región de tratamiento, plan, responsables y permisos pendientes. No se ha consultado ninguna cuenta Sentry.
 
 Para Expo detectar SDK y estrategia prebuild/bare, y seguir integración oficial `@sentry/react-native` compatible. Capturar JS y crashes nativos sobre development/release builds apropiados; Expo Go no demuestra cobertura de los módulos nativos de Foodtrucks. Medir navegación, carga, carrito, confirmación de pedido y llamadas API observables, diferenciando errores técnicos de rechazos funcionales esperados. Comprobar Android e iOS y las versiones de app realmente soportadas. [Sentry en Expo](https://docs.expo.dev/guides/using-sentry/).
 
-Cada build identifica `environment`, `release`, versión y build number. El manifiesto de release relaciona **commit SHA y digest de cada imagen**, configuración no secreta y migraciones; web/Go usan esa identidad verificable en Sentry y metadatos de despliegue. En móvil considerar `dist`, runtime/update ID y Debug IDs según SDK/build/OTA. Subir source maps **del bundle exacto**, dSYM iOS y símbolos Android si corresponden, y verificar una traza resuelta. Un sourcemap de otra compilación puede dar una ubicación incorrecta. OTA requiere subida y matching propios, no reutilizar el mapa del binario indiscriminadamente. Los DSN y proyectos reales están pendientes; solo se habilitan tras definir entorno, región, accesos y redacción.
+Cada build identifica `environment`, `release`, versión y build number. El manifiesto de release relaciona **commit SHA y digest de cada imagen**, configuración no secreta y migraciones; web/Laravel usan esa identidad verificable en Sentry y metadatos de despliegue. En móvil considerar `dist`, runtime/update ID y Debug IDs según SDK/build/OTA. Subir source maps **del bundle exacto**, dSYM iOS y símbolos Android si corresponden, y verificar una traza resuelta. Un sourcemap de otra compilación puede dar una ubicación incorrecta. OTA requiere subida y matching propios, no reutilizar el mapa del binario indiscriminadamente. Los DSN y proyectos reales están pendientes; solo se habilitan tras definir entorno, región, accesos y redacción.
 
 El **DSN del cliente es un identificador de ingesta visible por diseño**; no otorga administración. `SENTRY_AUTH_TOKEN` es un secreto privado para CI/subida de artefactos, con scopes mínimos, sin `NEXT_PUBLIC_` ni `EXPO_PUBLIC_`, y nunca en bundles, imágenes, logs o `.env` versionado. No publicar sourcemaps completos al público por defecto tras la subida privada. Verificar controles de abuso y quotas; no confundir DSN público con ausencia de protección.
 
@@ -296,7 +297,7 @@ Loki solo si la búsqueda local deja de ser suficiente: labels bajos (`service`,
 
 **No iniciar un proyecto nuevo con Promtail:** su soporte terminó el 2 de marzo de 2026. Si se necesita colector, evaluar Grafana Alloy u otro cliente soportado y sus permisos sobre los logs. Loki/Alloy no son obligatorios en la primera fase. [Fin de soporte Promtail](https://grafana.com/docs/loki/latest/send-data/promtail/).
 
-Trazas: introducir OpenTelemetry cuando sean útiles para cliente → web/API → Go → DB/externos, con sampling, timeout/límites de exportación y propagación W3C compatible. Validar cabeceras de entrada; no confiar en sampling/metadata externos arbitrarios. `baggage` no lleva emails, auth, pedidos ni coordenadas. Exportar solo a destinos permitidos, proteger TLS/credenciales y redactar atributos antes de salir. Elegir Sentry tracing o Tempo/backend OTel por responsabilidad; no capturar el mismo span dos veces. [Seguridad OpenTelemetry](https://opentelemetry.io/docs/security/).
+Trazas: introducir OpenTelemetry cuando sean útiles para cliente → web/API → Laravel → DB/externos, con sampling, timeout/límites de exportación y propagación W3C compatible. Validar cabeceras de entrada; no confiar en sampling/metadata externos arbitrarios. `baggage` no lleva emails, auth, pedidos ni coordenadas. Exportar solo a destinos permitidos, proteger TLS/credenciales y redactar atributos antes de salir. Elegir Sentry tracing o Tempo/backend OTel por responsabilidad; no capturar el mismo span dos veces. [Seguridad OpenTelemetry](https://opentelemetry.io/docs/security/).
 
 Tempo y Alloy/OTel Collector adicionales requieren medición de consumo y almacenamiento; no constituyen una fase obligatoria si Sentry y métricas resuelven el diagnóstico. Las trazas muestreadas no ofrecen recuentos de negocio completos.
 
@@ -381,7 +382,7 @@ Una degradación crítica debe detener la promoción y activar el runbook. Prepa
 
 | Prueba en dev/staging | Evidencia exigida, sin resultados inventados |
 | --- | --- |
-| Error Next.js cliente/servidor y Go | Evento único filtrado, runtime/release correctos, stack resuelto |
+| Error Next.js cliente/servidor y Laravel | Evento único filtrado, runtime/release correctos, stack resuelto |
 | Error JS/crash nativo iOS y Android autorizados | Evento sobre build real, mapas/símbolos exactos, plataforma/release/update correctos |
 | HTTP conocido y replay controlado | Counters/histogram coherentes, routes normalizadas, resets tratados |
 | Webhook/trabajo duplicado y reinicio entre commit/scrape | No doble efecto de dominio; diferencia runtime/agregado duradero explicada |
@@ -393,7 +394,7 @@ Una degradación crítica debe detener la promoción y activar el runbook. Prepa
 | Corte simulado del stack de pruebas | Sonda y notificación externas siguen funcionando |
 | CI, backup y restauración | Jobs reales pasan; configuración/datos operativos restaurados con acceso correcto |
 
-No simular fallos sobre producción para comprobar reglas. No mandar eventos al proyecto Sentry productivo ni alertas a contactos reales de ejemplo. Documento de resultados registra entorno, SHA/versiones, fecha, pasos, resultado esperado/observado y enlace a evidencia redactada; un caso pendiente no se marca PASS. No hay tests de aplicación ejecutados actualmente.
+No simular fallos sobre producción para comprobar reglas. No mandar eventos al proyecto Sentry productivo ni alertas a contactos reales de ejemplo. Documento de resultados registra entorno, SHA/versiones, fecha, pasos, resultado esperado/observado y enlace a evidencia redactada; un caso pendiente no se marca PASS. Esta actualización no ejecuta esos casos operativos; los tests de aplicación y CI se consultan por SHA en 40/44.
 
 ## 18. Runbooks e incidentes
 
@@ -435,7 +436,7 @@ Procedimiento obligatorio de incidente: registrar detección/impacto y responsab
 | 11. Staging | Despliegue automático tras CI; flujo completo, digest probado, rollback e independencia de sonda demostrados |
 | 12. Producción | Promoción manual del mismo artefacto; evidencias, riesgos/capacidad, plan de rollback compatible y responsable |
 
-No considerar implementada la observabilidad hasta demostrar los criterios siguientes. QA registra comprobación y resultado; el rol responsable aporta evidencia; el propietario acepta la promoción manual. **Todos los criterios operativos están pendientes de ejecución en este paquete.** No existe una prueba de Grafana, Prometheus, Sentry, SMTP o Actions realizada sobre Foodtrucks.
+No considerar implementada la observabilidad hasta demostrar los criterios siguientes. QA registra comprobación y resultado; el rol responsable aporta evidencia; el propietario acepta la promoción manual. **Todos los criterios operativos están pendientes de ejecución en este paquete.** Las ejecuciones Actions existentes no acreditan pruebas operativas de Grafana/Prometheus/Sentry ni de alertas SMTP; estas requieren evidencia específica.
 
 | Criterio de aceptación | Evidencia mínima exigida | Rol responsable propuesto |
 | --- | --- | --- |
@@ -455,12 +456,12 @@ La revisión documental v1.7 termina cuando requisitos, responsabilidades, pendi
 
 | Campos del informe final obligatorio | Estado auténtico del paquete actual |
 | --- | --- |
-| 1–4. Arquitectura, servicios, versiones y componentes | Diseño documentado; ningún servicio instalado/conectado ni versión runtime comprobada |
+| 1–4. Arquitectura, servicios, versiones y componentes | Diseño de observabilidad; backend DEV y runtimes constan en el repositorio/guía, sin acreditar collectors instalados |
 | 5–9. Métricas, dashboards, reglas, contactos y recepción | Contratos/consultas/specs propuestas; ninguna señal funcional ni envío/recepción probados |
 | 10–14. Sentry, releases, datasources, Prometheus, logs/trazas | Integraciones planificadas; cuentas, artefactos y configuraciones operativas pendientes |
-| 15–17. Pruebas, fallos y soluciones | Casos definidos; no tests de aplicación ni fallos runtime inspeccionados, no afirmar correcciones |
+| 15–17. Pruebas, fallos y soluciones | Casos operativos definidos; tests de aplicación/CI existentes no sustituyen pruebas de instrumentación/alertas |
 | 18. Archivos modificados | Este documento de política; integración documental del paquete registrada en README |
-| 19–21. Commits, rama/PR, GitHub Actions | Sin repositorio conectado; ninguno creado/ejecutado |
+| 19–21. Commits, rama/PR, GitHub Actions | Git/remoto y workflow DEV existentes; registrar resultado por SHA, sin acreditar CD ni observabilidad |
 | 22–23. Riesgos y costes/requisitos | Capacidad física/red/correo/retención/plan/costes y respuesta externa pendientes |
 | 24–25. Despliegue y operación | Gates por fases, runbooks y guía operativa previstos; producción sin intervenir |
 
@@ -481,7 +482,7 @@ Esta matriz registra la conversión de los 36 apartados recibidos en política. 
 | 7. React Native | §5 y §17: Expo, Android/iOS, JS/crashes, navegación/compra, release y símbolos reales |
 | 8. APIs | §3–4 y §6: criticidad, rutas normalizadas, métricas de contratos existentes |
 | 9. Negocio | §6: intentos/transiciones, tiempos, vendedores, pagos y agregados duraderos deduplicados |
-| 10. Bases de datos | §7: PostgreSQL/pgx, pool, locks, latencia, crecimiento/backups y mínimo privilegio |
+| 10. Bases de datos | §7: PostgreSQL/conexiones, PHP-FPM/Horizon, locks, latencia, crecimiento/backups y mínimo privilegio |
 | 11. Infraestructura | §7: host/VM/Compose domésticos, recursos/red/disco/reinicios, sin inventar visibilidad |
 | 12. Health checks | §8: liveness/readiness/dependencias diferenciadas y sonda externa al domicilio |
 | 13. Overview | §10: vista general con fuentes/consultas/unidades/No Data y datos verificables |
@@ -491,7 +492,7 @@ Esta matriz registra la conversión de los 36 apartados recibidos en política. 
 | 17. Reglas/umbrales | §9 y §11: PromQL, muestras, `for`, recuperación, datos ausentes y calibración |
 | 18. Email automático | §12: SMTP Resend operativo, TLS obligatorio, contactos, plantillas y recepción real |
 | 19. Ruido/escalado | §2 y §11–12: agrupación/dedupe/silencios, sistema responsable y segundo canal pendiente |
-| 20. Sentry | §5: web/Go/móvil, agrupación/regresión, release, breadcrumbs seguros, límites y alertas |
+| 20. Sentry | §5: web/Laravel/móvil, agrupación/regresión, release, breadcrumbs seguros, límites y alertas |
 | 21. Loki | §13: opcional justificado, JSON/labels bajos, retención/acceso y colector soportado |
 | 22. Trazas | §13: OTel/Tempo opcionales, propagación segura, sampling y correlación sin duplicación |
 | 23. SLI/SLO/error budget | §14: experiencia elegible, objetivos pendientes, ventanas y burn rate cuando sea viable |

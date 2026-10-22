@@ -204,7 +204,7 @@ Registrar, si está permitido, carga/no-fill/error, exposición y métricas de i
 
 Nunca adjuntar nombres, emails, teléfonos, dirección del cliente, ubicación precisa, QR, token, Stripe customer/account ID ni contenido de notas/alérgenos a eventos publicitarios. No usar las preferencias alimentarias o los pedidos como segmentos publicitarios por defecto. No enviar datos con el supuesto de que hashearlos elimina la condición personal.
 
-En web revisar CSP y dominios exigidos por el flujo elegido con la integración real; no resolver bloqueos con comodines universales, TLS desactivado o `unsafe-eval` global. Probar primero una política de observación adecuada y mantener protecciones de pago/auth. Mantener el código oficial del anuncio aislado de validación económica y autorización Go.
+En web revisar CSP y dominios exigidos por el flujo elegido con la integración real; no resolver bloqueos con comodines universales, TLS desactivado o `unsafe-eval` global. Probar primero una política de observación adecuada y mantener protecciones de pago/auth. Mantener el código oficial del anuncio aislado de validación económica y autorización Laravel.
 
 En móvil declarar recopilación/compartición del SDK real y proveedores de mediación, permisos, tracking y finalidades en tiendas y política de privacidad. Google Play exige incluir tratamiento de SDK de terceros; Apple requiere que los detalles reflejen el comportamiento efectivo. No afirmar que usar UMP completa por sí solo todos esos campos. [Data safety Google Play](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en), [App Privacy Apple](https://developer.apple.com/app-store/app-privacy-details/).
 

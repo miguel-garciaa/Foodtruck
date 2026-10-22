@@ -163,7 +163,7 @@ La ficha Hirael y su registry se comprobaron también mediante descarga HTTP pú
 
 ## 8. Permisos, estados de interfaz y pruebas exigidas
 
-Go autoriza cada lectura y mutación por acción/recurso; Next.js valida también sus entradas sensibles. Layout, middleware, tab oculto o rol recibido del navegador no conceden acceso. El propietario comerciante accede a sus negocios; el propietario de plataforma opera con permisos administrativos explícitos. Los nombres definitivos de roles y facultades se fijan con la auth real, sin un bypass universal de propietario.
+Laravel autoriza cada lectura y mutación por acción/recurso; Next.js valida también sus entradas sensibles. Layout, middleware, tab oculto o rol recibido del navegador no conceden acceso. El propietario comerciante accede a sus negocios; el propietario de plataforma opera con permisos administrativos explícitos. Los nombres definitivos de roles y facultades se fijan con la auth real, sin un bypass universal de propietario.
 
 Proteger listados, fichas, notas, agregados, registros y descargas contra acceso cruzado/BOLA; revocación y cambio de sesión deben retirar el acceso efectivo. Validar campos permitidos, orden y límites de consulta. Acción sensible requiere estado vigente, control de concurrencia y registro consistente. No guardar secretos en frontend, `NEXT_PUBLIC_*`, localStorage, imágenes o ejemplos. Datos administrativos personalizados no se sirven desde caché pública/CDN. Aplicar cookies/CSRF, redirecciones y transporte según el contrato real de [seguridad](39-seguridad-devsecops.md), no con excepciones generales.
 

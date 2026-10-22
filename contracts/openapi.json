@@ -2336,6 +2336,16 @@
               "maxLength": 100,
               "description": "oeste,sur,este,norte. España: -18.5,27.5,4.7,43.9. Se combinan todos los filtros con AND. Precios inclusivos sobre el plato inicial; sin valoración solo se excluye al aplicar mínimo."
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "description": "Hasta 100 UUID separados por comas; combina con los demás filtros y solo devuelve anuncios públicos.",
+            "schema": {
+              "type": "string",
+              "maxLength": 3699
+            }
           }
         ],
         "responses": {

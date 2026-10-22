@@ -8,7 +8,7 @@ El proyecto reúne **49 documentos**, cinco capturas y el [inventario de 37 skil
 
 Accesos: [ocho bloques](#1-producto-y-pagos) · [pendientes](#pendientes-principales-y-siguiente-paso) · [índice completo](#indice-tecnico).
 
-**Estado:** documentación preparada y primera interfaz móvil Android en `apps/mobile`, compilada e instalada en Pixel_10. Guía y comprobaciones: [Android](apps/mobile/README.md). Mapa online, backend, web, infraestructura, pruebas de negocio y CI pendientes/NO VERIFICADO; ZIP/informe v1.10 conservan su estado documental histórico.
+**Estado a 22/10/2026:** backend Laravel en la VM DEV, con PostgreSQL/PostGIS, Redis/Horizon y API accesible por Cloudflare Tunnel en `api-dev.foodtruck.bid`. Correo técnico de Resend entregado y credencial FCM aceptada por Google; recepción push en Android pendiente. La integración móvil sigue en curso, Mapbox online y web pendientes. Las pruebas del servidor pasan en CI; el resultado general continúa bloqueado por avisos de dependencias móviles. Guías: [backend](backend/README.md) y [Android](apps/mobile/README.md). ZIP/informe v1.10 conservan su estado histórico.
 
 **Cómo leerlo:** confirmado es una decisión del usuario; propuesto es una base por validar; pendiente necesita resolución; ejemplo es ilustrativo. Consultar [AGENTS](AGENTS.md), las [decisiones pertinentes](docs/23-decisiones-pendientes.md) y las políticas de la tarea; recurrir al historial solo para contexto o conflictos. Las instrucciones explícitas posteriores prevalecen.
 
@@ -111,8 +111,8 @@ Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consulta
 | [26. Skills del proyecto](docs/26-skills-proyecto.md) | Selección, instalación verificada y carga por tarea |
 | [27. Marketing Google Ads](docs/27-marketing-google-ads.md) | Captación B2C/B2B, fases, medición y presupuesto pendiente |
 | [28. Revisión skills.sh](docs/28-revision-skills-sh.md) | Comparación, 12 complementos, descartes y límites |
-| [29. Cloudflare y dominio](docs/29-cloudflare-dominio-dns.md) | Compra prevista, DNS, HTTPS/Caddy, caché, protección y verificaciones |
-| [30. Correo Resend](docs/30-correo-resend.md) | DNS de correo, envíos Go, webhooks, consentimiento y operación |
+| [29. Cloudflare y dominio](docs/29-cloudflare-dominio-dns.md) | Dominio comprado, Tunnel DEV y propuestas DNS/TLS/caché de producción |
+| [30. Correo Resend](docs/30-correo-resend.md) | DNS de correo, envíos Laravel, webhooks, consentimiento y operación |
 | [31. Política de marketing](docs/31-marketing-digital-maestro.md) | Objetivos, controles, responsabilidades, procedimientos y aceptación |
 | [32. SEO local y Next.js](docs/32-seo-local-nextjs.md) | Rutas, metadatos, sitemap, JSON-LD, Search Console, GBP y CWV |
 | [33. AdSense y AdMob](docs/33-monetizacion-adsense-admob.md) | Elegibilidad, formatos, integración de prueba y comparación de ingresos |

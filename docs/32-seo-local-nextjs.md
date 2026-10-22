@@ -6,7 +6,7 @@ Foodtrucks permite descubrir vendedores y pedir comida para **recoger personalme
 
 ## Inspección previa y adaptación a Next.js
 
-Antes de implementar, inspeccionar el repositorio real: `package.json`, lockfile, configuración Next.js, carpeta `app`/`src/app` o `pages`/`src/pages`, TypeScript, convenciones de rutas, renderizado/caché, API Go, permisos y modelos publicados. TypeScript y Next.js están decididos; su versión y el router no están fijados. No migrar de router para añadir SEO ni instalar `next-seo`, `next-sitemap` o un CMS sin necesidad.
+Antes de implementar, inspeccionar el repositorio real: `package.json`, lockfile, configuración Next.js, carpeta `app`/`src/app` o `pages`/`src/pages`, TypeScript, convenciones de rutas, renderizado/caché, API Laravel, permisos y modelos publicados. TypeScript y Next.js están decididos; su versión y el router no están fijados. No migrar de router para añadir SEO ni instalar `next-seo`, `next-sitemap` o un CMS sin necesidad.
 
 | Responsabilidad | App Router, si se confirma compatible | Pages Router, si es el existente |
 | --- | --- | --- |
@@ -47,7 +47,7 @@ Las rutas de archivos indicadas abajo son **destinos futuros propuestos** bajo `
 | `/privacidad`, `/cookies`, `/terminos` | Indexables como base propuesta | Textos aprobados y accesibles; no incorporar datos de cuentas ni pedidos |
 | `/login`, `/registro`, recuperación/verificación | Noindex | Pantallas de autenticación públicas; tokens excluidos de analítica y logs |
 | Carrito, checkout y retornos de pago | Noindex | Datos/acciones de usuario; sin caché compartida ni sitemap |
-| Cuenta, membresía/puntos personales, pedidos y QR | Noindex y autenticación/autorización | Identidad y permisos comprobados en Go, no solo en Next.js |
+| Cuenta, membresía/puntos personales, pedidos y QR | Noindex y autenticación/autorización | Identidad y permisos comprobados en Laravel, no solo en Next.js |
 | Panel comerciante, administración y vistas previas | Noindex y acceso restringido | Borradores/gestión ajenos al índice; sin exposición de datos internos |
 | Staging y desarrollo | Fuera de indexación y con acceso restringido | Proteger el entorno; robots/noindex son complementos, no control de acceso |
 
@@ -136,7 +136,7 @@ Generar/escapar los atributos con el framework, no concatenando HTML aportado po
 
 ## Datos públicos, renderizado y frescura
 
-Go conserva autoridad sobre publicación y comercio. Los modelos [PostgreSQL/PostGIS](10-datos-postgresql-postgis.md) y la [API](20-api.md) son propuestas; las necesidades SEO añaden una **vista pública acotada**, sin duplicar un segundo backend comercial en Next.js.
+Laravel conserva autoridad sobre publicación y comercio. Los modelos [PostgreSQL/PostGIS](10-datos-postgresql-postgis.md) y la [API](20-api.md) son propuestas; las necesidades SEO añaden una **vista pública acotada**, sin duplicar un segundo backend comercial en Next.js.
 
 | Necesidad | Contrato futuro propuesto, bajo `/api/v1` |
 | --- | --- |
@@ -152,7 +152,7 @@ La ficha y la carta deben ofrecer texto, precios válidos y enlaces en el HTML s
 
 Base propuesta de frescura: tras una transacción de producto, ubicación, horario o publicación, la outbox informa al proceso encargado de invalidar Redis y las páginas/metadatos/JSON-LD/sitemaps afectados de Next.js. Autenticar la revalidación interna, limitar destinos y evitar secrets en query strings. TTL y tiempo máximo de propagación siguen pendientes; comprobar comportamiento ISR y fallo de regeneración en la versión desplegada. [ISR Next.js](https://nextjs.org/docs/app/guides/incremental-static-regeneration).
 
-No cachear respuestas personalizadas ni pedido/checkout. El precio visible, el schema y la carta proceden de una misma versión pública. Si no puede acreditarse precio/vigencia, omitir Offer en vez de publicar datos obsoletos. La interfaz actualiza disponibilidad al interactuar; **Go revalida precio, productos, descuento y lugar de recogida antes de confirmar/pagar**, aunque una página pública se haya generado hace unos minutos. [Caché e invalidación](11-redis-cache.md).
+No cachear respuestas personalizadas ni pedido/checkout. El precio visible, el schema y la carta proceden de una misma versión pública. Si no puede acreditarse precio/vigencia, omitir Offer en vez de publicar datos obsoletos. La interfaz actualiza disponibilidad al interactuar; **Laravel revalida precio, productos, descuento y lugar de recogida antes de confirmar/pagar**, aunque una página pública se haya generado hace unos minutos. [Caché e invalidación](11-redis-cache.md).
 
 ## Fichas, menús y páginas locales útiles
 
@@ -252,14 +252,14 @@ Estas filas son **requisitos de implementación**, no hallazgos de una web exist
 
 | Prioridad | Trabajo | Responsable propuesto | Aceptación futura |
 | --- | --- | --- | --- |
-| P0 antes de publicar | Origen controlado, HTTPS, privacidad/permiso y ausencia de indexación de pedidos/QR | Infraestructura + Go + web | Rutas privadas sin datos ajenos, secretos ni caché pública; staging restringido |
-| P1 antes de captación | Fichas/carta HTML reales, metadatos, estados HTTP, canonical, robots/sitemap | Web + Go + producto | Muestra de rutas correcta, filtro fuera de sitemap, vendedor temporalmente cerrado sin 404 automático |
-| P1 | Publicación y frescura coherente en página/schema/precio | Go + web | Edición/despublicación invalida destinos; checkout rechaza dato obsoleto |
+| P0 antes de publicar | Origen controlado, HTTPS, privacidad/permiso y ausencia de indexación de pedidos/QR | Infraestructura + Laravel + web | Rutas privadas sin datos ajenos, secretos ni caché pública; staging restringido |
+| P1 antes de captación | Fichas/carta HTML reales, metadatos, estados HTTP, canonical, robots/sitemap | Web + Laravel + producto | Muestra de rutas correcta, filtro fuera de sitemap, vendedor temporalmente cerrado sin 404 automático |
+| P1 | Publicación y frescura coherente en página/schema/precio | Laravel + web | Edición/despublicación invalida destinos; checkout rechaza dato obsoleto |
 | P1 | Search Console y Core Web Vitals | Propietario + web | Propiedad verificada y métricas registradas cuando haya datos, sin resultados inventados |
 | P2 tras oferta local suficiente | Ciudades/categorías y fichas GBP elegibles | Producto + marketing + comerciantes | Evidencia local, sin páginas vacías ni perfiles ficticios |
 | P2 | Schema adicional, contenidos y mejoras medidas | Web + marketing | Datos verificados/visibles y comparación de resultados, sin garantía de ranking |
 
-Pruebas futuras de comportamiento: slug antiguo redirige una sola vez; negocio inexistente devuelve estado correcto; cierre temporal conserva ficha honesta; privado exige autorización; filtros noindex; sitemap excluye todo lo anterior; texto/JSON-LD coinciden; string malicioso no cierra el script; precio cambia coherentemente e importe final se valida en Go. Ejecutar lint/typecheck/build y tests reales del repositorio; no añadir comandos ficticios ni afirmar que están aprobados hoy.
+Pruebas futuras de comportamiento: slug antiguo redirige una sola vez; negocio inexistente devuelve estado correcto; cierre temporal conserva ficha honesta; privado exige autorización; filtros noindex; sitemap excluye todo lo anterior; texto/JSON-LD coinciden; string malicioso no cierra el script; precio cambia coherentemente e importe final se valida en Laravel. Ejecutar lint/typecheck/build y tests reales del repositorio; no añadir comandos ficticios ni afirmar que están aprobados hoy.
 
 Pendiente: dominio/origen real, versión/router Next.js, ciudad y umbral editorial de oferta, política pública de suspensión/baja, taxonomía y slugs, soporte/identidad legal, autoría y revisión de artículos, idioma/territorio, compra web MVP, TTL/propagación de caché, accesos Search Console/GBP y datos para la primera medición.
 

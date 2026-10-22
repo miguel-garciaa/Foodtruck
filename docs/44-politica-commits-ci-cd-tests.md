@@ -4,7 +4,7 @@
 
 Simulaciones y scripts no acreditan activación: faltan credenciales mínimas, bootstrap sudo en VM y ensayos de publicación/pull, despliegue, backup/restore y correos reales. Evidencia por SHA en la PR. Vulnerabilidades obligatorias sin solución siguen bloqueando: npm corrigió tres avisos moderados compatibles, pero conserva 20 avisos altos de `braces`/`node-forge`. El informe permite omitir entrega en PR explicándolo y rechaza pruebas obligatorias omitidas/canceladas.
 
-**Actualización 21/10/2026 (D47–D49):** Laravel/PHP sustituye Go como backend principal. Las recetas Go/sqlc siguientes conservan contexto histórico y no son comandos del backend activo. Mandan Composer, migraciones Laravel, OpenAPI y la [guía real del backend](../backend/README.md). Google se incluye en este hito; foodtruck.bid está verificado en Resend. Nueva clave de envío y Cloudflare Tunnel aplazados expresamente; no hay publicación de API.
+**Actualización técnica, 22/10/2026 (D47):** Laravel/PHP es el backend principal. Composer y su lockfile, las migraciones Laravel y [OpenAPI](../contracts/openapi.json) son las fuentes ejecutables; comandos y operación DEV en la [guía del backend](../backend/README.md). Las reglas siguientes se aplican a Laravel; Go queda reservado para una necesidad futura aprobada.
 
 **Consolidación:** 20 de octubre de 2026. Fuente canónica del ciclo de cambios, controles CI y promoción. **Comprobación del 22/10/2026:** existen código Laravel/móvil, Git/remoto y ejecuciones de `.github/workflows/dev.yml`; esto no acredita que todas sus comprobaciones pasen. El resultado se verifica por SHA. [21](21-entornos-ci-cd.md) define entornos, [40](40-testing-qa-github.md) desarrolla pruebas y [DevOps](devops/README.md) ofrece procedimientos. Los controles adicionales siguientes conservan su condición de propuesta hasta implementarse y verificarse.
 
@@ -16,7 +16,7 @@ La autorización de commit/push cubre cambios solicitados en rama propia; no con
 
 ## 2. Auditoría antes de implementar CI
 
-Inspeccionar AGENTS/README y la documentación pertinente; Git/status/diff, rama/remotos, cambios ajenos; manifests/lockfiles/toolchains, Go/workspaces/router/nativo prebuild o bare, SQL/migraciones, Docker/Compose/Caddy, tests/scripts, workflows, configuración/secretos, despliegue y recuperación. Registrar inventario saneado y baseline ejecutable, distinguiendo fallos previos, regresiones, componentes ausentes y trabajo bloqueado.
+Inspeccionar AGENTS/README y la documentación pertinente; Git/status/diff, rama/remotos, cambios ajenos; manifests/lockfiles/toolchains, PHP/Laravel/Composer/workspaces/router/nativo prebuild o bare, SQL/migraciones, Docker/Compose/Caddy, tests/scripts, workflows, configuración/secretos, despliegue y recuperación. Registrar inventario saneado y baseline ejecutable, distinguiendo fallos previos, regresiones, componentes ausentes y trabajo bloqueado.
 
 No imprimir `.env` ni crear módulos, infraestructura, versiones o comandos para aparentar cobertura. No probar foodtrucks.com ni otro sitio ajeno sin control y alcance demostrados. Componente inexistente puede ser no aplicable con motivo; componente existente sin comando/test/herramienta requerido es fallo de setup o pendiente, nunca éxito por omisión. Conservar configuración válida y fijar umbrales solo después de medir baseline y riesgo.
 
@@ -69,7 +69,7 @@ La siguiente selección por rutas es propuesta y debe adaptarse al monorepo real
 | Job lógico | Rutas que lo activan — ajustar al repo real | Trabajo |
 | --- | --- | --- |
 | cambios/contratos/secretos | Toda PR; cambios de workflow, root manifests/locks/config afectan alcance | Registrar plan de jobs, links/contratos y secret scan |
-| go | backend/, database/, contratos compartidos, tooling/imagen Go | Formato/vet/unit/race, integración necesaria, sqlc, build y SCA |
+| laravel | backend/, contracts/, Composer/lockfile, Dockerfile, Compose, infrastructure/ y workflow | Pint, Larastan, PHPUnit/PostGIS, audit Composer, contrato y build/arranque Linux |
 | web | apps/web/, api-client, design-tokens, manifests/locks/root config | Frozen install, formato/lint/TS/unit, build y E2E crítico según cambio |
 | mobile-js | apps/mobile/, contratos/tokens/locks/config | Compatibilidad Expo, formato/lint/TS/componentes y validación bundle según scripts |
 | infraestructura/build | Compose/Caddy/Dockerfiles/scripts/workflows y cambios de runtime | Validación config, build/scan de imágenes aplicables, sin secretos/producción |
@@ -117,13 +117,13 @@ Clasificación propuesta para la implementación; fallo obligatorio bloquea. Inf
 
 | Control | Clase propuesta | Implementación/evidencia futura |
 | --- | --- | --- |
-| gofmt, go vet, lint, TypeScript y formato JS/TS | Obligatorio por componente | Comandos existentes + reportes/exit code; gofmt sin archivos pendientes; sin warning relevante oculto |
+| Pint, Larastan/PHPStan, lint, TypeScript y formato JS/TS | Obligatorio por componente | Comandos existentes + reportes/exit code; Pint `--test`; sin warning relevante oculto |
 | Unitarios y contratos críticos | Obligatorio | Auth/permisos/precios/transiciones; módulo afectado y dependencias |
 | Integración PostgreSQL/PostGIS/Redis | Obligatorio cuando cambien datos/auth/compra/cache/outbox | Migraciones/constraints/concurrencia reales |
-| Build Go/web y validación JS móvil | Obligatorio por componente afectado | Versiones/lockfiles/diffs identificados; JS móvil no es build nativa |
+| Build imagen PHP/web y validación JS móvil | Obligatorio por componente afectado | Versiones/lockfiles/diffs identificados; JS móvil no es build nativa |
 | E2E crítico existente | Obligatorio según cambio/contrato | Recorrido crítico estable; no salto por conveniencia |
 | Secret scanning del cambio | Obligatorio en todas las PR | Gitleaks/revisión de allowlist; historial baseline inicial y periódico |
-| SCA Go/Node e imágenes producidas | Obligatorio en CI del componente; imagen antes de release y baseline periódico | govulncheck, auditoría del gestor y scan de imagen real; críticos/altos aplicables triageados |
+| SCA PHP/Node e imágenes producidas | Obligatorio en CI del componente; imagen antes de release y baseline periódico | Composer audit --locked, auditoría Node y scan de imagen real; críticos/altos aplicables triageados |
 | SAST | Obligatorio en módulos críticos tras configurar herramienta compatible | CodeQL si elegible o alternativa revisada; baseline y excepciones específicas |
 | Dependency Review | Obligatorio para deps cuando disponible | Availability/plan verificados; fallback SCA/revisión si no hay feature |
 | SBOM/licencias y procedencia | Obligatorio para release; informativo en PR inicial según alcance | Artefacto/digest/commit, licencias y componentes copiados |
@@ -132,11 +132,11 @@ Clasificación propuesta para la implementación; fallo obligatorio bloquea. Inf
 | Nativo firmado/tienda/FPS | Manual o job de release aprobado | Dispositivo/build real, cuentas/firma/costes y autorización |
 | a11y manual, revisión independiente, restore/rollback | Manual en hitos/cambios relevantes | Evidencia real y responsable; no checkbox automático |
 
-Go incluye verificación de módulos, HTTP/contratos, race, SQL/PostGIS/Redis cuando afectado, sqlc sin diferencias inesperadas, fuzzing acotado y cobertura total/paquete. Next.js incluye instalación congelada, TypeScript/lint/formato, componentes/integración, build, E2E/a11y y temas/navegación. Expo distingue JS/componentes, build Android debug/tooling nativo e iOS en macOS de firma/release protegida. Los [comandos de QA](40-testing-qa-github.md) se adaptan a scripts/versiones reales: `gofmt -l` necesita comprobar su salida para fallar por diferencias.
+Laravel incluye Composer/lockfile y requisitos de plataforma, Pint, Larastan, PHPUnit HTTP/contratos y PostgreSQL/PostGIS real; Redis/Horizon cuando afectado, migraciones revisadas y tipos OpenAPI sin diferencias inesperadas. Probar concurrencia económica con conexiones/procesos independientes. Next.js incluirá instalación congelada, TypeScript/lint/formato, integración, build y E2E/a11y al existir. Expo distingue JS/componentes, Android debug/nativo e iOS en macOS de firma/release protegida. Los [comandos de QA](40-testing-qa-github.md) y dev.yml gobiernan la base ejecutable, sin exigir Go/sqlc al backend Laravel.
 
-Docker: multietapa/no root, `.dockerignore`, bases/dependencias fijadas y sin secretos. Supply chain: Gitleaks, Dependabot/SCA, SAST gosec/CodeQL según cobertura y elegibilidad, Trivy para imagen/config, OSV-Scanner solo si añade cobertura. govulncheck no prueba ausencia general de vulnerabilidades. ZAP baseline realiza crawling/peticiones y requiere staging propio y límites aunque el análisis sea pasivo. [Go](https://go.dev/doc/security/), [OSV](https://google.github.io/osv-scanner/), [Trivy](https://trivy.dev/), [ZAP](https://www.zaproxy.org/docs/docker/baseline-scan/).
+Docker: multietapa/no root, `.dockerignore`, bases/dependencias fijadas y sin secretos. Supply chain: Gitleaks, Dependabot/SCA, análisis estático y SAST compatibles con el lenguaje y el plan, Trivy para imagen/config y OSV-Scanner solo si añade cobertura. Pint/Larastan/Composer audit no prueban ausencia general de vulnerabilidades. No exigir gosec/govulncheck ni atribuir cobertura PHP a una herramienta de otro lenguaje. ZAP baseline requiere staging propio y límites aunque su análisis sea pasivo. [Laravel deployment](https://laravel.com/docs/13.x/deployment), [OSV](https://google.github.io/osv-scanner/), [Trivy](https://trivy.dev/), [ZAP](https://www.zaproxy.org/docs/docker/baseline-scan/).
 
-CodeQL/Dependency Review/secret scanning/rulesets/environments dependen de visibilidad, propietario y plan; no comprar ni prometer extras gratuitos. Comprobar fuentes/licencias/compatibilidad/coste antes de elegir scanners. Rendimiento: benchmarks/allocs reproducibles, k6 acotado y pprof privado cuando útiles; p95/p99, errores y recursos según QA, sin carga intensiva productiva. [GitHub security](https://docs.github.com/en/code-security/getting-started/github-security-features), [Dependency Review](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependency-review).
+CodeQL/Dependency Review/secret scanning/rulesets/environments dependen de visibilidad, propietario y plan; no comprar ni prometer extras gratuitos. Comprobar fuentes/licencias/compatibilidad/coste antes de elegir scanners. Rendimiento: mediciones reproducibles de PHP-FPM/Horizon/SQL, k6 acotado y profiling privado cuando útiles; p95/p99, errores y recursos según QA, sin carga intensiva productiva. [GitHub security](https://docs.github.com/en/code-security/getting-started/github-security-features), [Dependency Review](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependency-review).
 
 ## 8. GHCR, artefactos y promoción
 
@@ -169,6 +169,8 @@ Staging: verificar CI/revisión/origen, configuración y aislamiento según [21]
 Producción: aprobar release, destino/host, conjunto de digests y migración exactos; no aprobación genérica por calendario. Verificar compatibilidad API con apps publicadas/esquema, acceso/copia previa sensible; aplicar migración y servicios, observar health/smoke, errores/latencia/reinicios y reconciliación. Registrar responsable/fecha/resultados. Separar avisos ordinarios de CI de alertas de disponibilidad/seguridad.
 
 Environments/protecciones se configuran con permiso y elegibilidad comprobados. Si no hay revisores obligatorios disponibles, usar promoción manual restringida con evidencia equivalente de aprobación/release, nunca un secreto accesible por cualquier workflow. [Entornos GitHub](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments).
+
+Migraciones Laravel en `backend/database/migrations`, ejecutadas una sola vez por el servicio migrador con usuario DDL separado del usuario de aplicación. Mantener `APP_KEY`, permisos mínimos de `storage`/`bootstrap/cache` y secretos fuera de imagen/Git. No usar `migrate:fresh`, `db:wipe`, `key:generate` ni un rollback destructivo en despliegue. Al promover, recargar/reiniciar PHP-FPM, Horizon y scheduler para usar el código/configuración de la release; probar drenaje, reintentos y deduplicación de jobs sin perder outbox. No generar cachés con secretos durante la build. [Despliegue Laravel](https://laravel.com/docs/13.x/deployment).
 
 Migraciones versionadas, probadas desde DB vacía y esquema previo sobre DB desechables; revisar locks, expand-contract y backups externos/restaurados antes de cambios sensibles. No cambios destructivos automáticos. Rollback: detener promociones, identificar estable, comprobar compatibilidad y recuperar digests; health/smoke, incidente y notificación autorizada. Imagen anterior no revierte esquema, cobros, emails o puntos. Ante incompatibilidad, corrección hacia delante o recuperación explícita; no down/restore destructivo a ciegas. Conservar DB/fotos/volúmenes. Sin rollback productivo automático salvo política explícitamente aprobada.
 
@@ -221,7 +223,7 @@ La matriz conserva los 20 apartados; cobertura documental no equivale a ejecuci�
 | 2 Auditoría | §2; inventario y baseline |
 | 3 Workflows | §5–6; eventos, selección, gate y SHA |
 | 4 Ramas/PR | §3/5; historial, revisión y protección |
-| 5 Go | §4/7 y QA; tests/build/race/cobertura |
+| 5 Backend Laravel/PHP | §4/7 y QA; Composer/Pint/Larastan/PHPUnit, imagen Linux, concurrencia DB y cobertura |
 | 6 Negocio Foodtrucks | §7 y QA; pagos, permisos, stock y QR |
 | 7 DevSecOps | §6–7/10 y seguridad; scans/excepciones/secretos |
 | 8 Rendimiento | §7 y QA/rendimiento; referencia y carga controlada |
@@ -246,14 +248,14 @@ Entrega A–J: **A** diagrama/flujo; **B** workflows/eventos; **C** pruebas/resu
 | --- | --- |
 | Política, decisiones y guía | Documentado en Markdown |
 | Integridad/enlaces/ZIP | Comprobación documental; ver resultado de la entrega |
-| Workflows/scripts/app/tests/cobertura | NO VERIFICADO: no existen en la carpeta accesible |
-| Commits/push/PR/protecciones/Environments | NO VERIFICADO: sin Git/remoto/acceso al proyecto |
-| Imágenes/GHCR/build nativa | NO VERIFICADO: sin fuentes/configuración/credenciales |
-| Staging/producción/migración/rollback/alertas | NO VERIFICADO: sin aplicación ni entornos disponibles |
+| Código, tests y workflow DEV | Existen Laravel/móvil y dev.yml; resultado del SHA actual se registra en cada entrega; cobertura completa no acreditada |
+| Git/remoto/PR | Existen; verificar rama, SHA, checks y revisión. Protecciones/Environments no se presumen configurados |
+| Imágenes/GHCR/build nativa | Dockerfile checks/runtime y Compose DEV existentes; publicación GHCR y release nativa no acreditadas por ello |
+| DEV y promoción | Evidencia DEV en la guía del backend; staging/producción, rollback y alertas requieren validación específica |
 
 La comprobación documental local no ejecuta fases de aplicación. ZIP/informe v1.10 son la instantánea histórica anterior, no un paquete regenerado por esta consolidación.
 
-Al existir repo/acceso, realizar §2, fijar comandos/versiones, configurar permisos/secretos por entorno y ejecutar las fases, incluidos gates positivos/negativos, staging, recuperación y alerta en entorno aislado. Producción solo tras aprobación concreta. Guardar run IDs/SHAs/digests, comandos por carpeta, resultados y mediciones sin inventarlos.
+Sobre el repositorio existente, realizar §2 por cambio, fijar comandos/versiones, configurar permisos/secretos por entorno y ejecutar las fases, incluidos gates positivos/negativos, staging, recuperación y alerta en entorno aislado. Producción solo tras aprobación concreta. Guardar run IDs/SHAs/digests, comandos por carpeta, resultados y mediciones sin inventarlos.
 
 Distinguir implementado y comprobado, implementado sin comprobar, pendiente, bloqueado por condición concreta, requiere aprobación y no aplicable con motivo. Un bloqueo externo impide declarar terminado lo afectado; al recuperar acceso, continuar el trabajo autorizado. Reportar analizado/hallazgos, cambios, decisión de tests, build/CI/Git/PR y releases reales, revisión automática/humana, aprobación pendiente/concedida y riesgos/siguientes pasos. Merge y producción permanecen separados del cierre técnico.
 

@@ -5,7 +5,7 @@
 | Hito | Resultado revisable | Dependencias y aceptación |
 | --- | --- | --- |
 | H0. Cierre mínimo | Decisiones de país, pagos, stock/franjas, web y reglas comerciales | Resolver bloqueos antes de codificar su comportamiento |
-| H1. Fundamentos | Monorepo, versiones, VM/red, Compose base, health, dominio Cloudflare/HTTPS y CI mínima | App/emulador llega a Go; persistencia, puertos, DNS y certificados revisados |
+| H1. Fundamentos | Monorepo, versiones, VM/red, Compose base, health, dominio Cloudflare/HTTPS y CI mínima | App/emulador llega a Laravel; persistencia, puertos, DNS y certificados revisados |
 | H2. Riesgos nativos | Expo development builds, Mapbox y panel animado | Prueba iOS/Android real; matriz de compatibilidad y FPS registrada |
 | H3. Diseño previo | Catálogo 21st.dev evaluado y tokens claro/oscuro | Licencias y dependencias; dock móvil/header web; prototipo aprobado |
 | H4. Identidad/datos | Auth propia, Google/Apple, correo Resend, negocio y ubicación | Permisos, enlaces de identidad, entrega/relay Apple y queries geográficas |

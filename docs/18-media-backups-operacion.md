@@ -21,7 +21,7 @@ PostgreSQL conserva metadatos/ruta relativa, no bytes binarios de fotografías. 
 
 ## Persistencia y caché HTTP
 
-Directorio montado de forma persistente y permisos mínimos. Caddy lectura, Go escritura solo donde necesita. Reiniciar/reemplazar contenedores no elimina fotos.
+Directorio montado de forma persistente y permisos mínimos. Laravel controla la lectura/autorización y escribe solo donde necesita; Caddy no monta uploads privados. Solo medios expresamente públicos y procesados podrían montarse en lectura. Reiniciar/reemplazar contenedores no elimina fotos.
 
 Fotos finales con nombre inmutable permiten cachear y actualizar por URL nueva. Mantener originales solo si hay propósito. La limpieza ordinaria de medios debe respetar la consistencia de backups retenidos; una solicitud de supresión aprobada sigue el procedimiento de protección de datos, sin mantener accesible una foto activa solo porque exista una copia histórica.
 

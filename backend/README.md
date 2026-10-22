@@ -34,6 +34,14 @@ sudo docker compose -f compose.yaml -f compose.tunnel.yaml exec -T api foodtruck
 
 El resultado del comando acredita aceptación por Resend; comprobar `Delivered` en el panel para acreditar entrega. La recepción de una notificación FCM también exige una prueba en el dispositivo registrado.
 
+Comprobación privada de la credencial FCM, sin imprimir el token ni enviar mensajes:
+
+```sh
+sudo docker compose -f compose.yaml -f compose.tunnel.yaml exec -T api foodtrucks-entrypoint php < infrastructure/check-dev-fcm.php
+```
+
+Verificado el 22/10/2026 sobre la VM: HTTPS público `/up` y listado `200`, cuenta sin sesión `401`, `.env` y Horizon `404`; ruta exclusiva `api-dev.foodtruck.bid` hacia `http://caddy:8080`. Resend aceptó el correo técnico y su panel confirmó `Delivered`. La clave guardada inicialmente no correspondía a la activa: se sustituyó, se comprobó el envío y se revocó la anterior. Google aceptó la credencial FCM y el rol de la cuenta se verificó en IAM como Firebase Cloud Messaging API Admin. Esto todavía no acredita recepción push en Android ni los recorridos móviles completos.
+
 Para reconciliar una base DEV existente cuyo usuario de aplicación no coincide con el secreto privado actual:
 
 ```sh

@@ -25,7 +25,7 @@ flowchart LR
 
 En servidor, Caddy recibe HTTPS y enruta a Next.js, Laravel y medios autorizados. PostgreSQL y Redis solo se alcanzan desde la red interna. App y navegador nunca reciben credenciales de base de datos ni claves privadas de Stripe.
 
-**Actualización DEV 21/10/2026:** contrato canónico en contracts/openapi.json y tipos generados en apps/mobile/src/generated/api.ts. Backend Laravel en implementación; despliegue y recorridos reales todavía no verificados. Go queda reservado, sin servicio activo.
+**Actualización DEV 22/10/2026:** contrato canónico en contracts/openapi.json y tipos generados en apps/mobile/src/generated/api.ts. API Laravel desplegada en DEV; la [guía del backend](../backend/README.md) registra sus comprobaciones y límites. Integración móvil en curso, web pendiente. Go queda reservado, sin servicio activo.
 
 ## Estructura objetivo (solo backend y móvil iniciados)
 
@@ -39,15 +39,12 @@ Foodtrucks/
   backend/
     app/                Controladores, Form Requests, Policies y Jobs
     database/migrations/ Migraciones Laravel/PostGIS
-  packages/
-    api-client/         Contratos y cliente TypeScript
-    design-tokens/      Valores semánticos compartidos
-  database/
-    migrations/
-    queries/
-  infrastructure/
-    compose/
-    caddy/
+  contracts/
+    openapi.json        Contrato vigente
+  packages/             Propuesto, aún sin paquetes compartidos
+  infrastructure/       Caddyfile, entrypoint y preparación DEV
+  compose.yaml          Servicios DEV
+  compose.tunnel.yaml   Conector DEV autorizado
   design/               Especificaciones y registro de componentes
   docs/
   .github/workflows/
@@ -78,7 +75,7 @@ No forzar compartir mapa, navegación, almacenamiento de credenciales, pagos o s
 
 Un host doméstico y su alimentación/conexión son un punto común de fallo. Esta base prioriza sencillez para iniciar y medir. Separar base de datos/archivos o ampliar capacidad solo ante evidencia. Sin Kafka, Kubernetes, microservicios ni multi-región como requisito MVP.
 
-Gestor npm/pnpm, tareas del monorepo, versiones y generador de contratos pendientes. No introducir un orquestador adicional si workspaces y scripts sencillos bastan.
+npm/lockfiles y generación/comprobación OpenAPI ya existen en raíz y móvil; Composer/lockfile gobierna backend. Las tareas y versiones web siguen pendientes. No introducir un orquestador adicional si workspaces y scripts sencillos bastan.
 
 ## Módulo de membresía y fidelización
 

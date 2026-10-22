@@ -44,7 +44,9 @@ class GoogleController extends Controller
                 // Never merge accounts solely because a provider returns a matching email.
                 abort_if(User::where('email', $email)->exists(), 409, 'Inicia sesión con tu cuenta y vincula Google desde Seguridad.');
                 $user = User::create(['name' => mb_substr($claims->name ?? 'Foodtrucks', 0, 100), 'email' => $email, 'password' => null]);
-                $user->markEmailAsVerified();
+                if (str_ends_with($email, '@gmail.com') || ! empty($claims->hd)) {
+                    $user->markEmailAsVerified();
+                }
             }
             if (! $identity) {
                 DB::table('auth_identities')->insert(['user_id' => $user->id, 'provider' => 'google', 'subject' => $claims->sub]);

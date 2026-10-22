@@ -1,6 +1,6 @@
 # Dominio en Cloudflare: DNS, TLS, proxy y operación
 
-**Cerrado por el usuario:** el dominio se comprará en Cloudflare y los correos se gestionarán con Resend. **Base propuesta:** Cloudflare Registrar/DNS y proxy HTTP delante del servidor doméstico Ubuntu + Caddy, o Tunnel según la ruta elegida en U09, conservando Next.js, Go, Compose y fotos locales. No se ha comprado ningún dominio, creado registros, abierto puertos, emitido certificados ni configurado una cuenta.
+**Actualización 22/10/2026 (D47–D50):** foodtruck.bid está comprado en Cloudflare y verificado en Resend. DEV publica api-dev.foodtruck.bid mediante Tunnel → Caddy → Laravel/PHP-FPM; [configuración y comprobaciones](../backend/README.md). Next.js, origen directo, hostnames y controles de staging/PROD siguientes siguen propuestos; esta política no acredita su despliegue.
 
 Comprobación documental: 13 de octubre de 2026. `dominio.example`, hostnames, IP, rutas de montaje y nombres de servicios son ejemplos. El dominio exacto, TLD, titular, precio de compra/renovación, plan Cloudflare, conectividad del domicilio y estrategia final de certificados siguen pendientes. Registrar un dominio y contratar un plan de proxy son decisiones distintas; no se presupone un plan de pago.
 
@@ -20,7 +20,7 @@ U09 decide servidor en casa. **Las recetas de IP pública/Caddy de este document
 
 ## Topología y registros propuestos
 
-Flujo público previsto: cliente web/app → DNS Cloudflare → proxy Cloudflare, si se activa → router/origen doméstico → Caddy → Next.js o API Go, en la alternativa directa. Caddy y API comparten una red privada Compose; PostgreSQL/PostGIS y Redis siguen sin exposición pública. Cloudflare Tunnel es una alternativa pendiente de elección para el servidor doméstico, especialmente con CGNAT; no está instalado. [Infraestructura](17-infraestructura.md).
+Flujo DEV vigente: app → Cloudflare Tunnel → Caddy interno `:8080` → PHP-FPM privado `api:9000` mediante FastCGI. PostgreSQL/PostGIS y Redis no publican puertos. El origen directo con HTTPS en Caddy es una alternativa futura de staging/PROD, con red/TLS por verificar; no sustituye automáticamente el Tunnel DEV. [Infraestructura](17-infraestructura.md).
 
 | Tipo | Nombre en la zona | Valor de ejemplo, por sustituir | Estado propuesto | Uso |
 | --- | --- | --- | --- | --- |
@@ -63,7 +63,7 @@ Si se desea activar Always Use HTTPS en Cloudflare, primero verificar la validac
 
 Elegible si se decide cerrar el acceso HTTP al origen o evitar que ACME dependa de las reglas del borde. DNS-01 valida TXT y no necesita puertos entrantes para emitir; no elimina el 443 necesario para servir la aplicación. La imagen estándar de Caddy **no incluye** el módulo del proveedor Cloudflare: preparar una imagen reproducible con `dns.providers.cloudflare`, versiones fijadas y revisión de su dependencia comunitaria. No se ha instalado este módulo. [Challenges Caddy](https://caddyserver.com/docs/automatic-https), [módulo Cloudflare](https://github.com/caddy-dns/cloudflare).
 
-El token se limita a `Zone:DNS:Edit` y `Zone:Zone:Read` de la zona concreta. Guardarlo como secreto de Caddy, con rotación y restricción de uso adecuada al entorno; no usar Global API Key, permisos de facturación/compra, acceso a todas las zonas ni token del CI genérico. El módulo necesita actualizar DNS y no debe conceder autoridad de dominio a Next.js, Go, móvil o navegador. [Permisos del módulo](https://github.com/caddy-dns/cloudflare), [tokens Cloudflare](https://developers.cloudflare.com/fundamentals/api/get-started/).
+El token se limita a `Zone:DNS:Edit` y `Zone:Zone:Read` de la zona concreta. Guardarlo como secreto de Caddy, con rotación y restricción de uso adecuada al entorno; no usar Global API Key, permisos de facturación/compra, acceso a todas las zonas ni token del CI genérico. El módulo necesita actualizar DNS y no debe conceder autoridad de dominio a Next.js, Laravel, móvil o navegador. [Permisos del módulo](https://github.com/caddy-dns/cloudflare), [tokens Cloudflare](https://developers.cloudflare.com/fundamentals/api/get-started/).
 
 Tras elegir esta alternativa, sustituir el `cert_issuer` HTTP-01 del ejemplo por lo siguiente y comprobar que el módulo existe en la imagen usada:
 
@@ -81,62 +81,11 @@ No concatenar ambos bloques globales: Caddy permite uno. No publicar TXT tempora
 
 CAA es un control opcional propuesto. Antes de restringir emisores, comprobar los que usa el certificado del borde, Caddy y cualquier servicio añadido. No permitir solo Let's Encrypt a ciegas: podría bloquear una emisión Cloudflare o un emisor de respaldo. Revisar valores actuales del proveedor, herencia del registro y política `issue`/`issuewild`, verificar emisión y registrar el rollback. No se proporciona una lista de CA universal ni un CAA definitivo. [CAA Cloudflare](https://developers.cloudflare.com/ssl/edge-certificates/caa-records/).
 
-## Caddyfile de referencia
+## Caddy y PHP-FPM
 
-**Ejemplo documental no desplegado ni validado con un binario.** Debe adaptarse a la versión/imagen real y al Compose final. Requiere `WEB_HOST`, `WWW_HOST`, `API_HOST`, `ACME_EMAIL` y `CF_TRUSTED_CIDRS`; esta última contiene, separados por espacios, todos los CIDR IPv4/IPv6 actuales de Cloudflare comprobados antes del cambio. No usar `0.0.0.0/0`, `::/0` ni todas las redes privadas como sustituto. `next:3000` y `api:8080` son servicios/puertos internos propuestos, sin publicación exterior.
+La fuente ejecutable DEV es [infrastructure/Caddyfile](../infrastructure/Caddyfile), junto a [compose.yaml](../compose.yaml) y [compose.tunnel.yaml](../compose.tunnel.yaml). Caddy limita body/paths y enruta `/api/*` y `/up` al front controller `/app/public/index.php` con transporte FastCGI a `api:9000`; el resto devuelve 404. El puerto 8080 es HTTP interno de Caddy, no un servidor HTTP Laravel. PHP-FPM queda privado y el web root se limita a `public/`, nunca a la raíz del repositorio.
 
-~~~caddyfile
-{
-    email {$ACME_EMAIL}
-    cert_issuer acme {
-        disable_tlsalpn_challenge
-    }
-    servers {
-        trusted_proxies static {$CF_TRUSTED_CIDRS}
-        trusted_proxies_strict
-        client_ip_headers CF-Connecting-IP
-    }
-}
-
-(proxy_identity) {
-    header_up X-Forwarded-For {client_ip}
-    header_up X-Real-IP {client_ip}
-    header_up -CF-Connecting-IP
-}
-
-{$WWW_HOST} {
-    redir https://{$WEB_HOST}{uri} 308
-}
-
-{$WEB_HOST} {
-    encode zstd gzip
-    header X-Content-Type-Options nosniff
-
-    @go_api path /api/v1 /api/v1/*
-    handle @go_api {
-        reverse_proxy api:8080 {
-            import proxy_identity
-            header_down Cache-Control "private, no-store"
-        }
-    }
-
-    handle {
-        reverse_proxy next:3000 {
-            import proxy_identity
-        }
-    }
-}
-
-{$API_HOST} {
-    header X-Content-Type-Options nosniff
-    reverse_proxy api:8080 {
-        import proxy_identity
-        header_down Cache-Control "private, no-store"
-    }
-}
-~~~
-
-El `handle` mantiene `/api/v1` en la URL enviada a Go; **no usar `handle_path` que lo elimine**. Se propone web same-origin `https://dominio.example/api/v1` y app `https://api.dominio.example/api/v1`, con el mismo router Go y sin dos contratos distintos. Next.js recibe el resto, incluida la navegación web con header. [Proxy Caddy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy), [API preliminar](20-api.md).
+Una futura web Next.js deberá conservar `/api/v1` al llegar a Laravel, con el mismo contrato y autorización para web/móvil. No copiar el antiguo `reverse_proxy api:8080` de Go: HTTP y FastCGI no son intercambiables. La configuración web/origen directo requerirá prueba propia de rutas, hosts, cookies/CSRF, TLS y exposición; no está implementada por estos ejemplos. [Despliegue Laravel](https://laravel.com/docs/13.x/deployment).
 
 Complemento opcional, solo si se elige `assets` y se monta exclusivamente la carpeta pública procesada en lectura:
 
@@ -151,13 +100,13 @@ Complemento opcional, solo si se elige `assets` y se monta exclusivamente la car
 }
 ~~~
 
-El TTL de una hora es ilustrativo, no aprobado. Nombres versionados/hash permiten valorar `immutable`; para borrado o moderación definir purga y URL nueva. No montar el directorio raíz del proyecto, uploads privados, backups, certificados o `.env`, ni activar listado de directorios. `file_server` no sustituye la validación de imágenes en Go. [Medios/backups](18-media-backups-operacion.md).
+El TTL de una hora es ilustrativo, no aprobado. Nombres versionados/hash permiten valorar `immutable`; para borrado o moderación definir purga y URL nueva. No montar el directorio raíz del proyecto, uploads privados, backups, certificados o `.env`, ni activar listado de directorios. `file_server` no sustituye la validación de imágenes en Laravel. [Medios/backups](18-media-backups-operacion.md).
 
 En Compose se deberán inyectar variables al **contenedor Caddy**; un `.env` utilizado para interpolación de Compose no garantiza por sí solo su presencia dentro del proceso. Montajes propuestos: Caddyfile → `/etc/caddy/Caddyfile` en lectura, estado de certificados → `/data` persistente, configuración runtime → `/config` persistente, medios públicos → `/srv/foodtrucks-public` en lectura. Backups del estado con acceso limitado porque incluye claves privadas. No publicar el puerto administrativo 2019; recargar dentro del contenedor. El token DNS-01, si se usa, requiere inyección secreta sin incluirlo en la imagen/Git.
 
 ### IP real y frontera de confianza
 
-Caddy confía en cabeceras únicamente si el peer TCP pertenece a los CIDR Cloudflare; una conexión directa con `CF-Connecting-IP` inventado conserva como cliente su IP de conexión. `trusted_proxies_strict` establece lectura de cadenas de proxies de derecha a izquierda cuando se usan. El ejemplo normaliza una sola IP al upstream; Go debe aceptarla **solo desde Caddy** en la red privada y no emplear ciegamente `middleware.RealIP` sobre tráfico público. [Proxies confiables Caddy](https://caddyserver.com/docs/caddyfile/options).
+En origen directo, Caddy debe confiar solo en los CIDR Cloudflare vigentes si ese es el peer real. En Tunnel, confiar únicamente en el conector y la red privada aislada de esa ruta; no copiar sin revisión `private_ranges` a otro despliegue. Normalizar IP/protocolo en Caddy y configurar `trustProxies`/`trustHosts` en Laravel según esa frontera. Una cabecera enviada por el cliente no concede identidad ni permisos. [Proxies confiables Caddy](https://caddyserver.com/docs/caddyfile/options).
 
 Verificar que Docker conserva la IP de origen en esta instalación: si Caddy ve todas las conexiones como una pasarela privada, no declarar toda esa red confiable para recuperar cabeceras. Resolver antes la red/NAT o un mecanismo autenticado. IPv4/IPv6, peticiones directas y cabeceras duplicadas deben formar parte de la comprobación. IP de cliente sirve para rate limits/auditoría, nunca para autorizar pedidos. No activar una transformación que elimine las cabeceras necesarias sin cambiar este contrato.
 
@@ -168,7 +117,7 @@ Verificar que Docker conserva la IP de origen en esta instalación: si Caddy ve 
 | TCP 443 | Aplicación por Cloudflare tras estabilizar proxy y renovación; administración de pruebas solo mediante excepción temporal controlada |
 | TCP 80 | Necesario para HTTP-01 y redirección; cerrar/restringir únicamente tras comprobar challenge final o elegir DNS-01 |
 | SSH | Solo IP administrativas/VPN elegida; acceso por clave y recuperación documentada |
-| PostgreSQL, Redis, Next.js, Go, Caddy admin | Sin puertos públicos; red interna Compose |
+| PostgreSQL, Redis, Next.js, Laravel, Caddy admin | Sin puertos públicos; red interna Compose |
 | Salida | DNS y HTTPS necesarios para ACME, Resend, Stripe y avisos; política concreta pendiente |
 
 Usar la [lista oficial IPv4/IPv6 Cloudflare](https://www.cloudflare.com/ips/), comprobar diferencias, aplicar de forma revisable y verificar desde fuera después de cada actualización. No descargar una lista y ejecutarla como comandos. Revisar firewall del proveedor **y** reglas efectivas del host/Docker: un puerto publicado puede eludir expectativas basadas solo en UFW. No abrir datos internos para solucionar conectividad de un contenedor.
@@ -181,12 +130,12 @@ Una allowlist de rangos identifica infraestructura Cloudflare compartida; no dem
 
 | Superficie | Política |
 | --- | --- |
-| Host `api`, `/api/v1` en web y API de staging | Bypass cache completo; Go/proxy `private, no-store` |
+| Host `api`, `/api/v1` en web y API de staging | Bypass cache completo; Laravel/proxy `private, no-store` |
 | Auth, `/me`, pedidos, QR, membresía, puntos, carrito, checkout/Billing/Connect, páginas personales/comerciante/admin | No almacenar en CDN ni caché compartida; SSR privado con `private, no-store` |
 | Webhooks Stripe y Resend, SSE/WebSocket, callbacks OAuth | Bypass cache, sin reescritura de body ni redirecciones |
 | HTML público Next.js | Comportamiento de origen al inicio; no activar Cache Everything global |
 | `/_next/static/*` y fotos públicas versionadas | Elegibles solo GET/HEAD; respetar Cache-Control del origen |
-| Medios privados/URLs protegidas | Autorización Go y `private, no-store`, sin servidor estático ni CDN pública |
+| Medios privados/URLs protegidas | Autorización Laravel y `private, no-store`, sin servidor estático ni CDN pública |
 
 Cloudflare no almacena todo por defecto; sus reglas y cabeceras de origen pueden cambiar la elegibilidad. No activar un Edge TTL que ignore `no-store` en superficies privadas ni deducir privacidad por extensión de URL. Una excepción debe prevalecer sobre cualquier regla general de cacheo; revisar el orden efectivo y probar dos cuentas distintas. `CF-Cache-Status: DYNAMIC` puede ser correcto para una regla Bypass; no exigir solo el texto BYPASS. [Comportamiento por defecto](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/), [Cache Rules](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/), [orden de reglas](https://developers.cloudflare.com/cache/how-to/cache-rules/order/).
 
@@ -194,10 +143,10 @@ Crear primero reglas acotadas por hostname/ruta en el plan disponible y document
 
 ### Política inicial de seguridad del borde propuesta
 
-- Conservar protección disponible contra ataques y bloqueos justificados; revisar los eventos antes de endurecer. El WAF complementa validación, firma, permisos y rate limit Go.
+- Conservar protección disponible contra ataques y bloqueos justificados; revisar los eventos antes de endurecer. El WAF complementa validación, firma, permisos y rate limit Laravel.
 - No imponer challenge JavaScript/CAPTCHA de navegador a API nativa, SSE, webhook o callback OAuth. Suprimir solo la regla/componente que cause el falso positivo y en la superficie exacta; no hacer Skip de toda la seguridad para `/api/*`.
 - Endpoints de ejemplo que necesitan tránsito máquina a máquina: `POST /api/v1/webhooks/stripe/platform`, `POST /api/v1/webhooks/stripe/connect` y `POST /api/v1/webhooks/resend`. Deben seguir verificando firma, cuerpo original, tamaño, replay e idempotencia. User-Agent no acredita el proveedor.
-- Las rutas de auth requieren controles de abuso compatibles con móvil y OAuth; los límites de edge no reemplazan controles por cuenta/identidad en Go ni deben bloquear reintentos legítimos de proveedor.
+- Las rutas de auth requieren controles de abuso compatibles con móvil y OAuth; los límites de edge no reemplazan controles por cuenta/identidad en Laravel ni deben bloquear reintentos legítimos de proveedor.
 - **Bot Fight Mode no admite Skip** en custom rules y puede desafiar tráfico móvil/API. Dejarlo desactivado en esta zona compartida como propuesta inicial; no confiar en una excepción WAF para rescatar webhooks si se activa. La alternativa requiere evaluar funciones del plan y probar tráfico completo. [Bot Fight Mode](https://developers.cloudflare.com/bots/get-started/bot-fight-mode/), [Skip WAF](https://developers.cloudflare.com/waf/custom-rules/skip/).
 - En staging valorar Cloudflare Access para páginas humanas, con bypass acotado o host separado para webhooks y flujos móviles automatizados. Añadir `noindex` y bloquear indexación no equivale a control de acceso. No introducir una pantalla de Access en la URL que necesita Stripe/Resend.
 
@@ -209,7 +158,7 @@ Caddy admite WebSocket y vacía SSE automáticamente cuando el origen responde `
 
 Cloudflare publica actualmente Proxy Read Timeout de 125 s y Proxy Write Timeout de 30 s para conexión a origen; son límites del proveedor, no tiempos recomendados para pedidos. Revalidarlos al desplegar. SSE debe emitir heartbeat apropiado, reconectar y recuperar estado/eventos autorizados; no tratar una conexión como entrega exactamente una vez. WebSocket también necesita heartbeat/reconexión porque actualizaciones del borde pueden cerrarlo. Elegir SSE o WebSocket sigue pendiente. [Límites Cloudflare](https://developers.cloudflare.com/fundamentals/reference/connection-limits/), [WebSockets Cloudflare](https://developers.cloudflare.com/network/websockets/).
 
-Limitar cargas en Go antes de almacenar/decodificar y coordinar body, dimensiones, tiempo y concurrencia con los límites efectivos de Cloudflare/Caddy. No aumentar máximos generales para aceptar una imagen sin analizar abuso y espacio disponible. Monitorear errores 522/524/525/526, certificado de **origen además del borde**, DNSSEC, expiración del dominio, disco, caché de público/privado y entregas de webhook. Correlacionar Request ID/Ray ID sin registrar tokens, QR o URLs completas de recuperación de contraseña.
+Limitar cargas en Laravel antes de almacenar/decodificar y coordinar body, dimensiones, tiempo y concurrencia con los límites efectivos de Cloudflare/Caddy. No aumentar máximos generales para aceptar una imagen sin analizar abuso y espacio disponible. Monitorear errores 522/524/525/526, certificado de **origen además del borde**, DNSSEC, expiración del dominio, disco, caché de público/privado y entregas de webhook. Correlacionar Request ID/Ray ID sin registrar tokens, QR o URLs completas de recuperación de contraseña.
 
 ## Verificación de implementación y rollback
 
@@ -237,9 +186,9 @@ Criterios de aceptación:
 
 1. Zona/registro/email y DNSSEC correctos; resolución desde al menos dos redes; IPv6 funcional si está publicado.
 2. Web canónica y redirección www preservan ruta/query; HTTPS de borde y origen válido, sin loop ni 526; certificados/estado sobreviven a recreación del contenedor.
-3. Router `/api/v1` llega a Go sin quitar prefijo, cookies web con atributos correctos y allowlists OAuth/CORS/App Links coordinadas. [Auth](14-autenticacion.md), [frontend](08-frontend.md).
+3. Router `/api/v1` llega a Laravel sin quitar prefijo, cookies web con atributos correctos y allowlists OAuth/CORS/App Links coordinadas. [Auth](14-autenticacion.md), [frontend](08-frontend.md).
 4. No hay respuesta privada reutilizada entre usuarios; repetidas llamadas a `/me`, pedido/QR y puntos no devuelven HIT. Static público conserva política esperada y su purga/borrado funciona.
-5. Webhooks de prueba Stripe/Resend alcanzan Go sin HTML de challenge, conservan cuerpo original y firma; falsificados se rechazan; duplicados no duplican cambios económicos.
+5. Webhooks de prueba Stripe/Resend alcanzan Laravel sin HTML de challenge, conservan cuerpo original y firma; falsificados se rechazan; duplicados no duplican cambios económicos.
 6. Eventos sobreviven a reconexión y no muestran pedidos ajenos. Upload malformado no se publica. Cabeceras de IP falsificadas en conexión directa no alteran identidad/rate limits.
 7. Puertos internos no son accesibles desde otra red; firewall IPv4/IPv6 y contenedores verificados; renovar certificado con la topología final funciona o se prueba emisión equivalente en entorno aislado sin forzar producción repetidamente.
 
