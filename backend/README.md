@@ -12,9 +12,27 @@ sudo docker compose ps
 curl --fail http://127.0.0.1:8080/up
 ```
 
-Compose construye la imagen compartida una sola vez desde `migrate`; API, colas, planificador y revisión reutilizan esa imagen local. Preparación no sobrescribe secretos existentes. El runtime usa UID/GID 1000, comprobado para miguel en la VM; conserva los archivos privados 600. No borrar postgres ni uploads. La imagen no contiene secretos. La API solo se publica en loopback, con SSH local 8085. Cloudflare Tunnel y nueva clave Resend han quedado pendientes por decisión del usuario.
+Compose construye la imagen compartida una sola vez desde `migrate`; API, colas, planificador y revisión reutilizan esa imagen local. Preparación no sobrescribe secretos existentes. El runtime usa UID/GID 1000, comprobado para miguel en la VM; conserva los archivos privados 600. No borrar postgres ni uploads. La imagen no contiene secretos. El puerto del origen permanece en loopback, con SSH local 8085. La publicación DEV mediante Tunnel, la clave Resend y la credencial FCM están autorizadas por D50; autorización no acredita conexión ni entrega de mensajes.
 
 `.private/providers.env` contiene nombres de configuración; mantenerlo privado y fuera de Git. El registro por correo devuelve 503 hasta activar Resend y su allowlist. FCM necesita `.private/providers/fcm-service-account.json` mínimo; Google, `GOOGLE_WEB_CLIENT_ID`. No utilizar credenciales de otros proyectos. `google-services.json` se queda en Android y nunca sustituye la cuenta de servicio del servidor.
+
+Para publicar DEV, provisionar `.private/cloudflared-token` con permisos 600 y usar ambos archivos Compose:
+
+```sh
+sudo docker compose -f compose.yaml -f compose.tunnel.yaml up -d --build
+```
+
+En Cloudflare, el único hostname autorizado es `api-dev.foodtruck.bid`, con servicio `http://caddy:8080` y respuesta final 404 para rutas sin coincidencia. El conector usa una conexión saliente; no abre puertos del router ni expone PostgreSQL/Redis. Caddy normaliza la IP del cliente desde `CF-Connecting-IP` del conector privado y Laravel acepta HTTPS únicamente desde proxies internos. Los hosts permitidos son el dominio DEV y loopback. La clave del túnel se lee desde archivo y no aparece en argumentos ni imágenes.
+
+Correo: `RESEND_API_KEY`, `MAIL_FROM_ADDRESS=no-reply@foodtruck.bid`, `FOODTRUCKS_EMAIL_ENABLED=true` y `DEV_EMAIL_ALLOWLIST` con el destinatario autorizado en `.private/providers.env`. Recrear API, worker y scheduler al cambiar ese archivo. El token privado de FCM se añade a la carpeta montada de proveedores, sin incorporarlo a la app.
+
+Prueba de correo, solo con autorización de envío al único destinatario de la allowlist:
+
+```sh
+sudo docker compose -f compose.yaml -f compose.tunnel.yaml exec -T api foodtrucks-entrypoint php < infrastructure/check-dev-mail.php
+```
+
+El resultado del comando acredita aceptación por Resend; comprobar `Delivered` en el panel para acreditar entrega. La recepción de una notificación FCM también exige una prueba en el dispositivo registrado.
 
 Para reconciliar una base DEV existente cuyo usuario de aplicación no coincide con el secreto privado actual:
 

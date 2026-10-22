@@ -50,7 +50,7 @@ Detalle: [privacidad y gobernanza](docs/48-proteccion-datos-gobernanza.md) y [co
 ## 6. Servidor y backups
 
 - Servidor doméstico, Ubuntu Server 26.04, Compose/Caddy y entornos separados. Los 4 vCPU/8 GB/40 GB son DEV; capacidad PROD pendiente.
-- Fotos persistentes locales, sin S3; backups externos fuera de casa y restore comprobado. Cloudflare para dominio/DNS y Resend para correo; foodtruck.bid comprado y verificado en Resend; clave de envío y Tunnel aplazados por el usuario.
+- Fotos persistentes locales, sin S3; backups externos fuera de casa y restore comprobado. Cloudflare para dominio/DNS y Resend para correo; foodtruck.bid comprado y verificado en Resend. D50 autoriza configurar correo, Tunnel y FCM en DEV; conexión y entrega real se verifican por separado.
 
 Detalle: [servidor](docs/38-servidor-domestico.md) y [backups](docs/18-media-backups-operacion.md).
 

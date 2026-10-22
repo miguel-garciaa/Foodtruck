@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => null);
+        // FPM is private to Compose; Caddy normalizes the IP header from the Tunnel connector.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'], headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO | Request::HEADER_X_FORWARDED_PORT);
+        $middleware->trustHosts(at: ['^api-dev\\.foodtruck\\.bid$', '^127\\.0\\.0\\.1$', '^localhost$'], subdomains: false);
         $middleware->trimStrings(except: ['currentPassword']);
         $middleware->convertEmptyStringsToNull(except: [fn (Request $request) => $request->is('api/*')]);
         $middleware->api(prepend: [ApiBoundary::class]);

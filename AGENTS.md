@@ -12,7 +12,7 @@ Lee el [README](README.md), las decisiones y pendientes pertinentes de [23](docs
 - Laravel/PHP como backend principal por decisión expresa del 21/10/2026. Go reservado para necesidades específicas futuras, sin segundo backend ahora. PostgreSQL/PostGIS y Redis para Horizon; monorepo GitHub y monolito modular.
 - Auth propia email/contraseña, Google y Apple; sin Supabase. Mapbox nativo/web; development build para módulos nativos. APNs/FCM, ActivityKit/Live Updates con Swift/Kotlin cuando proceda.
 - Stripe Billing para licencia/mensualidad comercial; Connect para comida. Membresía cliente confirmada: **5,99 €/mes EUR**. Impuestos, beneficios y canal de cobro pendientes; tarifas comerciales ilustrativas nunca son defaults.
-- Servidor doméstico DEV/PROD, Ubuntu Server 26.04, Compose/Caddy. VMware DEV: 4 vCPU/8 GB/40 GB; no dimensiona PROD. Fotos locales persistentes sin S3 y backups externos fuera del domicilio. Dominio en Cloudflare y correo Resend; foodtruck.bid comprado y DNS Resend verificado; clave de envío y Cloudflare Tunnel aplazados expresamente.
+- Servidor doméstico DEV/PROD, Ubuntu Server 26.04, Compose/Caddy. VMware DEV: 4 vCPU/8 GB/40 GB; no dimensiona PROD. Fotos locales persistentes sin S3 y backups externos fuera del domicilio. Dominio en Cloudflare y correo Resend; foodtruck.bid comprado y DNS Resend verificado. D50 autoriza configurar clave de envío, Tunnel para api-dev.foodtruck.bid y FCM en DEV; comprobar conexión y entrega antes de declararlos operativos.
 
 ## Invariantes de trabajo
 

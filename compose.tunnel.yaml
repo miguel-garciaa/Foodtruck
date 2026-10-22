@@ -1,0 +1,31 @@
+# Optional DEV publication. Use together with compose.yaml after provisioning the private token.
+services:
+  api:
+    environment:
+      APP_URL: https://api-dev.foodtruck.bid
+  worker:
+    environment:
+      APP_URL: https://api-dev.foodtruck.bid
+  scheduler:
+    environment:
+      APP_URL: https://api-dev.foodtruck.bid
+  migrate:
+    environment:
+      APP_URL: https://api-dev.foodtruck.bid
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.3
+    command: [tunnel, --no-autoupdate, run, --token-file, /run/secrets/cloudflare_tunnel_token]
+    user: '1000:1000'
+    secrets: [cloudflare_tunnel_token]
+    depends_on:
+      caddy: {condition: service_started}
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ['/tmp:size=16m,mode=1777']
+    mem_limit: 192m
+    cpus: 0.5
+    logging: {driver: json-file, options: {max-size: 5m, max-file: '3'}}
+secrets:
+  cloudflare_tunnel_token: {file: .private/cloudflared-token}

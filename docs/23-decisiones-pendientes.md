@@ -58,6 +58,7 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 | D47 | Laravel/PHP como backend principal; ecosistema necesario para este hito y Go reservado para necesidades futuras | Instrucción expresa y selección del usuario, 21/10/2026 |
 | D48 | Google OAuth incluido ahora con auth propia; foodtruck.bid comprado en Cloudflare y correo Resend sobre ese dominio | Instrucciones expresas, 21/10/2026 |
 | D49 | Nueva clave Resend y túnel foodtrucks-dev pendientes por decisión del usuario; no publicar api-dev todavía | Respuesta expresa del usuario, 21/10/2026 |
+| D50 | Reactivar la configuración DEV: clave Resend de envío limitada a foodtruck.bid, túnel foodtrucks-dev para api-dev.foodtruck.bid y cuenta FCM exclusiva del servidor. Correo técnico autorizado al único destinatario de la allowlist privada. Sustituye el aplazamiento D49; no autoriza producción ni marketing | Instrucciones y confirmaciones expresas, 22/10/2026 |
 
 ## Bases propuestas, no cierres comerciales
 
