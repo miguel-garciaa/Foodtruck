@@ -330,18 +330,22 @@ class Ops:
             attempt = load(self.state / 'attempt.json', {})
             path = f"deployments/{deployment['id']}/statuses"
             if current.get('sha') == release['sha']:
+                atomic(self.state / 'deployment.json', {'healthy': True, 'sha': release['sha']})
                 self.api(path, {'state': 'success', 'description': 'DEV ya ejecuta este digest verificado.', 'auto_inactive': False})
                 return
             if attempt.get('sha') == release['sha'] and attempt.get('phase') not in ('success',):
+                atomic(self.state / 'deployment.json', {'healthy': False, 'sha': release['sha']})
                 self.api(path, {'state': 'error', 'description': 'Intento interrumpido o fallido; requiere revisión local.', 'auto_inactive': False})
                 return
             self.api(path, {'state': 'in_progress', 'description': 'Comprobando backup, migración y servicios DEV.', 'auto_inactive': False})
             try:
                 self.deploy(release)
             except OperationError:
+                atomic(self.state / 'deployment.json', {'healthy': False, 'sha': release['sha']})
                 self.api(path, {'state': 'failure', 'description': 'DEV no aplicado; revisar estado local y rollback compatible.', 'auto_inactive': False})
                 self.alert('deployment', False, immediate=True)
                 raise
+            atomic(self.state / 'deployment.json', {'healthy': True, 'sha': release['sha']})
             self.api(path, {'state': 'success', 'description': 'DEV comprobado: API, DB, Redis, workers y digest.', 'auto_inactive': False})
             self.alert('deployment', True)
             return
@@ -353,6 +357,9 @@ class Ops:
         self.alert('restore', now - load(self.state / 'restore.json', {}).get('time', 0) < 8 * 86400)
         if load(self.state / 'maintenance.json', {}).get('until', 0) > now:
             return
+        deployment = load(self.state / 'deployment.json')
+        if deployment is not None:
+            self.alert('deployment', deployment.get('healthy') is True)
         try:
             self.smoke()
             healthy = True

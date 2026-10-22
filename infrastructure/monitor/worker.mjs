@@ -1,6 +1,11 @@
 import { acknowledged, message, observe } from "./alarm.mjs";
 
-export async function probe(env, now = Date.now(), request = fetch) {
+export async function probe(
+  env,
+  now = Date.now(),
+  request = fetch,
+  { test = false } = {},
+) {
   const target = new URL(env.HEALTH_URL);
   if (
     target.protocol !== "https:" ||
@@ -8,7 +13,8 @@ export async function probe(env, now = Date.now(), request = fetch) {
     target.pathname !== "/api/v1/foodtrucks"
   )
     throw new Error("Destino de sonda no permitido");
-  let previous = await env.ALARMS.get("public-dev", "json");
+  const stateKey = test ? "test-public-dev" : "public-dev";
+  let previous = await env.ALARMS.get(stateKey, "json");
   const deliver = async (event) => {
     if (now - event.created > 23 * 3600000)
       throw new Error(
@@ -57,18 +63,19 @@ export async function probe(env, now = Date.now(), request = fetch) {
   }
   const { state, event } = observe(previous, healthy, now);
   if (event) {
+    if (test) event.key = `test-${event.key}`;
     event.mail = {
       from: env.MAIL_FROM,
       to: [env.ALERT_TO],
-      ...message(event, { environment: "DEV", target: target.href }, now),
+      ...message(event, { environment: "DEV", target: target.href, test }, now),
     };
     await env.ALARMS.put(
-      "public-dev",
+      stateKey,
       JSON.stringify({ ...state, pending: event }),
     );
     await deliver(event);
   } else {
-    await env.ALARMS.put("public-dev", JSON.stringify(state));
+    await env.ALARMS.put(stateKey, JSON.stringify(state));
   }
 }
 

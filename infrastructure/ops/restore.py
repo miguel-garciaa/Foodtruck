@@ -41,9 +41,11 @@ def restore_check(ops):
         validate_archive(dump.parent / 'uploads.tar')
         name = 'foodtrucks-restore-' + uuid.uuid4().hex
         try:
-            ops.run(['docker', 'run', '-d', '--name', name, '--network', 'none', '--memory', '768m',
+            ops.run(['docker', 'run', '-d', '--name', name, '--network', 'none', '--memory', '1g', '--cpus', '2',
                      '--pids-limit', '128', '-e', 'POSTGRES_HOST_AUTH_METHOD=trust',
-                     '-e', 'POSTGRES_DB=foodtrucks_restore', 'postgis/postgis:17-3.6'])
+                     '-e', 'POSTGRES_DB=foodtrucks_restore', 'postgis/postgis:17-3.6',
+                     'postgres', '-c', 'shared_buffers=64MB', '-c', 'maintenance_work_mem=64MB',
+                     '-c', 'max_parallel_maintenance_workers=0', '-c', 'max_connections=20'])
             for attempt in range(30):
                 try:
                     ops.run(['docker', 'exec', name, 'pg_isready', '-U', 'postgres', '-d', 'foodtrucks_restore'])
@@ -64,6 +66,15 @@ def restore_check(ops):
             counts = json.loads(restored)
             if counts['migrations'] != json.loads((dump.parent / 'counts.json').read_text())['migrations']:
                 raise OperationError('La base restaurada no conserva el esquema de la copia')
+        except OperationError as error:
+            # Inspect only the safe resource signal, never dump restored records or SQL.
+            try:
+                exhausted = ops.run(['docker', 'inspect', '--format', '{{.State.OOMKilled}}', name]).strip() == b'true'
+            except OperationError:
+                exhausted = False
+            if exhausted:
+                raise OperationError('Restauración detenida por límite de memoria; copia y DEV preservados') from None
+            raise error
         finally:
             # Only this generated container and its anonymous test volume; never named DEV volumes.
             ops.run(['docker', 'rm', '-fv', name])

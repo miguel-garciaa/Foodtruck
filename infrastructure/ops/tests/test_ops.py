@@ -168,6 +168,21 @@ class DeployTest(unittest.TestCase):
             self.ops.agent()
         deploy.assert_not_called()
         self.assertEqual(api.call_args.args[1]['state'], 'error')
+        self.assertFalse(json.loads((self.ops.state / 'deployment.json').read_text())['healthy'])
+
+    def test_monitor_preserves_deployment_failure_until_a_verified_recovery(self):
+        for healthy in [False, True]:
+            atomic(self.ops.state / 'deployment.json', {'healthy': healthy})
+            with patch.object(self.ops, 'alert') as alert, patch.object(self.ops, 'smoke'), patch.object(self.ops, 'compose', return_value=b'0'):
+                self.ops.monitor()
+            self.assertIn(unittest.mock.call('deployment', healthy), alert.call_args_list)
+
+    def test_maintenance_does_not_emit_deployment_recovery(self):
+        atomic(self.ops.state / 'deployment.json', {'healthy': True})
+        atomic(self.ops.state / 'maintenance.json', {'until': 2000})
+        with patch('ops.time.time', return_value=1000), patch.object(self.ops, 'alert') as alert:
+            self.ops.monitor()
+        self.assertNotIn('deployment', [call.args[0] for call in alert.call_args_list])
 
 
 class RestoreSafetyTest(unittest.TestCase):
