@@ -21,7 +21,7 @@ export default function OrdersScreen() {
         <EmptyState
           icon="receipt-long"
           title="Cada pedido empieza con una buena elección"
-          description="Esta demostración permite explorar cartas. Todavía no admite compras ni genera tickets de recogida."
+          description="Todavía no se admiten compras ni se generan tickets de recogida. Aquí aparecerán tus pedidos cuando estén disponibles."
           action="Descubrir foodtrucks"
           onPress={() => router.navigate('/')}
         />

@@ -2,6 +2,8 @@
 
 **Cerrado:** Mapbox para personalizar el mapa. Negocios y ubicaciones de Foodtrucks proceden de PostgreSQL/PostGIS.
 
+**DEV, 22/10/2026:** cartografía nativa real cargada en Pixel_10 con atribución visible y panel persistente de Gorhom. El catálogo se consulta en Laravel; el estado vacío no utiliza fixtures. Agrupación y selección con anuncios reales siguen pendientes de QA. La cuenta Demo sin tarjeta utiliza su token público predeterminado y tiene límite de 100 MAU móviles; no permite administrar otros tokens. No se contrató un plan ni se añadió facturación. [Condiciones Demo](https://docs.mapbox.com/accounts/guides/demo-access/), [evidencia Android](../apps/mobile/design-qa.md).
+
 ## Integraciones
 
 Móvil: @rnmapbox/maps sobre SDKs nativos. Requiere development build, no Expo Go. La integración React Native es comunitaria y su soporte/compatibilidad debe comprobarse al fijar versiones. [Mapbox sobre frameworks híbridos](https://docs.mapbox.com/help/dive-deeper/mobile-apps/), [instalación del wrapper](https://rnmapbox.github.io/docs/install).

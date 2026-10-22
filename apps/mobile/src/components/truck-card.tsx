@@ -11,6 +11,13 @@ export const truckImages = {
   orange: require('../../assets/foodtrucks/orange-truck.png'),
   teal: require('../../assets/foodtrucks/teal-truck.png'),
 };
+export function truckImageSource(truck: Truck) {
+  return truck.photoUrls?.[0]
+    ? { uri: truck.photoUrls[0] }
+    : truck.image
+      ? truckImages[truck.image]
+      : undefined;
+}
 
 export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
   const theme = useTheme();
@@ -26,10 +33,10 @@ export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
         style={({ pressed }) => ({ gap: 10, opacity: pressed ? 0.8 : 1 })}
       >
         <Image
-          source={truckImages[truck.image]}
+          source={truckImageSource(truck)}
           contentFit="cover"
           style={{ width: '100%', aspectRatio: 1.08, borderRadius: 24 }}
-          accessibilityLabel={`Fotografía ilustrativa de ${truck.name}`}
+          accessibilityLabel={`Fotografía de ${truck.name}`}
         />
         <View style={{ gap: 3 }}>
           <Text style={{ fontSize: 16, fontWeight: '600', color: theme.text }}>{truck.name}</Text>
@@ -37,7 +44,18 @@ export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
             {truck.category} · {truck.area}
           </Text>
           <Text style={{ fontSize: 14, color: theme.text }}>
-            Desde <Text style={{ fontWeight: '700' }}>{formatPrice(startingPrice(truck))}</Text>
+            {truck.startingPriceCents == null ? (
+              'Consulta la carta'
+            ) : (
+              <>
+                Desde <Text style={{ fontWeight: '700' }}>{formatPrice(startingPrice(truck))}</Text>
+              </>
+            )}
+          </Text>
+          <Text style={{ fontSize: 14, color: theme.secondaryText }}>
+            {truck.rating == null
+              ? 'Sin valoraciones'
+              : `${truck.rating.toLocaleString('es-ES')} · ${truck.ratingCount} valoraciones`}
           </Text>
         </View>
       </Pressable>
@@ -54,7 +72,7 @@ export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
           }}
         >
           <Text style={{ fontSize: 11, fontWeight: '600', color: theme.text }}>
-            {truck.open ? 'Abierto · demo' : 'Cerrado · demo'}
+            {truck.open ? 'Abierto' : 'Cerrado'}
           </Text>
         </View>
       </View>
@@ -67,18 +85,28 @@ export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
           position: 'absolute',
           right: 8,
           top: 8,
-          width: 44,
-          height: 44,
-          borderRadius: 22,
-          backgroundColor: theme.surface,
+          width: 48,
+          height: 48,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Icon
-          name={saved ? 'favorite' : 'favorite-border'}
-          color={saved ? theme.accent : theme.text}
-        />
+        <View
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: theme.surface,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon
+            size={20}
+            name={saved ? 'favorite' : 'favorite-border'}
+            color={saved ? theme.accent : theme.text}
+          />
+        </View>
       </Pressable>
     </View>
   );

@@ -3,12 +3,18 @@
 **/.idea/
 **/.gradle/
 **/dist/
+apps/mobile/dist-verified/
 **/artifacts/
 **/.env
 **/.env.*
 !**/.env.example
 **/android/
 **/ios/
+# Keep the authored local Expo module, while excluding its generated Gradle outputs.
+!apps/mobile/modules/foodtrucks-google/android/
+apps/mobile/modules/foodtrucks-google/android/*
+!apps/mobile/modules/foodtrucks-google/android/build.gradle
+!apps/mobile/modules/foodtrucks-google/android/src/
 **/.vscode/
 **/*.apk
 **/*.aab

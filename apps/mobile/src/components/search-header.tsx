@@ -8,13 +8,23 @@ import { useTheme } from '@/theme';
 import { FilterSheet } from './filter-sheet';
 import { Icon, type IconName } from './icon';
 
-const categoryIcons: IconName[] = ['restaurant', 'lunch-dining', 'local-dining', 'eco'];
+const categoryIcons: IconName[] = [
+  'restaurant',
+  'lunch-dining',
+  'local-dining',
+  'eco',
+  'storefront',
+];
 
 export function SearchHeader() {
   const theme = useTheme();
   const { filters, setFilters } = useDiscovery();
   const [filterOpen, setFilterOpen] = useState(false);
-  const active = filters.openOnly || filters.maxPriceCents !== null;
+  const active =
+    filters.openOnly ||
+    filters.maxPriceCents !== null ||
+    filters.minPriceCents != null ||
+    Boolean(filters.locality || filters.province || filters.minRating);
 
   return (
     <View style={{ backgroundColor: theme.background, paddingTop: 12, gap: 18 }}>
@@ -44,7 +54,7 @@ export function SearchHeader() {
             returnKeyType="search"
             autoCorrect={false}
             maxLength={100}
-            style={{ flex: 1, minHeight: 48, fontSize: 16, color: theme.text, paddingVertical: 8 }}
+            style={{ flex: 1, minHeight: 48, fontSize: 14, color: theme.text, paddingVertical: 8 }}
           />
           {filters.query.length > 0 && (
             <Pressable
@@ -127,7 +137,7 @@ export function SearchHeader() {
         }}
       >
         <Text style={{ flex: 1, fontSize: 12, color: theme.secondaryText }}>
-          Datos de demostración · Recogida en el puesto
+          España · Anuncios publicados
         </Text>
         <Pressable
           accessibilityRole="button"

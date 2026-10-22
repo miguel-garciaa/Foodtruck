@@ -1,4 +1,4 @@
-export const categories = ['Todo', 'Hamburguesas', 'Tacos', 'Vegetariano'] as const;
+export const categories = ['Todo', 'Hamburguesas', 'Tacos', 'Vegetariano', 'Otros'] as const;
 export type Category = (typeof categories)[number];
 
 export type Truck = {
@@ -8,7 +8,11 @@ export type Truck = {
   area: string;
   address: string;
   open: boolean;
-  image: 'orange' | 'teal';
+  image?: 'orange' | 'teal';
+  photoUrls?: string[];
+  startingPriceCents?: number | null;
+  rating?: number | null;
+  ratingCount?: number;
   coordinates: [number, number];
   description: string;
   menu: { id: string; name: string; description: string; priceCents: number; allergens: string }[];
@@ -119,6 +123,10 @@ export type DiscoveryFilters = {
   category: Category;
   openOnly: boolean;
   maxPriceCents: number | null;
+  minPriceCents?: number | null;
+  locality?: string;
+  province?: string;
+  minRating?: 0 | 4 | 4.5;
 };
 
 function normalize(value: string) {
@@ -130,6 +138,7 @@ function normalize(value: string) {
 }
 
 export function startingPrice(truck: Truck) {
+  if (typeof truck.startingPriceCents === 'number') return truck.startingPriceCents;
   return Math.min(...truck.menu.map((item) => item.priceCents));
 }
 

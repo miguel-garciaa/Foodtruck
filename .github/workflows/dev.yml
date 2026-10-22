@@ -112,6 +112,9 @@ jobs:
       - name: Instalar las dependencias de la app
         run: npm ci
         working-directory: apps/mobile
+      - name: Generar los tipos de navegación de Expo Router
+        run: npx expo customize tsconfig.json
+        working-directory: apps/mobile
       - name: Comprobar los tipos de la app
         run: npm run typecheck
         working-directory: apps/mobile
@@ -127,7 +130,7 @@ jobs:
       - name: Comprobar el bundle Android tras los parches de seguridad
         run: npx expo export --platform android --output-dir dist-security
         working-directory: apps/mobile
-      - name: Probar búsquedas, precios y favoritos
+      - name: Probar búsquedas, sesiones, precios y avisos
         run: npm test
         working-directory: apps/mobile
   mobile-security:
