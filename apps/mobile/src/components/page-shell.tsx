@@ -11,6 +11,8 @@ export function PageShell({ title, children }: { title: string; children: ReactN
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
       <ScrollView
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         contentContainerStyle={{
           padding: 24,
           paddingTop: 8,

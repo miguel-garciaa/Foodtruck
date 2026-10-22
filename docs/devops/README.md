@@ -4,7 +4,9 @@
 
 El coordinador es [dev.yml](../../.github/workflows/dev.yml): PR, `push` de `main` y ejecución manual. Las ramas de trabajo necesitan PR borrador desde la primera subida. Solo las PR cancelan comprobaciones anteriores; una entrega de `main` nunca se cancela por una subida posterior. La app GitHub ECC se ha desinstalado y verificado en la lista de instalaciones; se conservan comentarios históricos y las cinco skills ECC locales.
 
-La rama de esta implantación parte del código confirmado, preservando el trabajo móvil paralelo. El APK contiene JavaScript y firma de pruebas, sin Firebase ni proveedores reales. Maestro comprueba el catálogo sintético, búsquedas, categorías, filtros, favoritos y perfil del código comprometido. **Las pantallas de cuentas reales aún no están en esta base; ese recorrido queda pendiente de su integración y bloquea la aceptación completa del hito.** Pagos, Next.js, iOS y tiendas no quedan acreditados.
+La rama integra las pantallas reales del trabajo móvil paralelo sin alterar su checkout. El APK contiene JavaScript y firma de pruebas, sin Firebase ni proveedores reales. Maestro usa Laravel y PostgreSQL/PostGIS/Redis desechables en su propio runner: catálogo y cuenta sintéticos, búsqueda, categorías, filtro de precio, favoritos, login, restauración de sesión y logout. Su aceptación depende de la ejecución final, no de los tests del prototipo anterior. Alta/verificación por correo, Google real, push a dispositivo, pagos, Next.js, iOS y tiendas no quedan acreditados por ese recorrido.
+
+Android llega a la API mediante `adb reverse` y HTTPS en `localhost:8443`. El APK exclusivo `com.foodtrucks.ci` confía solo para `localhost` en un certificado público efímero; conserva TLS obligatorio y autoridades de sistema para otros destinos. La clave privada permanece fuera de artefactos. La configuración y el plugin se aplican únicamente con `FOODTRUCKS_CI=1`; el paquete DEV conserva sus ajustes. `AndroidCiSeeder` rechaza entornos o bases distintos de `testing`/`foodtrucks_testing` en loopback con modo CI explícito. No se ejecuta ningún worker de correo/push.
 
 | Control | Evidencia y condición |
 | --- | --- |

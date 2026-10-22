@@ -9,7 +9,7 @@ const publicToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const hasPublicToken = Boolean(publicToken?.startsWith('pk.'));
 if (hasPublicToken) Mapbox.setAccessToken(publicToken!);
 
-export function DiscoveryMap({ trucks, selectedId, onSelect }: DiscoveryMapProps) {
+export function DiscoveryMap({ trucks, selectedId, onSelect, onBoundsChange }: DiscoveryMapProps) {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const [failed, setFailed] = useState(false);
@@ -36,10 +36,24 @@ export function DiscoveryMap({ trucks, selectedId, onSelect }: DiscoveryMapProps
       attributionPosition={{ top: 12, right: 12 }}
       logoPosition={{ top: 12, left: 12 }}
       scaleBarEnabled={false}
+      onMapIdle={({ properties }) => {
+        const { sw, ne } = properties.bounds;
+        if ([...sw, ...ne].every(Number.isFinite) && sw[0] < ne[0] && sw[1] < ne[1])
+          onBoundsChange([sw[0], sw[1], ne[0], ne[1]]);
+      }}
     >
       <Mapbox.Camera
         ref={camera}
-        defaultSettings={{ centerCoordinate: [-0.375, 39.469], zoomLevel: 12.6 }}
+        defaultSettings={{
+          bounds: {
+            sw: [-18.5, 27.5],
+            ne: [4.7, 43.9],
+            paddingBottom: 170,
+            paddingTop: 32,
+            paddingLeft: 24,
+            paddingRight: 24,
+          },
+        }}
       />
       <Mapbox.ShapeSource
         ref={source}

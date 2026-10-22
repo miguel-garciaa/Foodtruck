@@ -136,6 +136,9 @@ jobs:
       - name: Instalar las dependencias de la app
         run: npm ci
         working-directory: apps/mobile
+      - name: Generar los tipos de navegación de Expo Router
+        run: npx expo customize tsconfig.json
+        working-directory: apps/mobile
       - name: Comprobar los tipos de la app
         run: npm run typecheck
         working-directory: apps/mobile
@@ -151,7 +154,7 @@ jobs:
       - name: Comprobar el bundle Android tras los parches de seguridad
         run: npx expo export --platform android --output-dir dist-security
         working-directory: apps/mobile
-      - name: Probar búsquedas, precios y favoritos
+      - name: Probar búsquedas, sesiones, precios y avisos
         run: npm test
         working-directory: apps/mobile
   mobile-security:
@@ -194,11 +197,24 @@ jobs:
     name: APK y recorridos Android
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    services:
+      postgres:
+        image: postgis/postgis:17-3.6
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-isolated-only
+          POSTGRES_DB: foodtrucks_testing
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U postgres -d foodtrucks_testing" --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:8.8.3-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       FOODTRUCKS_CI: "1"
       EXPO_NO_TELEMETRY: "1"
       MAESTRO_CLI_NO_ANALYTICS: "1"
-      EXPO_PUBLIC_API_URL: http://127.0.0.1:1
+      EXPO_PUBLIC_API_URL: https://localhost:8443/api/v1
     steps:
       - name: Obtener el código
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -213,6 +229,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - name: Preparar API, cuenta y catálogo sintéticos con HTTPS local
+        run: bash .github/scripts/android-api.sh
       - name: Restaurar dependencias de Gradle por frontera de confianza
         id: gradle-cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
@@ -270,6 +288,15 @@ jobs:
             artifacts/android.xml
             artifacts/android-debug/
           retention-days: 7
+      - name: Recoger diagnóstico de la API sintética si falla Android
+        if: ${{ failure() }}
+        run: |
+          if docker inspect foodtrucks-android-api >/dev/null 2>&1; then
+            docker logs --tail 100 foodtrucks-android-api
+          fi
+      - name: Detener la API exclusiva del runner Android
+        if: ${{ always() }}
+        run: docker rm -f foodtrucks-android-api >/dev/null 2>&1 || true
   verification:
     name: Pruebas obligatorias
     if: ${{ always() }}
@@ -467,7 +494,7 @@ jobs:
             mobile: ['Comprobaciones de la app', 'Contrato API, tipos, calidad de código, búsquedas, precios y favoritos.'],
             'mobile-security': ['Seguridad de dependencias de la app', 'Busca vulnerabilidades altas o críticas en las dependencias.'],
             security: ['Seguridad del código y de Actions', 'Semgrep CE, actionlint y Trivy para configuración.'],
-            android: ['APK y recorridos Android', 'Compila un APK autónomo y prueba navegación, búsqueda, filtros y favoritos en emulador. Cuentas reales pendientes de integración móvil.'],
+            android: ['APK y recorridos Android', 'Compila un APK autónomo y prueba catálogo, filtros, cuentas, sesión y favoritos contra Laravel/HTTPS/PostgreSQL sintéticos en emulador.'],
           };
           const labels = { success: 'Superada', failure: 'Fallida', cancelled: 'Cancelada', skipped: 'No ejecutada' };
           const escape = (value) => String(value ?? '').replace(/[\r\n]+/g, ' ')

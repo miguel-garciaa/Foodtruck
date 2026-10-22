@@ -1,10 +1,12 @@
 import { EmptyState } from './empty-state';
 import type { Truck } from '@/features/discovery/catalog';
+import type { Bounds } from '@/features/discovery/remote';
 
 export type DiscoveryMapProps = {
   trucks: Truck[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onBoundsChange: (bounds: Bounds) => void;
 };
 
 export function DiscoveryMap(_props: DiscoveryMapProps) {

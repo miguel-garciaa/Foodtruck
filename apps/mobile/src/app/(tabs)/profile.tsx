@@ -1,14 +1,33 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { Button } from '@expo/ui';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon } from '@/components/icon';
 import { MenuRow } from '@/components/menu-row';
 import { useDiscovery } from '@/features/discovery/discovery-context';
 import { useTheme } from '@/theme';
+import { useAccount } from '@/features/account/account-context';
+import { AccountForm } from '@/components/account-form';
+import { PrivatePhoto } from '@/components/private-photo';
 
 export default function ProfileScreen() {
   const theme = useTheme();
   const { favoriteIds } = useDiscovery();
+  const account = useAccount();
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function act(action: () => Promise<unknown>) {
+    setBusy(true);
+    setNotice('');
+    try {
+      await action();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : 'No se pudo completar la solicitud.');
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <SafeAreaView
       edges={['top', 'left', 'right']}
@@ -41,12 +60,20 @@ export default function ProfileScreen() {
               backgroundColor: theme.softAccent,
               alignItems: 'center',
               justifyContent: 'center',
+              overflow: 'hidden',
             }}
           >
-            <Icon name="person-outline" color={theme.accent} size={42} />
+            {account.profile?.avatarId ? (
+              <PrivatePhoto
+                key={account.profile.id + account.profile.avatarId}
+                id={account.profile.avatarId}
+              />
+            ) : (
+              <Icon name="person-outline" color={theme.accent} size={42} />
+            )}
           </View>
           <Text style={{ color: theme.text, fontSize: 22, fontWeight: '600' }}>
-            A tu aire, a tu gusto
+            {account.profile?.displayName ?? 'A tu aire, a tu gusto'}
           </Text>
           <Text
             style={{
@@ -56,9 +83,58 @@ export default function ProfileScreen() {
               textAlign: 'center',
             }}
           >
-            Descubre nuevos sabores y guarda las paradas a las que quieres volver.
+            {account.profile
+              ? account.profile.email
+              : 'Descubre nuevos sabores y guarda las paradas a las que quieres volver.'}
           </Text>
         </View>
+        <AccountForm>
+          {account.profile ? (
+            <>
+              <Button label="Editar perfil y seguridad" onPress={() => router.push('/account')} />
+              <Button
+                label={
+                  account.profile.mode === 'owner' ? 'Cambiar a cliente' : 'Cambiar a propietario'
+                }
+                disabled={busy}
+                onPress={() =>
+                  void act(() =>
+                    account.update({
+                      mode: account.profile?.mode === 'owner' ? 'client' : 'owner',
+                    }),
+                  )
+                }
+                variant="outlined"
+              />
+              <Button
+                label="Cerrar sesión"
+                disabled={busy}
+                variant="text"
+                onPress={() => void act(account.logout)}
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                label={account.loading ? 'Recuperando sesión…' : 'Iniciar sesión o registrarme'}
+                disabled={account.loading}
+                onPress={() => router.push('/auth')}
+              />
+              {account.error !== '' && (
+                <Button
+                  label="Reintentar conexión"
+                  onPress={() => void account.restore()}
+                  variant="text"
+                />
+              )}
+            </>
+          )}
+        </AccountForm>
+        {(notice || account.error) !== '' && (
+          <Text accessibilityLiveRegion="polite" style={{ color: theme.text, fontSize: 16 }}>
+            {notice || account.error}
+          </Text>
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Mis favoritos. ${favoriteIds.length} paradas guardadas`}
@@ -103,8 +179,10 @@ export default function ProfileScreen() {
           />
         </View>
         <Text style={{ fontSize: 13, lineHeight: 22, color: theme.secondaryText }}>
-          Foodtrucks · Versión de demostración{'\n'}Sin cuenta iniciada. Tus favoritos se conservan
-          durante esta sesión.
+          Foodtrucks DEV
+          {account.profile
+            ? ` · ${account.profile.emailVerified ? 'Correo verificado' : 'Verificación pendiente'}`
+            : ' · Explora y accede a tu cuenta cuando quieras.'}
         </Text>
       </ScrollView>
     </SafeAreaView>

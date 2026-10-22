@@ -1,4 +1,18 @@
-# QA visual Android · 21/10/2026
+# QA visual Android
+
+## Estado actual · 22/10/2026
+
+La base histórica del apartado siguiente utilizaba fixtures. La implementación actual consulta Laravel en la VM y muestra un vacío real cuando no hay anuncios publicados. No se reutiliza la prueba histórica como evidencia de cuentas, favoritos remotos o push.
+
+- **Cartografía real comprobada:** `artifacts/mapbox-online.png` y `artifacts/profile-2021.png` muestran tiles Mapbox, logotipo/atribución y panel persistente de Gorhom en Pixel_10. Agrupación y selección con varios anuncios publicados siguen pendientes. El panel permite deslizar resultados; el vacío debe revisarse en sus distintos tamaños, porque el estado colapsado no muestra todo su texto.
+- **Build actual:** `artifacts/providers-android-updated-build.log`, 729 tareas y 3 min 59 s. APK instalado y abierto después de recuperar Pixel_10 con arranque en frío, conservando la cuenta de Google. La pantalla negra y el cierre del inspector de React Native quedan registrados como incidencias, no como una apertura correcta.
+- **Tema, texto y filtros repetidos:** `artifacts/map-large-dark-confirmed.png` muestra cartografía oscura y fuente 1,6. `artifacts/filters-large-dark-confirmed.png` y `filters-large-bottom-2055.xml` muestran los campos desplazables y las acciones Aplicar/Restablecer al final. Aplicar cierra la sheet; el dock permite volver de Mapa a Perfil. Se oculta el botón flotante de herramientas Expo en DEV porque tapaba el acceso a filtros. Se restauraron fuente 1,0 y tema claro.
+- **Google:** selector de cuenta y consentimiento nativos alcanzados. El servidor rechazó el ID token; se reprodujo con una firma RSA sintética real y se corrigió la configuración del verificador. La prueba de desfase temporal también fallaba; se limita la tolerancia a 60 segundos durante esa verificación, restaurando después la configuración. Cuatro regresiones locales pasan. Repetición contra la VM pendiente de aplicar la revisión.
+- **Verificación pendiente del hito:** perfil/avatar, varios anuncios, revisión/publicación, favoritos remotos, filtros combinados y clusters con datos propios, entrega FCM en primer/segundo plano y apertura desde aviso. Repetir claro/oscuro, texto 160 %, teclado, navegación y persistencia con esos flujos. TalkBack y teléfono físico siguen pendientes.
+
+El correo técnico figura entregado en Resend y la credencial FCM fue aceptada; esos controles no prueban una notificación recibida. La [guía Android](README.md) distingue código implementado y comportamiento realmente probado.
+
+## Evidencia histórica · 21/10/2026
 
 **Hallazgo pendiente**
 

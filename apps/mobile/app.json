@@ -32,7 +32,8 @@
       "expo-status-bar",
       "@rnmapbox/maps",
       "./plugins/with-font-scale.cjs",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

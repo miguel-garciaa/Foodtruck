@@ -4,8 +4,9 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
-import { truckImages } from '@/components/truck-card';
-import { demoTrucks, formatPrice } from '@/features/discovery/catalog';
+import { truckImageSource } from '@/components/truck-card';
+import { formatPrice } from '@/features/discovery/catalog';
+import { usePublicTruck } from '@/features/discovery/use-public-truck';
 import { useDiscovery } from '@/features/discovery/discovery-context';
 import { useTheme } from '@/theme';
 
@@ -13,17 +14,17 @@ export default function TruckScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
   const { favoriteIds, toggleSaved } = useDiscovery();
-  const truck = demoTrucks.find((entry) => entry.id === id);
+  const { truck, loading, error, retry } = usePublicTruck(id);
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
   if (!truck)
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
         <EmptyState
           icon="storefront"
-          title="No encontramos este foodtruck"
-          description="Vuelve a explorar para elegir otro puesto."
-          action="Volver a explorar"
-          onPress={() => router.replace('/')}
+          title={loading ? 'Cargando foodtruck…' : 'No encontramos este foodtruck'}
+          description={error || 'Consultando la información publicada.'}
+          action={loading ? undefined : 'Reintentar'}
+          onPress={retry}
         />
       </SafeAreaView>
     );
@@ -43,10 +44,10 @@ export default function TruckScreen() {
       >
         <View>
           <Image
-            source={truckImages[truck.image]}
+            source={truckImageSource(truck)}
             contentFit="cover"
             style={{ width: '100%', aspectRatio: 1.15 }}
-            accessibilityLabel={`Fotografía ilustrativa de ${truck.name}`}
+            accessibilityLabel={`Fotografía de ${truck.name}`}
           />
           <View
             style={{
@@ -84,13 +85,24 @@ export default function TruckScreen() {
                 borderRadius: 24,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: theme.surface,
               }}
             >
-              <Icon
-                name={saved ? 'favorite' : 'favorite-border'}
-                color={saved ? theme.accent : theme.text}
-              />
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: theme.surface,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Icon
+                  name={saved ? 'favorite' : 'favorite-border'}
+                  color={saved ? theme.accent : theme.text}
+                  size={20}
+                />
+              </View>
             </Pressable>
           </View>
         </View>
@@ -105,9 +117,7 @@ export default function TruckScreen() {
             backgroundColor: theme.background,
           }}
         >
-          <Text style={{ fontSize: 12, color: theme.accent, fontWeight: '700' }}>
-            FOODTRUCK DE DEMOSTRACIÓN
-          </Text>
+          <Text style={{ fontSize: 12, color: theme.accent, fontWeight: '700' }}>FOODTRUCK</Text>
           <Text
             accessibilityRole="header"
             style={{ fontSize: 30, fontWeight: '700', color: theme.text }}
@@ -115,7 +125,7 @@ export default function TruckScreen() {
             {truck.name}
           </Text>
           <Text style={{ fontSize: 16, color: theme.secondaryText }}>
-            {truck.category} · {truck.open ? 'Abierto (ejemplo)' : 'Cerrado (ejemplo)'}
+            {truck.category} · {truck.open ? 'Abierto' : 'Cerrado'}
           </Text>
           <Text style={{ fontSize: 16, lineHeight: 25, color: theme.text }}>
             {truck.description}
@@ -136,7 +146,7 @@ export default function TruckScreen() {
               {truck.address}
             </Text>
             <Text style={{ color: theme.secondaryText, fontSize: 13 }}>
-              La dirección y disponibilidad son datos de ejemplo.
+              Información publicada por el propietario y revisada antes de su publicación.
             </Text>
           </View>
           <Text
@@ -162,13 +172,13 @@ export default function TruckScreen() {
                 {item.description}
               </Text>
               <Text style={{ color: theme.secondaryText, fontSize: 13, lineHeight: 21 }}>
-                Alérgenos de ejemplo: {item.allergens}
+                Alérgenos: {item.allergens || 'Consulta al propietario.'}
               </Text>
             </View>
           ))}
           <Text style={{ color: theme.secondaryText, fontSize: 14, lineHeight: 23 }}>
-            Carta ilustrativa. Los precios, alérgenos y fotografías no corresponden a un negocio
-            real. Esta demostración no admite pedidos ni pagos.
+            Esta versión DEV permite descubrir foodtrucks y consultar su carta. Los pedidos y pagos
+            llegarán en otro hito.
           </Text>
         </View>
       </ScrollView>

@@ -1,5 +1,5 @@
 appId: ${APP_ID}
-name: Arranque, búsqueda, filtros, favoritos y navegación
+name: Catálogo y cuentas reales sobre API y PostgreSQL sintéticos
 ---
 - launchApp:
     clearState: true
@@ -9,24 +9,73 @@ name: Arranque, búsqueda, filtros, favoritos y navegación
 - tapOn: Buscar foodtrucks, comida o zona
 - inputText: taco
 - hideKeyboard
-- assertVisible: 'Ver La ruta del taco.*'
+- extendedWaitUntil:
+    visible: 'Ver La ruta del taco.*'
+    timeout: 15000
 - assertNotVisible: 'Ver Brasa sobre ruedas.*'
 - tapOn: Borrar búsqueda
 - tapOn: Tacos
-- assertVisible: 'Ver La ruta del taco.*'
+- extendedWaitUntil:
+    visible: 'Ver La ruta del taco.*'
+    timeout: 15000
 - tapOn: Todo
 - tapOn: Abrir filtros
-- assertVisible: A tu gusto
-- tapOn: 'Ver .* resultados'
-- tapOn: 'Guardar Brasa sobre ruedas en favoritos'
-- tapOn: Ver favoritos
-- assertVisible: '.*1 foodtruck guardado.*'
-- tapOn: Ver 1 paradas guardadas
-- assertVisible: 'Ver Brasa sobre ruedas.*'
-- back
-- tapOn: Perfil
-- assertVisible: Mis favoritos
+- tapOn:
+    id: filter-max-price
+- inputText: '6'
+- hideKeyboard
 - scrollUntilVisible:
     element:
-      text: '(?s).*Sin cuenta iniciada.*'
+      text: Aplicar filtros
     direction: DOWN
+- tapOn: Aplicar filtros
+- extendedWaitUntil:
+    visible: 'Ver La ruta del taco.*'
+    timeout: 15000
+- assertNotVisible: 'Ver Brasa sobre ruedas.*'
+- tapOn: Abrir filtros
+- scrollUntilVisible:
+    element:
+      text: Restablecer filtros
+    direction: DOWN
+- tapOn: Restablecer filtros
+- tapOn: Perfil
+- tapOn: Iniciar sesión o registrarme
+- tapOn:
+    id: auth-email
+- inputText: android@example.test
+- tapOn:
+    id: auth-password
+- inputText: Synthetic-Android-2026!
+- hideKeyboard
+- tapOn:
+    id: auth-submit
+- extendedWaitUntil:
+    visible: Cuenta Android CI
+    timeout: 15000
+- tapOn: Explorar
+- extendedWaitUntil:
+    visible: Guardar Brasa sobre ruedas en favoritos
+    timeout: 15000
+- tapOn: Guardar Brasa sobre ruedas en favoritos
+- extendedWaitUntil:
+    visible: Quitar Brasa sobre ruedas de favoritos
+    timeout: 15000
+- tapOn: Ver favoritos
+- extendedWaitUntil:
+    visible: 'Ver Brasa sobre ruedas.*'
+    timeout: 15000
+- back
+- stopApp
+- launchApp
+- tapOn: Perfil
+- extendedWaitUntil:
+    visible: Cuenta Android CI
+    timeout: 15000
+- tapOn: Cerrar sesión
+- extendedWaitUntil:
+    visible: Iniciar sesión o registrarme
+    timeout: 15000
+- tapOn: 'Mis favoritos.*'
+- assertVisible: Inicia sesión para recuperar tus favoritos en tus dispositivos.
+- assertNotVisible: 'Ver Brasa sobre ruedas.*'

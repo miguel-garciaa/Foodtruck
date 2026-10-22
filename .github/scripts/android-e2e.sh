@@ -12,5 +12,6 @@ diagnostics() {
   exit "$result"
 }
 trap diagnostics EXIT
+adb reverse tcp:8443 tcp:8443
 adb install apps/mobile/android/app/build/outputs/apk/release/app-release.apk
 maestro test -e APP_ID=com.foodtrucks.ci --debug-output artifacts/android-debug --format junit --output artifacts/android.xml apps/mobile/.maestro
