@@ -22,6 +22,8 @@ Preferir transform/opacity, evitar setState por fotograma y operaciones pesadas 
 
 ## Configuración y verificación
 
+**Implementación D51, 23/10/2026:** `app.json` declara `CADisableMinimumFrameDurationOnPhone: true`; los controles personalizados usan transform/opacidad y reducción de movimiento. La recompilación Android y las pruebas en Pixel_10 emulado se registran en [QA móvil](../apps/mobile/design-qa.md). No hay iPhone ProMotion ni Android físico de 90/120 Hz disponible en esta sesión: frecuencia efectiva, p95/p99, pérdidas de paneles/navegación/scroll y mapa por separado siguen pendientes de hardware real. Una captura o un build correcto no acredita 8,33 ms.
+
 C08 propuso CADisableMinimumFrameDurationOnPhone para iOS ProMotion. Comprobar configuración generada de la versión elegida y documentación vigente; la bandera no demuestra por sí sola el FPS obtenido. No asumir que una versión histórica de plantilla determina la build actual.
 
 Pruebas en release y teléfonos reales; modo desarrollo y emuladores no acreditan objetivo. [Rendimiento React Native](https://reactnative.dev/docs/performance).

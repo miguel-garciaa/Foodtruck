@@ -4,6 +4,10 @@
 
 ## Temas
 
+**Ajuste solicitado el 23/10/2026:** opciones de menú de 15 sp y subtítulos de 13 sp, con filas de al menos 68 dp y crecimiento por accesibilidad. El emulador se devuelve a tema claro y escala 1,0 al terminar QA. La app conserva la adaptación al tema y texto del dispositivo.
+
+**Base móvil D51 implementada, 23/10/2026:** los valores ejecutables están en `apps/mobile/src/theme.ts`: blanco limpio/coral en claro y azul noche/coral luminoso en oscuro. Búsqueda mínima 50 dp (texto 14), dock 52 dp (texto 11), ampliables con texto del sistema; acciones de al menos 48 dp. Carruseles con márgenes 24, separación 14, fotos 1,05 y radio 22. Corazón 20 dp, contorno blanco, relleno oscuro translúcido/coral, sin círculo y objetivo independiente 48 × 48. Pulsaciones personalizadas con Reanimated y movimiento reducido; sheets y navegación nativas. La tabla conceptual siguiente conserva la dirección histórica, no sustituye esos tokens.
+
 | Token semántico | Día, dirección propuesta | Noche, dirección propuesta |
 | --- | --- | --- |
 | background | Marfil suave | Azul noche casi negro |

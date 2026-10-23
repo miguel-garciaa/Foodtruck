@@ -4,6 +4,10 @@
 
 ## Alta y activación
 
+**Adaptación móvil D51, 23/10/2026:** Perfil permite cambiar a comerciante después de la confirmación de la API. El dock profesional ofrece Mis foodtrucks, Pedidos y Menú. El alta de anuncios utiliza seis pasos: ubicación confirmada, identidad/categoría/contacto, fotografías, carta con precios y alérgenos, horarios y revisión. El primer borrador se guarda tras completar ubicación/dirección; los siguientes guardados se realizan al avanzar o con Guardar y salir. Se retoma el primer paso incompleto. Los conflictos de versión conservan los cambios locales y no sobrescriben el servidor. La última acción es Enviar a revisión; la autorización por propietario y verificación de correo siguen en Laravel. Se conservan Borrador, En revisión, Publicado, Cambios solicitados y Archivado.
+
+El GPS de primer plano se solicita solo al pulsar Usar mi ubicación. Se acepta ubicación aproximada, con ajuste manual en Mapbox y dirección escrita. Si el mapa falla, se ofrecen coordenadas manuales. No se añade geocodificación externa ni seguimiento. Este asistente cubre anuncios, carta, fotos, posición y horarios; las etapas comerciales siguientes describen el alcance de producto y no acreditan pagos ni operación de pedidos implementados.
+
 1. Crear cuenta o iniciar sesión; verificar email cuando corresponda.
 2. Solicitar alta de negocio: nombre, descripción, contacto, fotos, categorías y responsables.
 3. Publicar ubicación y horarios iniciales; cargar carta, precios, disponibilidad y alérgenos.

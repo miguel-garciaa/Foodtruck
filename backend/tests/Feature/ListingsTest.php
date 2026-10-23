@@ -11,6 +11,20 @@ use Tests\PostgresTestCase;
 
 class ListingsTest extends PostgresTestCase
 {
+    public function test_located_draft_can_be_resumed_but_incomplete_draft_cannot_be_submitted(): void
+    {
+        $owner = User::factory()->create();
+        $session = DB::transaction(fn () => app(Sessions::class)->issue($owner));
+        $partial = $this->draft(['name' => '', 'description' => '', 'contact' => '', 'photos' => [], 'menu' => [], 'hours' => []]);
+        $created = $this->withToken($session['accessToken'])->postJson('/api/v1/merchant/foodtrucks', $partial)->assertCreated()->json();
+        $this->getJson('/api/v1/merchant/foodtrucks/'.$created['id'])->assertOk()->assertJsonPath('draft.locality', 'Córdoba')->assertJsonPath('status', 'draft');
+        $this->postJson('/api/v1/merchant/foodtrucks/'.$created['id'].'/submit', ['version' => 1])->assertUnprocessable();
+        $this->getJson('/api/v1/foodtrucks')->assertJsonCount(0, 'items');
+        $partial['name'] = 'Nombre guardado en otro paso';
+        $this->putJson('/api/v1/merchant/foodtrucks/'.$created['id'], ['version' => 1, 'draft' => $partial])->assertOk()->assertJsonPath('version', 2)->assertJsonPath('draft.name', $partial['name']);
+        $this->putJson('/api/v1/merchant/foodtrucks/'.$created['id'], ['version' => 1, 'draft' => $partial])->assertConflict();
+    }
+
     private function draft(array $changes = []): array
     {
         return $changes + ['name' => 'Puesto de prueba', 'description' => 'Descripción', 'category' => 'Tacos', 'contact' => 'Contacto comercial', 'locality' => 'Córdoba', 'province' => 'Córdoba', 'address' => 'Dirección de prueba', 'longitude' => -4.77, 'latitude' => 37.88, 'timezone' => 'Europe/Madrid', 'photos' => [], 'hours' => [['day' => 1, 'startMinute' => 600, 'endMinute' => 1200]], 'menu' => [['id' => 'one', 'name' => 'Menú', 'description' => '', 'priceCents' => 500, 'allergens' => 'Consultar']]];

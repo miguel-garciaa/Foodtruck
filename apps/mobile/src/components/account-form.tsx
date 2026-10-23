@@ -27,17 +27,19 @@ export function AccountField({
       <Text textStyle={{ color: theme.text, fontSize: 15 }}>{label}</Text>
       <TextInput
         {...props}
+        testID={props.testID ?? label}
         placeholder={label}
         value={value}
         defaultValue={initialValue}
         textStyle={{ color: theme.text, fontSize: 16 }}
         style={{
+          backgroundColor: theme.surface,
           height: Math.max(
             props.multiline ? 130 : 52,
             (props.multiline ? 76 : 28) * fontScale + 24,
           ),
           padding: 12,
-          borderRadius: 12,
+          borderRadius: 16,
           borderColor: theme.border,
           borderWidth: 1,
         }}

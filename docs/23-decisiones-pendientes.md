@@ -59,6 +59,7 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 | D48 | Google OAuth incluido ahora con auth propia; foodtruck.bid comprado en Cloudflare y correo Resend sobre ese dominio | Instrucciones expresas, 21/10/2026 |
 | D49 | Nueva clave Resend y túnel foodtrucks-dev pendientes por decisión del usuario; no publicar api-dev todavía | Respuesta expresa del usuario, 21/10/2026 |
 | D50 | Reactivar la configuración DEV: clave Resend de envío limitada a foodtruck.bid, túnel foodtrucks-dev para api-dev.foodtruck.bid y cuenta FCM exclusiva del servidor. Correo técnico autorizado al único destinatario de la allowlist privada. Sustituye el aplazamiento D49; no autoriza producción ni marketing | Instrucciones y confirmaciones expresas, 22/10/2026 |
+| D51 | Adaptar las capturas y ambos vídeos a Foodtrucks: controles compactos, corazones de 20 dp, filtros combinados, colección de favoritos y modo comerciante con alta guiada de seis pasos. Guardar el primer borrador al confirmar ubicación; después al avanzar y salir. Mapbox con GPS puntual opcional, dirección manual, sin autocompletado externo ni ubicación de fondo. Reutilizar Draft y revisión existentes, sin migraciones; pagos y operación de pedidos conservan su alcance vigente. 60/90/120 Hz exige medida real | Plan solicitado expresamente, 23/10/2026 |
 
 ## Bases propuestas, no cierres comerciales
 

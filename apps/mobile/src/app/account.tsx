@@ -1,4 +1,5 @@
-import { Button, Text as NativeText } from '@expo/ui';
+import { Text as NativeText } from '@expo/ui';
+import { FormButton as Button } from '@/components/form-button';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ import {
 } from '@/lib/api';
 import { clearLocalPush, enablePush, testPush } from '@/lib/push';
 import { useTheme } from '@/theme';
+import { useExitGuard } from '@/components/use-exit-guard';
 import { PrivatePhoto } from '@/components/private-photo';
 
 export default function AccountScreen() {
@@ -27,6 +29,7 @@ export default function AccountScreen() {
   const [password, setPassword] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const allowExit = useExitGuard(name !== null || currentPassword !== '' || password !== '', busy);
   async function act(action: () => Promise<unknown>, success = 'Cambios guardados.') {
     setBusy(true);
     setNotice('');
@@ -100,7 +103,10 @@ export default function AccountScreen() {
           label="Guardar nombre"
           disabled={busy}
           onPress={() =>
-            void act(() => account.update({ displayName: name ?? account.profile!.displayName }))
+            void act(async () => {
+              await account.update({ displayName: name ?? account.profile!.displayName });
+              setName(null);
+            })
           }
         />
         <Button
@@ -159,7 +165,7 @@ export default function AccountScreen() {
                 body: jsonBody({ currentPassword, password }),
               });
               await clearSession();
-              router.replace('/auth');
+              allowExit(() => router.replace('/auth'));
             })
           }
         />

@@ -1,11 +1,15 @@
-import { Button } from '@expo/ui';
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Text } from 'react-native';
+import { FormButton as Button } from '@/components/form-button';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Image } from 'expo-image';
+import { Pressable, Text, View } from 'react-native';
+import { FavoriteHelp } from '@/components/favorite-help';
+import { ActionButton } from '@/components/action-button';
+import { readFavoriteHelp, rememberFavoriteHelp } from '@/lib/ui-preferences';
 import { AccountForm } from '@/components/account-form';
 import { EmptyState } from '@/components/empty-state';
 import { PageShell } from '@/components/page-shell';
-import { TruckCard } from '@/components/truck-card';
+import { TruckCard, truckImageSource } from '@/components/truck-card';
 import { useAccount } from '@/features/account/account-context';
 import type { Truck } from '@/features/discovery/catalog';
 import { useDiscovery } from '@/features/discovery/discovery-context';
@@ -19,6 +23,30 @@ export default function FavoritesScreen() {
   const { profile } = useAccount();
   const { favoriteIds, favoriteError, retryFavorites } = useDiscovery();
   const [page, setPage] = useState(0);
+  const [collectionOpen, setCollectionOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      void readFavoriteHelp().then((seen) => {
+        if (!seen && !cancelled)
+          timer = setTimeout(() => {
+            if (!cancelled) setHelpOpen(true);
+          }, 400);
+      });
+      return () => {
+        cancelled = true;
+        clearTimeout(timer);
+        setHelpOpen(false);
+      };
+    }, []),
+  );
+  function closeHelp() {
+    setHelpOpen(false);
+    void rememberFavoriteHelp();
+  }
+
   const [revision, setRevision] = useState(0);
   const ids = favoriteIds.slice(page * 20, page * 20 + 20).join(',');
   const key = ids + ':' + revision;
@@ -55,6 +83,12 @@ export default function FavoritesScreen() {
       <Text style={{ color: theme.secondaryText, fontSize: 16 }}>
         Tus paradas guardadas en tu cuenta de Foodtrucks.
       </Text>
+      <ActionButton
+        label="Cómo guardar favoritos"
+        variant="text"
+        onPress={() => setHelpOpen(true)}
+      />
+      <FavoriteHelp open={helpOpen} onClose={closeHelp} />
       {!profile ? (
         <EmptyState
           icon="favorite-border"
@@ -78,7 +112,52 @@ export default function FavoritesScreen() {
               }}
             />
           )}
-          {state.key === key &&
+          {state.key === key && favoriteIds.length > 0 && !state.error && !collectionOpen && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Abrir colección. ${favoriteIds.length} foodtrucks guardados`}
+              onPress={() => setCollectionOpen(true)}
+              style={{ gap: 12, alignSelf: 'flex-start' }}
+            >
+              <View
+                style={{
+                  width: 176,
+                  height: 176,
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 2,
+                  overflow: 'hidden',
+                  borderRadius: 22,
+                  backgroundColor: theme.selected,
+                }}
+              >
+                {state.items.slice(0, 4).map((truck) => (
+                  <Image
+                    key={truck.id}
+                    source={truckImageSource(truck)}
+                    contentFit="cover"
+                    style={{ width: 87, height: 87 }}
+                  />
+                ))}
+              </View>
+              <Text style={{ color: theme.text, fontSize: 19, fontWeight: '600' }}>
+                Mis foodtrucks
+              </Text>
+              <Text style={{ color: theme.secondaryText }}>{favoriteIds.length} guardados</Text>
+            </Pressable>
+          )}
+          {collectionOpen && (
+            <ActionButton
+              label="Volver a la colección"
+              variant="text"
+              onPress={() => {
+                setPage(0);
+                setCollectionOpen(false);
+              }}
+            />
+          )}
+          {collectionOpen &&
+            state.key === key &&
             state.items.map((truck) => <TruckCard key={truck.id} truck={truck} />)}
           {!loading && favoriteIds.length === 0 && (
             <EmptyState
@@ -95,14 +174,14 @@ export default function FavoritesScreen() {
             </Text>
           )}
           <AccountForm>
-            {page > 0 && (
+            {collectionOpen && page > 0 && (
               <Button
                 label="Anteriores"
                 variant="text"
                 onPress={() => setPage((value) => value - 1)}
               />
             )}{' '}
-            {favoriteIds.length > (page + 1) * 20 && (
+            {collectionOpen && favoriteIds.length > (page + 1) * 20 && (
               <Button
                 label="Más favoritos"
                 variant="text"

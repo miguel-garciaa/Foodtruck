@@ -4,7 +4,8 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { categories } from '@/features/discovery/catalog';
 import { useDiscovery } from '@/features/discovery/discovery-context';
-import { useTheme } from '@/theme';
+import { filterCount } from '@/features/discovery/filters';
+import { layout, useTheme } from '@/theme';
 import { FilterSheet } from './filter-sheet';
 import { Icon, type IconName } from './icon';
 
@@ -20,14 +21,12 @@ export function SearchHeader() {
   const theme = useTheme();
   const { filters, setFilters } = useDiscovery();
   const [filterOpen, setFilterOpen] = useState(false);
-  const active =
-    filters.openOnly ||
-    filters.maxPriceCents !== null ||
-    filters.minPriceCents != null ||
-    Boolean(filters.locality || filters.province || filters.minRating);
+  const [filterSession, setFilterSession] = useState(0);
+  const count = filterCount(filters);
+  const active = count > 0;
 
   return (
-    <View style={{ backgroundColor: theme.background, paddingTop: 12, gap: 18 }}>
+    <View style={{ backgroundColor: theme.background, paddingTop: 8, gap: 12 }}>
       <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 24, alignItems: 'center' }}>
         <View
           style={{
@@ -35,13 +34,13 @@ export function SearchHeader() {
             flexDirection: 'row',
             alignItems: 'center',
             gap: 10,
-            minHeight: 62,
+            minHeight: layout.searchHeight,
             backgroundColor: theme.surface,
-            borderRadius: 32,
-            paddingHorizontal: 20,
+            borderRadius: 25,
+            paddingHorizontal: 16,
             borderWidth: 1,
             borderColor: theme.border,
-            boxShadow: '0 5px 20px rgba(0,0,0,0.07)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
           }}
         >
           <Icon name="search" color={theme.text} />
@@ -61,7 +60,12 @@ export function SearchHeader() {
               accessibilityRole="button"
               accessibilityLabel="Borrar búsqueda"
               onPress={() => setFilters((previous) => ({ ...previous, query: '' }))}
-              hitSlop={12}
+              style={{
+                minWidth: 48,
+                minHeight: 48,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               <Icon name="close" color={theme.secondaryText} size={20} />
             </Pressable>
@@ -69,9 +73,12 @@ export function SearchHeader() {
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Abrir filtros"
+          accessibilityLabel={`Abrir filtros. ${count} activos`}
           accessibilityState={{ expanded: filterOpen }}
-          onPress={() => setFilterOpen(true)}
+          onPress={() => {
+            setFilterSession((value) => value + 1);
+            setFilterOpen(true);
+          }}
           style={{
             minHeight: 48,
             minWidth: 48,
@@ -84,6 +91,20 @@ export function SearchHeader() {
           }}
         >
           <Icon name="tune" color={active ? theme.accent : theme.text} />
+          {active && (
+            <Text
+              style={{
+                position: 'absolute',
+                right: 2,
+                top: 0,
+                color: theme.accent,
+                fontSize: 11,
+                fontWeight: '700',
+              }}
+            >
+              {count}
+            </Text>
+          )}
         </Pressable>
       </View>
       <ScrollView
@@ -143,12 +164,12 @@ export function SearchHeader() {
           accessibilityRole="button"
           accessibilityLabel="Ver favoritos"
           onPress={() => router.push('/favorites')}
-          hitSlop={12}
+          style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}
         >
           <Icon name="favorite-border" size={20} color={theme.text} />
         </Pressable>
       </View>
-      <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} />
+      <FilterSheet key={filterSession} open={filterOpen} onClose={() => setFilterOpen(false)} />
     </View>
   );
 }

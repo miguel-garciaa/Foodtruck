@@ -130,7 +130,7 @@ jobs:
       - name: Comprobar el bundle Android tras los parches de seguridad
         run: npx expo export --platform android --output-dir dist-security
         working-directory: apps/mobile
-      - name: Probar búsquedas, sesiones, precios y avisos
+      - name: Probar búsquedas, sesiones, avisos y alta guiada
         run: npm test
         working-directory: apps/mobile
   mobile-security:

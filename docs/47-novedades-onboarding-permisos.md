@@ -6,6 +6,8 @@ Complementa [UX/UI](04-ux-ui.md), [Design System](05-design-system.md), [fronten
 
 ## 1. Decisiones y alcance de las referencias
 
+**Ampliación D51 implementada, 23/10/2026:** Favoritos incorpora una explicación contextual al entrar en esa pantalla, después de la transición y fuera del alta/checkout. Utiliza fotografía propia, corazón, Entendido y cierre accesible; puede reabrirse desde Favoritos. SecureStore guarda exclusivamente una preferencia pequeña por dispositivo; no guarda fotos, ubicación ni una aceptación de marketing. El asistente comercial solicita GPS de primer plano únicamente por acción explícita, acepta precisión aproximada y conserva selección manual. El resto de Novedades de este documento sigue siendo especificación donde no exista código/evidencia.
+
 **Confirmado por el usuario:** presentar Novedades únicamente cuando existan cambios relevantes, una vez por versión que los incorpore. El calendario aportado se utiliza solo como filtro de fechas en administración; no incorpora reservas ni integración con el calendario del dispositivo.
 
 **Base propuesta:** introducción inicial breve y opcional; tarjetas informativas adaptadas a Foodtrucks; persistencia local sencilla; permisos en el momento de usar una función. Los textos de botones de este documento son ejemplos funcionales, no copy ni idiomas finales aprobados.

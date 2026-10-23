@@ -50,7 +50,12 @@ async function send<T>(path: string, options: RequestInit = {}, access?: string)
   const signal = options.signal
     ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)])
     : AbortSignal.timeout(15000);
-  const response = await fetch(apiUrl + path, { ...options, headers, signal });
+  const response = await fetch(apiUrl + path, { ...options, headers, signal }).catch(() => {
+    throw new ApiError(
+      0,
+      'No pudimos conectar. Comprueba la conexión y reintenta; tus cambios siguen aquí.',
+    );
+  });
   if (response.status === 204) return undefined as T;
   if (response.ok && response.headers.get('Content-Type')?.startsWith('image/'))
     return (await response.blob()) as T;

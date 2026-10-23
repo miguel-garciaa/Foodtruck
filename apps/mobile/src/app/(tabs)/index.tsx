@@ -1,3 +1,4 @@
+import { useDockSpace } from '@/components/use-dock-space';
 import { router } from 'expo-router';
 import {
   ActivityIndicator,
@@ -7,7 +8,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenSurface } from '@/components/screen-surface';
 
 import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
@@ -15,7 +16,7 @@ import { SearchHeader } from '@/components/search-header';
 import { TruckCard } from '@/components/truck-card';
 import type { Truck } from '@/features/discovery/catalog';
 import { useDiscovery } from '@/features/discovery/discovery-context';
-import { useTheme } from '@/theme';
+import { layout, useTheme } from '@/theme';
 import { useAccount } from '@/features/account/account-context';
 import { OwnerHome } from '@/features/merchant/owner-home';
 
@@ -44,9 +45,9 @@ function TruckSection({ title, trucks }: { title: string; trucks: Truck[] }) {
           accessibilityLabel={`Ver ${title.toLowerCase()} en mapa y lista`}
           onPress={() => router.push('/map')}
           style={{
-            minWidth: 44,
-            minHeight: 44,
-            borderRadius: 22,
+            minWidth: 48,
+            minHeight: 48,
+            borderRadius: 24,
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: theme.selected,
@@ -58,7 +59,7 @@ function TruckSection({ title, trucks }: { title: string; trucks: Truck[] }) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 14, paddingHorizontal: 24 }}
+        contentContainerStyle={{ gap: layout.cardGap, paddingHorizontal: layout.edge }}
         keyboardShouldPersistTaps="handled"
       >
         {trucks.map((truck) => (
@@ -71,10 +72,11 @@ function TruckSection({ title, trucks }: { title: string; trucks: Truck[] }) {
 
 export default function HomeScreen() {
   const { profile } = useAccount();
-  return profile?.mode === 'owner' ? <OwnerHome /> : <ExploreScreen />;
+  return profile?.mode === 'owner' ? <OwnerHome key={profile.id} /> : <ExploreScreen />;
 }
 function ExploreScreen() {
   const theme = useTheme();
+  const bottomSpace = useDockSpace();
   const {
     results,
     filters,
@@ -97,13 +99,10 @@ function ExploreScreen() {
     filters.province ||
     filters.minRating;
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{ flex: 1, backgroundColor: theme.background }}
-    >
+    <ScreenSurface bottom={false} enter>
       <SearchHeader />
       <ScrollView
-        contentContainerStyle={{ paddingTop: 20, paddingBottom: 130, gap: 32 }}
+        contentContainerStyle={{ paddingTop: 20, paddingBottom: bottomSpace, gap: 32 }}
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic"
       >
@@ -183,6 +182,6 @@ function ExploreScreen() {
           </Pressable>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenSurface>
   );
 }

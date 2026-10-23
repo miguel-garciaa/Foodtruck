@@ -1,4 +1,5 @@
-import { Button, Text as NativeText } from '@expo/ui';
+import { Text as NativeText } from '@expo/ui';
+import { FormButton as Button } from '@/components/form-button';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text } from 'react-native';
@@ -7,6 +8,7 @@ import { PageShell } from '@/components/page-shell';
 import { useAccount } from '@/features/account/account-context';
 import { api, ApiError, jsonBody } from '@/lib/api';
 import { useTheme } from '@/theme';
+import { useExitGuard } from '@/components/use-exit-guard';
 
 export default function AuthScreen() {
   const params = useLocalSearchParams<{ action?: string; token?: string; email?: string }>();
@@ -19,6 +21,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  const allowExit = useExitGuard(false, busy);
   const [notice, setNotice] = useState('');
   const [fields, setFields] = useState<Record<string, string[]>>({});
   const [formRevision, setFormRevision] = useState(0);
@@ -54,7 +57,7 @@ export default function AuthScreen() {
     }
     if (mode === 'login') {
       await account.login(email, password);
-      router.replace('/profile');
+      allowExit(() => router.dismissTo('/profile'));
       return;
     }
     const result = await api<{ message: string }>(
@@ -149,7 +152,7 @@ export default function AuthScreen() {
             onPress={() =>
               void perform(async () => {
                 await account.google();
-                router.replace('/profile');
+                allowExit(() => router.dismissTo('/profile'));
               })
             }
             variant="outlined"

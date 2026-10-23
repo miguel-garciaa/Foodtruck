@@ -6,12 +6,15 @@ App React Native 0.88, Expo SDK 58 y TypeScript contra Laravel en la VM DEV. Ide
 
 - Registro, verificación de correo, contraseña, recuperación y Google nativo mediante Android Credential Manager. Laravel valida la identidad y emite sus propias sesiones; Firebase se usa para FCM, no para autenticar cuentas.
 - Perfil, avatar privado y modos cliente/propietario persistidos en el servidor. Refresh rotatorio en SecureStore; acceso en memoria. Las respuestas de una cuenta anterior se descartan al cambiar de sesión.
-- Varios anuncios propios: borrador, fotos JPEG/PNG, ubicación, franjas horarias, carta en céntimos enteros, envío a revisión y archivo. La herramienta administrativa del servidor decide qué versión se publica.
+- Modo comerciante confirmado por API: Mis foodtrucks, Pedidos y Menú. Alta guiada en seis pasos, guardado inicial tras ubicación confirmada y reanudación del primer paso incompleto; conserva datos ante error y conflictos de versión. Fotos JPEG/PNG, carta en céntimos, horarios, envío a revisión y archivo. La herramienta administrativa del servidor decide qué versión se publica.
 - Búsqueda real por área de España y filtros combinados con AND. Los favoritos pertenecen a la cuenta. Solo se muestran anuncios publicados; una caída de API nunca activa los fixtures de los tests.
-- Mapbox nativo con agrupación/selección y panel persistente de Gorhom. Filtros con `@expo/ui`, tema automático y texto escalable; buscador 14 sp, corazones de 20 dp/área táctil 48 dp y dock de 60 dp adaptable.
+- Mapbox nativo con agrupación/selección y panel persistente de Gorhom. Filtros con `@expo/ui`, tema automático y texto escalable; búsqueda mínima 50 dp con texto 14 sp, corazones de 20 dp/área táctil 48 dp y dock de 52 dp adaptable. Favoritos tiene colección fotográfica y ayuda contextual reabrible, con preferencia por dispositivo en SecureStore.
+- `expo-location` 58.0.18: permiso de primer plano solo al pulsar Usar mi ubicación en el alta, lectura puntual y ajuste manual. Ubicación aproximada válida, sin rastreo ni geocodificación externa. Si el mapa falla, coordenadas manuales. El plugin configura permisos regenerables; requiere reconstruir el binario, una actualización JS sola no basta.
 - Push nativo FCM: permiso contextual, registro/renovación del dispositivo, limpieza al salir y apertura autorizada del destino. El servidor usa outbox PostgreSQL y Horizon.
 
 Google, recuperación de sesión, avatar y entrega FCM están comprobados contra la VM en Pixel_10. El recorrido completo de anuncios, revisión/publicación, favoritos y filtros con datos publicados sigue en QA. No incluye compras, QR, cobros, Apple, iOS, web de producto, tiendas ni producción. No acredita 120 FPS ni cumplimiento jurídico. Se aplican [AGENTS](../../AGENTS.md), [decisiones](../../docs/23-decisiones-pendientes.md), [entornos](../../docs/21-entornos-ci-cd.md) y [política 44](../../docs/44-politica-commits-ci-cd-tests.md).
+
+La adaptación D51 añade el asistente de seis pasos, controles compactos, filtros completos y ayuda de Favoritos. Sus pruebas de release, correcciones y límites están en [QA visual](design-qa.md); la tabla de comprobaciones conserva también la evidencia previa de proveedores.
 
 ## Configuración local
 
@@ -51,7 +54,7 @@ El script valida Java 17/SDK, prepara PATH y prioriza IPv4. Los cambios JS/TS se
 
 En Windows se sustituyó el Ninja local de CMake 3.22.1 por [Ninja 1.13.2 oficial](https://github.com/ninja-build/ninja/releases/tag/v1.13.2), comprobando el SHA-256 del ZIP `07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65`, para resolver rutas largas. El original conserva el sufijo `.foodtrucks-1.10.2.bak`. No se modifican dependencias para ese ajuste. En Android Studio abrir `apps/mobile/android` y seleccionar el JDK 17 para Gradle.
 
-## Comprobaciones ejecutadas el 22/10/2026
+## Comprobaciones ejecutadas el 22–23/10/2026
 
 ```powershell
 npx expo customize tsconfig.json
@@ -68,11 +71,12 @@ npx expo export --platform android --output-dir dist-verified
 | Control | Evidencia y límites |
 | --- | --- |
 | Tipos, lint y formato | Pasan con las rutas actuales; CI genera los tipos de Expo Router antes de comprobarlos. |
-| Tests móviles | 20 pasan: catálogo, céntimos/filtros, concurrencia de sesión, fotos autenticadas y destino push por cuenta. |
+| Tests móviles | 30 pasan: catálogo, céntimos/filtros, concurrencia de sesión, fotos autenticadas, destino push por cuenta y datos/validación/reanudación del alta. |
 | Compatibilidad / Expo Doctor | Dependencias compatibles y 20/20 controles. |
 | Seguridad de dependencias | 23 regresiones pasan y fuentes parcheadas verificadas; npm conserva 20 entradas altas correspondientes a dos avisos upstream corregidos localmente. Detalle, vencimiento y límites en [seguridad](security/README.md). |
 | Export Android/Hermes | Correcto; bundle de aproximadamente 4,9 MB. |
 | Build debug x86_64 | Correcta, 729 tareas, 3 min 59 s; instalada y abierta en Pixel_10 API 37.1. |
+| Release D51 x86_64 (23/10) | Reconstruida con ubicación, instalada y revisada sin Metro. Menú 15/13, texto normal 1,0 y fondo blanco restaurados; grabación de transiciones y corrección del salto inicial de área segura. Detalle y hash en QA visual. |
 | VM y proveedores | HTTPS del catálogo 200, recurso privado 401 y archivos privados 404; Resend entregó el correo técnico y Google aceptó la credencial FCM. |
 | Mapbox | Tiles reales, atribución y panel visibles; interacción con anuncios y clusters reales pendiente. |
 | Google y sesión (23/10) | Corrección aplicada a la VM; acceso con cuenta real y recuperación tras detener/reabrir la app comprobados. Cuatro regresiones criptográficas cubren el verificador. |
@@ -84,10 +88,10 @@ npx expo export --platform android --output-dir dist-verified
 
 CI se comprueba por SHA; consultar la [PR](https://github.com/miguel-garciaa/Foodtruck/pull/1) para el resultado vigente. La revisión `d78d918` superó sus cinco trabajos, incluidos servidor/PostGIS y seguridad móvil: [ejecución 39832733801](https://github.com/miguel-garciaa/Foodtruck/actions/runs/39832733801). Una actualización posterior necesita su propia ejecución. [Backend y comandos de operación](../../backend/README.md), [evidencia visual y pendientes](design-qa.md).
 
-Los registros y capturas se guardan en `artifacts/`, fuera de Git. `providers-android-updated-build.log` documenta la última build; `mapbox-online.png` documenta la cartografía. No subir tokens, cuentas del dispositivo, dumps privados ni credenciales con las evidencias.
+Los registros y capturas se guardan en `artifacts/`, fuera de Git. `ui-plan-release-build.log` documenta la build D51 y `providers-android-updated-build.log` la comprobación anterior de proveedores; `mapbox-online.png` documenta la cartografía. No subir tokens, cuentas del dispositivo, dumps privados ni credenciales con las evidencias.
 
 ## Recursos y prueba física
 
-Las referencias de Airbnb orientaron jerarquía, búsqueda, tarjetas y organización de Perfil; no se copian sus datos ni se aprueban funciones por aparecer en una captura. Se revisaron los candidatos de [06](../../docs/06-21st-dev-mcp.md) y [45](../../docs/45-catalogo-21st-frontend.md), sin importar código DOM. Dos fotografías generadas con ImageGen el 21/10/2026 se conservan solo para los fixtures de tests, identificados como sintéticos; la app consulta las fotos publicadas en Laravel.
+Las referencias de Airbnb orientaron jerarquía, búsqueda, tarjetas y organización de Perfil; no se copian sus datos ni se aprueban funciones por aparecer en una captura. Se revisaron los candidatos de [06](../../docs/06-21st-dev-mcp.md) y [45](../../docs/45-catalogo-21st-frontend.md), sin importar código DOM. Las fotografías generadas con ImageGen el 21/10/2026 se utilizan como recursos ilustrativos propios en la portada de alta, la ayuda de Favoritos y los fixtures de tests; el catálogo consulta exclusivamente fotos publicadas en Laravel.
 
 Para teléfono físico: activar depuración USB, aceptar la huella, comprobar `adb devices -l`, aplicar `adb -s <serial> reverse tcp:8081 tcp:8081` y seleccionar ese dispositivo con `npm run android`. No borrar autorizaciones/datos como primera medida. Repetir los flujos descritos en QA antes de considerar verificado el dispositivo.

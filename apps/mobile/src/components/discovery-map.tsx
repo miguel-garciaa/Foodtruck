@@ -7,6 +7,7 @@ export type DiscoveryMapProps = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onBoundsChange: (bounds: Bounds) => void;
+  focus?: { id: number; bounds: Bounds } | null;
 };
 
 export function DiscoveryMap(_props: DiscoveryMapProps) {

@@ -5,17 +5,8 @@ import { api } from '@/lib/api';
 import { useAccount } from '@/features/account/account-context';
 import type { DiscoveryFilters, Truck } from './catalog';
 import { fromApiTruck, searchQuery, spainBounds, type Bounds } from './remote';
+import { changedLocality, initialFilters } from './filters';
 
-const initialFilters: DiscoveryFilters = {
-  query: '',
-  category: 'Todo',
-  openOnly: false,
-  maxPriceCents: null,
-  minPriceCents: null,
-  locality: '',
-  province: '',
-  minRating: 0,
-};
 function useDiscoveryState() {
   const account = useAccount();
   const [filters, setFilters] = useState(initialFilters);
@@ -32,6 +23,15 @@ function useDiscoveryState() {
   const [favoriteRevision, setFavoriteRevision] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const pendingFavorites = useRef(new Set<string>());
+  const focusPending = useRef(false);
+  const [mapFocus, setMapFocus] = useState<{ id: number; bounds: Bounds } | null>(null);
+  function applyFilters(next: DiscoveryFilters) {
+    if (changedLocality(filters, next)) {
+      setBounds(spainBounds);
+      focusPending.current = true;
+    }
+    setFilters(next);
+  }
   const query = searchQuery(filters, bounds);
   const key = query + ':' + revision;
   const userId = account.profile?.id;
@@ -43,14 +43,32 @@ function useDiscoveryState() {
         { signal: controller.signal },
         false,
       )
-        .then((result) =>
+        .then((result) => {
+          if (controller.signal.aborted) return;
+          const items = result.items.map(fromApiTruck);
+          if (focusPending.current) {
+            focusPending.current = false;
+            if (items.length) {
+              const longitudes = items.map((item) => item.coordinates[0]);
+              const latitudes = items.map((item) => item.coordinates[1]);
+              setMapFocus((previous) => ({
+                id: (previous?.id ?? 0) + 1,
+                bounds: [
+                  Math.min(...longitudes),
+                  Math.min(...latitudes),
+                  Math.max(...longitudes),
+                  Math.max(...latitudes),
+                ],
+              }));
+            }
+          }
           setState({
             key,
-            items: result.items.map(fromApiTruck),
+            items,
             error: '',
             nextCursor: result.nextCursor,
-          }),
-        )
+          });
+        })
         .catch(() => {
           if (!controller.signal.aborted)
             setState({
@@ -140,6 +158,8 @@ function useDiscoveryState() {
   return {
     filters,
     setFilters,
+    applyFilters,
+    mapFocus,
     bounds,
     setBounds,
     results: state.key === key ? state.items : [],
@@ -153,7 +173,10 @@ function useDiscoveryState() {
     toggleSaved,
     retry: () => setRevision((value) => value + 1),
     retryFavorites: () => setFavoriteRevision((value) => value + 1),
-    clearFilters: () => setFilters(initialFilters),
+    clearFilters: () => {
+      setBounds(spainBounds);
+      applyFilters(initialFilters);
+    },
   };
 }
 const DiscoveryContext = createContext<ReturnType<typeof useDiscoveryState> | null>(null);

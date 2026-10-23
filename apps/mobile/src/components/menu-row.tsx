@@ -16,11 +16,11 @@ export function MenuRow({
   const theme = useTheme();
   const content = (
     <>
-      <Icon name={icon} color={theme.text} size={26} />
+      <Icon name={icon} color={theme.text} size={24} />
       <View style={{ flex: 1, gap: 5 }}>
-        <Text style={{ color: theme.text, fontSize: 17 }}>{title}</Text>
+        <Text style={{ color: theme.text, fontSize: 15, lineHeight: 22 }}>{title}</Text>
         {subtitle && (
-          <Text style={{ color: theme.secondaryText, fontSize: 14, lineHeight: 21 }}>
+          <Text style={{ color: theme.secondaryText, fontSize: 13, lineHeight: 19 }}>
             {subtitle}
           </Text>
         )}
@@ -29,18 +29,21 @@ export function MenuRow({
     </>
   );
   const style = {
-    minHeight: 76,
-    paddingVertical: 18,
+    minHeight: 68,
+    paddingVertical: 16,
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    gap: 18,
+    gap: 16,
   };
   return onPress ? (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
       onPress={onPress}
-      style={style}
+      style={({ pressed }) => [
+        style,
+        { backgroundColor: pressed ? theme.selected : 'transparent' },
+      ]}
     >
       {content}
     </Pressable>

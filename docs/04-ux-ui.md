@@ -10,6 +10,10 @@ La dirección propuesta es minimalista, fotográfica, cálida en modo día y sob
 
 ## Separación definitiva de navegación
 
+**D51, 23/10/2026:** cliente conserva Explorar, Mapa, Pedidos y Perfil; comerciante utiliza Mis foodtrucks, Pedidos y Menú. Acceso/cuenta aparecen como paneles nativos desde abajo; filtros y ayuda de Favoritos reutilizan @expo/ui, y el mapa mantiene su panel persistente de tres alturas. Las páginas conservan transición lateral y títulos que se compactan al desplazar.
+
+Filtros aplicados conjuntamente mediante AND: precio mínimo/máximo inclusivo del plato más barato en céntimos, localidad/provincia, valoración mínima (cualquiera/4/4,5), comida y Solo abiertos. Se admite coma o punto con dos decimales; la explicación acompaña al control. Cerrar descarta el borrador; Restablecer prepara valores hasta Aplicar. Cambiar localidad reinicia el área anterior y ajusta la cámara a los resultados. Categoría y filtros comparten estado. Favoritos presenta un mosaico de hasta cuatro fotografías reales guardadas y abre la lista paginada; su ayuda puede reabrirse voluntariamente.
+
 | Superficie | Navegación |
 | --- | --- |
 | App nativa iOS/Android | Dock inferior flotante y animado |

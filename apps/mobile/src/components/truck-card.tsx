@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { formatPrice, startingPrice, type Truck } from '@/features/discovery/catalog';
 import { useDiscovery } from '@/features/discovery/discovery-context';
-import { useTheme } from '@/theme';
+import { layout, useTheme } from '@/theme';
 import { Icon } from './icon';
 
 export const truckImages = {
@@ -35,7 +35,7 @@ export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
         <Image
           source={truckImageSource(truck)}
           contentFit="cover"
-          style={{ width: '100%', aspectRatio: 1.08, borderRadius: 24 }}
+          style={{ width: '100%', aspectRatio: 1.05, borderRadius: layout.cardRadius }}
           accessibilityLabel={`Fotografía de ${truck.name}`}
         />
         <View style={{ gap: 3 }}>
@@ -83,8 +83,8 @@ export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
         accessibilityState={{ selected: saved }}
         style={{
           position: 'absolute',
-          right: 8,
-          top: 8,
+          right: 0,
+          top: 0,
           width: 48,
           height: 48,
           alignItems: 'center',
@@ -93,19 +93,16 @@ export function TruckCard({ truck, width }: { truck: Truck; width?: number }) {
       >
         <View
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: theme.surface,
+            width: 20,
+            height: 20,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Icon
-            size={20}
-            name={saved ? 'favorite' : 'favorite-border'}
-            color={saved ? theme.accent : theme.text}
-          />
+          <View style={{ position: 'absolute' }}>
+            <Icon size={20} name="favorite" color={saved ? theme.accent : 'rgba(0,0,0,0.45)'} />
+          </View>
+          <Icon size={20} name="favorite-border" color="#FFFFFF" />
         </View>
       </Pressable>
     </View>

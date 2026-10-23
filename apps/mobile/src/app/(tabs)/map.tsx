@@ -1,7 +1,7 @@
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View, useWindowDimensions } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScreenSurface } from '@/components/screen-surface';
 import { DiscoveryMap } from '@/components/discovery-map';
 import { EmptyState } from '@/components/empty-state';
 import { SearchHeader } from '@/components/search-header';
@@ -9,11 +9,12 @@ import { TruckCard } from '@/components/truck-card';
 import type { Truck } from '@/features/discovery/catalog';
 import { useDiscovery } from '@/features/discovery/discovery-context';
 import { useTheme } from '@/theme';
+import { useDockSpace } from '@/components/use-dock-space';
 
 export default function MapScreen() {
   const theme = useTheme();
   const { fontScale } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
+  const bottomSpace = useDockSpace();
   const {
     results,
     clearFilters,
@@ -24,6 +25,7 @@ export default function MapScreen() {
     nextCursor,
     loadMore,
     loadingMore,
+    mapFocus,
   } = useDiscovery();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const sheet = useRef<BottomSheet>(null);
@@ -35,10 +37,7 @@ export default function MapScreen() {
     sheet.current?.snapToIndex(1);
   }
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{ flex: 1, backgroundColor: theme.background }}
-    >
+    <ScreenSurface bottom={false} enter>
       <SearchHeader />
       <View style={{ flex: 1 }}>
         <DiscoveryMap
@@ -46,6 +45,7 @@ export default function MapScreen() {
           selectedId={selectedId}
           onSelect={select}
           onBoundsChange={setBounds}
+          focus={mapFocus}
         />
         <BottomSheet
           ref={sheet}
@@ -53,7 +53,7 @@ export default function MapScreen() {
           snapPoints={['24%', '52%', '88%']}
           enableDynamicSizing={false}
           enablePanDownToClose={false}
-          bottomInset={Math.max(insets.bottom, 12) + 76}
+          bottomInset={bottomSpace - 12}
           backgroundStyle={{ backgroundColor: theme.surface }}
           handleIndicatorStyle={{ backgroundColor: theme.border }}
         >
@@ -115,6 +115,6 @@ export default function MapScreen() {
           />
         </BottomSheet>
       </View>
-    </SafeAreaView>
+    </ScreenSurface>
   );
 }

@@ -39,6 +39,23 @@ afterEach(async () => {
   await clearSession();
 });
 
+test('un fallo de red conserva la sesión y ofrece un mensaje sin detalles internos', async () => {
+  await acceptSession(credentials('a'));
+  mockFetch(() => {
+    throw new Error('UnknownHostException: internal.example.test');
+  });
+  await assert.rejects(
+    api('/me'),
+    (error: unknown) =>
+      error instanceof ApiError &&
+      error.status === 0 &&
+      !error.message.includes('internal.example.test'),
+  );
+  assert.equal(await readRefresh(), 'refresh-a');
+  mockFetch(() => response({ id: 'a' }));
+  assert.deepEqual(await api('/me'), { id: 'a' });
+});
+
 test('una respuesta 401 de la cuenta anterior nunca se reintenta con la cuenta nueva', async () => {
   await acceptSession(credentials('a'));
   const old = deferred<Response>();
