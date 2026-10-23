@@ -8,13 +8,13 @@ El proyecto reúne **49 documentos**, cinco capturas y el [inventario de 37 skil
 
 Accesos: [ocho bloques](#1-producto-y-pagos) · [pendientes](#pendientes-principales-y-siguiente-paso) · [índice completo](#indice-tecnico).
 
-**Estado:** documentación preparada y primera interfaz móvil Android en `apps/mobile`, compilada e instalada en Pixel_10. Guía y comprobaciones: [Android](apps/mobile/README.md). Mapa online, backend, web, infraestructura, pruebas de negocio y CI pendientes/NO VERIFICADO; ZIP/informe v1.10 conservan su estado documental histórico.
+**Estado a 23/10/2026:** backend Laravel en la VM DEV, con PostgreSQL/PostGIS, Redis/Horizon y API accesible por Cloudflare Tunnel en `api-dev.foodtruck.bid`. Resend entregó el correo técnico. En Android se comprobaron Google, recuperación de sesión, subida/retirada de avatar y recepción FCM en primer/segundo plano con apertura de la cuenta al pulsar el aviso. Mapbox carga cartografía nativa real; anuncios, favoritos y filtros con datos publicados siguen en QA. Web pendiente. Las dependencias móviles incorporan parches de seguridad verificados y un gate con regresiones; el resultado se comprueba por SHA en GitHub Actions. Fuentes y mantenimiento temporal en la [guía de seguridad móvil](apps/mobile/security/README.md). Guías: [backend](backend/README.md) y [Android](apps/mobile/README.md). ZIP/informe v1.10 conservan su estado histórico.
 
 **Cómo leerlo:** confirmado es una decisión del usuario; propuesto es una base por validar; pendiente necesita resolución; ejemplo es ilustrativo. Consultar [AGENTS](AGENTS.md), las [decisiones pertinentes](docs/23-decisiones-pendientes.md) y las políticas de la tarea; recurrir al historial solo para contexto o conflictos. Las instrucciones explícitas posteriores prevalecen.
 
 ## 1. Producto y pagos
 
-- Mapa, carta, compra, preparación y recogida presencial con QR, sin reparto. Go/PostgreSQL confirman importes, pagos, stock y canje único.
+- Mapa, carta, compra, preparación y recogida presencial con QR, sin reparto. Laravel/PostgreSQL confirman importes, pagos, stock y canje único.
 - Separar Stripe Connect para comida y Billing para licencia/mensualidad comercial. Membresía cliente de **5,99 €/mes en EUR confirmados**; canal de cobro, impuestos, puntos y tarifas comerciales pendientes. Los ejemplos no son tarifas.
 
 Detalle: [producto](docs/01-producto-mvp.md), [pagos](docs/13-stripe.md) y [membresía](docs/25-suscripcion-clientes-fidelizacion.md).
@@ -50,7 +50,7 @@ Detalle: [privacidad y gobernanza](docs/48-proteccion-datos-gobernanza.md) y [co
 ## 6. Servidor y backups
 
 - Servidor doméstico, Ubuntu Server 26.04, Compose/Caddy y entornos separados. Los 4 vCPU/8 GB/40 GB son DEV; capacidad PROD pendiente.
-- Fotos persistentes locales, sin S3; backups externos fuera de casa y restore comprobado. Cloudflare para dominio/DNS y Resend para correo; cuentas/dominio/configuración por verificar.
+- Fotos persistentes locales, sin S3; backups externos fuera de casa y restore comprobado. Cloudflare para dominio/DNS y Resend para correo; foodtruck.bid comprado y verificado en Resend. D50 autoriza configurar correo, Tunnel y FCM en DEV; conexión y entrega real se verifican por separado.
 
 Detalle: [servidor](docs/38-servidor-domestico.md) y [backups](docs/18-media-backups-operacion.md).
 
@@ -72,7 +72,7 @@ Detalle: [marketing](docs/31-marketing-digital-maestro.md) y [costes](docs/37-co
 
 Resolver territorio/fiscalidad, tarifas y reglas comerciales, contratos/retención, versiones y capacidad de producción antes de implementar lo afectado. [Listado completo](docs/23-decisiones-pendientes.md).
 
-Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consultar [arquitectura](docs/07-arquitectura-monorepo.md), decisiones, políticas y skills según la tarea. Se mantienen Go/Chi/pgx/sqlc, PostgreSQL/PostGIS/Redis, React Native/Expo/TypeScript, Next.js, Mapbox y auth propia con email/contraseña y Google/Apple. Consultar [roadmap](docs/22-roadmap.md).
+Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consultar [arquitectura](docs/07-arquitectura-monorepo.md), decisiones, políticas y skills según la tarea. Backend principal Laravel/PHP por decisión del 21/10/2026; Go reservado para necesidades específicas futuras. Se mantienen PostgreSQL/PostGIS/Redis, React Native/Expo/TypeScript, Next.js, Mapbox y auth propia con email/contraseña y Google/Apple. Consultar [roadmap](docs/22-roadmap.md).
 
 <a id="indice-tecnico"></a>
 
@@ -91,7 +91,7 @@ Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consulta
 | [06. 21st.dev](docs/06-21st-dev-mcp.md) | Selección preliminar, evaluación y uso del MCP |
 | [07. Arquitectura](docs/07-arquitectura-monorepo.md) | Monorepo, límites y despliegue |
 | [08. Frontend](docs/08-frontend.md) | React Native, Expo, TypeScript y Next.js |
-| [09. Backend](docs/09-backend-go.md) | Go, Chi, pgx/sqlc, módulos y workers |
+| [09. Backend](docs/09-backend-go.md) | Laravel, Sanctum, Horizon y workers |
 | [10. Datos](docs/10-datos-postgresql-postgis.md) | Entidades, integridad, concurrencia y geografía |
 | [11. Redis](docs/11-redis-cache.md) | Caché, TTL, invalidación y degradación |
 | [12. Mapbox](docs/12-mapbox.md) | Mapas nativo/web, estilos y ubicaciones |
@@ -111,8 +111,8 @@ Para desarrollar: abrir el repositorio real, leer [AGENTS](AGENTS.md) y consulta
 | [26. Skills del proyecto](docs/26-skills-proyecto.md) | Selección, instalación verificada y carga por tarea |
 | [27. Marketing Google Ads](docs/27-marketing-google-ads.md) | Captación B2C/B2B, fases, medición y presupuesto pendiente |
 | [28. Revisión skills.sh](docs/28-revision-skills-sh.md) | Comparación, 12 complementos, descartes y límites |
-| [29. Cloudflare y dominio](docs/29-cloudflare-dominio-dns.md) | Compra prevista, DNS, HTTPS/Caddy, caché, protección y verificaciones |
-| [30. Correo Resend](docs/30-correo-resend.md) | DNS de correo, envíos Go, webhooks, consentimiento y operación |
+| [29. Cloudflare y dominio](docs/29-cloudflare-dominio-dns.md) | Dominio comprado, Tunnel DEV y propuestas DNS/TLS/caché de producción |
+| [30. Correo Resend](docs/30-correo-resend.md) | DNS de correo, envíos Laravel, webhooks, consentimiento y operación |
 | [31. Política de marketing](docs/31-marketing-digital-maestro.md) | Objetivos, controles, responsabilidades, procedimientos y aceptación |
 | [32. SEO local y Next.js](docs/32-seo-local-nextjs.md) | Rutas, metadatos, sitemap, JSON-LD, Search Console, GBP y CWV |
 | [33. AdSense y AdMob](docs/33-monetizacion-adsense-admob.md) | Elegibilidad, formatos, integración de prueba y comparación de ingresos |

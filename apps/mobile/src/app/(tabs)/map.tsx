@@ -1,73 +1,120 @@
-import { useState } from 'react';
-import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { ScreenSurface } from '@/components/screen-surface';
 import { DiscoveryMap } from '@/components/discovery-map';
 import { EmptyState } from '@/components/empty-state';
 import { SearchHeader } from '@/components/search-header';
 import { TruckCard } from '@/components/truck-card';
+import type { Truck } from '@/features/discovery/catalog';
 import { useDiscovery } from '@/features/discovery/discovery-context';
 import { useTheme } from '@/theme';
+import { useDockSpace } from '@/components/use-dock-space';
 
 export default function MapScreen() {
   const theme = useTheme();
   const { fontScale } = useWindowDimensions();
-  const { results, clearFilters } = useDiscovery();
+  const bottomSpace = useDockSpace();
+  const {
+    results,
+    clearFilters,
+    setBounds,
+    loading,
+    error,
+    retry,
+    nextCursor,
+    loadMore,
+    loadingMore,
+    mapFocus,
+  } = useDiscovery();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const sheet = useRef<BottomSheet>(null);
   const ordered = [...results].sort(
     (a, b) => Number(b.id === selectedId) - Number(a.id === selectedId),
   );
+  function select(id: string) {
+    setSelectedId(id);
+    sheet.current?.snapToIndex(1);
+  }
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{ flex: 1, backgroundColor: theme.background }}
-    >
+    <ScreenSurface bottom={false} enter>
       <SearchHeader />
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <View style={{ height: Math.max(320, 320 * fontScale), backgroundColor: theme.selected }}>
-          <DiscoveryMap trucks={results} selectedId={selectedId} onSelect={setSelectedId} />
-        </View>
-        <View
-          style={{
-            backgroundColor: theme.surface,
-            borderTopLeftRadius: 30,
-            borderTopRightRadius: 30,
-            marginTop: -20,
-            padding: 24,
-            gap: 22,
-          }}
+      <View style={{ flex: 1 }}>
+        <DiscoveryMap
+          trucks={results}
+          selectedId={selectedId}
+          onSelect={select}
+          onBoundsChange={setBounds}
+          focus={mapFocus}
+        />
+        <BottomSheet
+          ref={sheet}
+          index={fontScale > 1.3 ? 1 : 0}
+          snapPoints={['24%', '52%', '88%']}
+          enableDynamicSizing={false}
+          enablePanDownToClose={false}
+          bottomInset={bottomSpace - 12}
+          backgroundStyle={{ backgroundColor: theme.surface }}
+          handleIndicatorStyle={{ backgroundColor: theme.border }}
         >
-          <View
-            style={{
-              width: 36,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: theme.border,
-              alignSelf: 'center',
-            }}
+          <BottomSheetFlatList<Truck>
+            data={ordered}
+            keyExtractor={(truck) => truck.id}
+            contentContainerStyle={{ padding: 24, gap: 20 }}
+            renderItem={({ item }) => <TruckCard truck={item} />}
+            ListHeaderComponent={
+              <View style={{ gap: 12 }}>
+                <Text
+                  accessibilityRole="header"
+                  style={{ fontSize: 23, fontWeight: '700', color: theme.text }}
+                >
+                  {loading
+                    ? 'Buscando en esta zona…'
+                    : `${results.length} foodtrucks${nextCursor ? ' y más' : ''}`}
+                </Text>
+                <Text style={{ fontSize: 14, color: theme.secondaryText }}>
+                  Mueve el mapa para buscar. Desliza el panel para ver los anuncios publicados.
+                </Text>
+              </View>
+            }
+            ListEmptyComponent={
+              loading ? (
+                <ActivityIndicator color={theme.accent} accessibilityLabel="Cargando foodtrucks" />
+              ) : error ? (
+                <EmptyState
+                  icon="cloud-off"
+                  title="No pudimos cargar la zona"
+                  description={error}
+                  action="Reintentar"
+                  onPress={retry}
+                />
+              ) : (
+                <EmptyState
+                  icon="search-off"
+                  title="Sin anuncios publicados en esta zona"
+                  description="Amplía el mapa o restablece tus filtros."
+                  action="Restablecer filtros"
+                  onPress={clearFilters}
+                />
+              )
+            }
+            ListFooterComponent={
+              nextCursor ? (
+                <Pressable
+                  disabled={loadingMore}
+                  accessibilityRole="button"
+                  onPress={() => void loadMore()}
+                  style={{ minHeight: 48, justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <Text style={{ color: theme.accent, fontSize: 16 }}>
+                    {loadingMore ? 'Cargando…' : 'Cargar más resultados'}
+                  </Text>
+                </Pressable>
+              ) : undefined
+            }
           />
-          <Text
-            accessibilityRole="header"
-            style={{ fontSize: 23, fontWeight: '700', color: theme.text }}
-          >
-            {results.length} foodtrucks para descubrir
-          </Text>
-          <Text style={{ fontSize: 14, color: theme.secondaryText }}>
-            Zona de ejemplo · Resultados de demostración
-          </Text>
-          {ordered.map((truck) => (
-            <TruckCard key={truck.id} truck={truck} />
-          ))}
-          {results.length === 0 && (
-            <EmptyState
-              icon="search-off"
-              title="Sin resultados"
-              description="Amplía la búsqueda o restablece tus filtros."
-              action="Restablecer filtros"
-              onPress={clearFilters}
-            />
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </BottomSheet>
+      </View>
+    </ScreenSurface>
   );
 }

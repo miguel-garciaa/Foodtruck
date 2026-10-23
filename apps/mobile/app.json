@@ -7,12 +7,13 @@
     "userInterfaceStyle": "automatic",
     "android": {
       "package": "com.foodtrucks.dev",
+      "googleServicesFile": "./google-services.json",
       "blockedPermissions": [
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ]
     },
     "plugins": [
@@ -20,18 +21,38 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFF9F2",
+          "backgroundColor": "#FFFFFF",
           "dark": {
             "backgroundColor": "#101B2B"
           }
         }
       ],
       "expo-image",
+      "expo-notifications",
       "@rnmapbox/maps",
-      "./plugins/with-font-scale.cjs"
+      "./plugins/with-font-scale.cjs",
+      "expo-secure-store",
+      "expo-status-bar",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Foodtrucks utiliza tu ubicación al solicitarla para situar tu puesto en el mapa.",
+          "locationAlwaysPermission": false,
+          "locationAlwaysAndWhenInUsePermission": false,
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "ios": {
+      "infoPlist": {
+        "CADisableMinimumFrameDurationOnPhone": true
+      }
     }
   }
 }

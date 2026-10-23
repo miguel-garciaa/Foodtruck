@@ -1,0 +1,248 @@
+name: Pruebas de Foodtrucks
+run-name: >-
+  Pruebas · ${{ github.event.pull_request.title || github.ref_name }}
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: validation-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  secrets:
+    name: Detección de secretos
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Obtener el código y su historial
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Buscar credenciales expuestas con Gitleaks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          gh release download v8.30.1 --repo gitleaks/gitleaks --pattern gitleaks_8.30.1_linux_x64.tar.gz --pattern gitleaks_8.30.1_checksums.txt --dir "$RUNNER_TEMP/gitleaks"
+          cd "$RUNNER_TEMP/gitleaks"
+          grep 'gitleaks_8.30.1_linux_x64.tar.gz$' gitleaks_8.30.1_checksums.txt | sha256sum --check
+          tar -xzf gitleaks_8.30.1_linux_x64.tar.gz gitleaks
+          cd "$GITHUB_WORKSPACE"
+          "$RUNNER_TEMP/gitleaks/gitleaks" git --redact --no-banner
+  laravel:
+    name: Cuentas, permisos y servidor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgis/postgis:17-3.6
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-isolated-only
+          POSTGRES_DB: foodtrucks_testing
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d foodtrucks_testing"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Preparar el entorno Linux de pruebas
+        run: docker build --target checks -t foodtrucks-checks .
+      - name: Comprobar el formato del backend
+        run: docker run --rm foodtrucks-checks php vendor/bin/pint --test
+      - name: Buscar errores de código en el backend
+        run: docker run --rm foodtrucks-checks php vendor/bin/phpstan analyse --memory-limit=512M --no-progress
+      - name: Auditar vulnerabilidades de dependencias PHP
+        run: docker run --rm foodtrucks-checks composer audit --locked
+      - name: Probar cuentas, permisos y catálogo con PostgreSQL y PostGIS
+        run: >-
+          docker run --rm --network host
+          -e DB_HOST=127.0.0.1 -e DB_USERNAME=postgres -e DB_PASSWORD=ci-isolated-only
+          foodtrucks-checks php vendor/bin/phpunit --fail-on-warning --fail-on-risky
+      - name: Comprobar el arranque del servidor y la protección de la API
+        run: |
+          sh infrastructure/prepare-dev.sh
+          sudo chown 1000:1000 .private/db-password .private/app-password .private/app-key
+          docker compose config --quiet
+          docker compose -f compose.yaml -f compose.tunnel.yaml config --quiet
+          docker run --rm --user 1000:1000 --read-only --cap-drop ALL --security-opt no-new-privileges cloudflare/cloudflared:2026.10.3 --version
+          docker compose build
+          docker compose up -d --no-build --wait --wait-timeout 120
+          docker compose exec -T db sh /docker-entrypoint-initdb.d/10-app.sh
+          docker compose exec -T db sh /docker-entrypoint-initdb.d/10-app.sh
+          curl --fail --retry 5 --retry-delay 2 http://127.0.0.1:8080/up
+          curl --fail --silent -H 'Accept: application/json' http://127.0.0.1:8080/api/v1/foodtrucks
+          docker compose exec -T api foodtrucks-entrypoint php artisan foodtrucks:outbox
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/v1/me)" = 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/.env)" = 404
+          test "$(curl -s -H 'Host: untrusted.example' -H 'Accept: application/json' -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/v1/foodtrucks)" = 400
+      - name: Recoger diagnóstico del servidor si falla
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs --tail=250 caddy migrate api worker scheduler
+      - name: Detener los contenedores de pruebas
+        if: always()
+        run: docker compose down
+  mobile:
+    name: Comprobaciones de la app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Preparar Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.14.1
+      - name: Instalar las herramientas del contrato API
+        run: npm ci
+      - name: Probar los informes de éxito, fallo y cancelación
+        run: node --test .github/tests/ci-report.test.mjs
+      - name: Comprobar que la app y la API comparten el contrato vigente
+        run: npm run check:api
+      - name: Instalar las dependencias de la app
+        run: npm ci
+        working-directory: apps/mobile
+      - name: Generar los tipos de navegación de Expo Router
+        run: npx expo customize tsconfig.json
+        working-directory: apps/mobile
+      - name: Comprobar los tipos de la app
+        run: npm run typecheck
+        working-directory: apps/mobile
+      - name: Buscar errores de código en la app
+        run: npm run lint
+        working-directory: apps/mobile
+      - name: Comprobar el formato de la app
+        run: npm run format:check
+        working-directory: apps/mobile
+      - name: Comprobar compatibilidad de dependencias con Expo
+        run: npm run check:dependencies
+        working-directory: apps/mobile
+      - name: Comprobar el bundle Android tras los parches de seguridad
+        run: npx expo export --platform android --output-dir dist-security
+        working-directory: apps/mobile
+      - name: Probar búsquedas, sesiones, avisos y alta guiada
+        run: npm test
+        working-directory: apps/mobile
+  mobile-security:
+    name: Seguridad de dependencias de la app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Preparar Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.14.1
+      - name: Instalar las dependencias de la app
+        run: npm ci
+        working-directory: apps/mobile
+      - name: Detectar vulnerabilidades altas o críticas en dependencias de la app
+        run: npm run security:audit
+        working-directory: apps/mobile
+  ci-gate:
+    name: Resultado general de las pruebas
+    if: ${{ always() }}
+    needs: [secrets, laravel, mobile, mobile-security]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Publicar el informe y comprobar el resultado general
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_RESULTS: ${{ toJSON(needs) }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKED_SHA: ${{ github.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile, appendFile } from 'node:fs/promises';
+
+          const checks = {
+            secrets: ['Detección de secretos', 'Busca credenciales expuestas en el historial.'],
+            laravel: ['Cuentas, permisos y servidor', 'Registro, sesiones, permisos, aprobación de fichas, filtros, calidad PHP y arranque del servidor.'],
+            mobile: ['Comprobaciones de la app', 'Contrato API, tipos, calidad de código, búsquedas, precios y favoritos.'],
+            'mobile-security': ['Seguridad de dependencias de la app', 'Busca vulnerabilidades altas o críticas en las dependencias.'],
+          };
+          const labels = { success: 'Superada', failure: 'Fallida', cancelled: 'Cancelada', skipped: 'No ejecutada' };
+          const escape = (value) => String(value ?? '').replace(/[\r\n]+/g, ' ')
+            .replace(/[&<>|`\[\]\\]/g, (char) => `&#${char.charCodeAt(0)};`);
+          const results = JSON.parse(process.env.CI_RESULTS);
+          const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf8'));
+          const repo = process.env.GITHUB_REPOSITORY;
+          const runUrl = `${process.env.GITHUB_SERVER_URL}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+          const commitUrl = `${process.env.GITHUB_SERVER_URL}/${repo}/commit/${process.env.HEAD_SHA}`;
+          let title = event.pull_request?.title ?? event.head_commit?.message?.split('\n')[0] ?? 'Cambio sin título disponible';
+          let jobs = [];
+          let reportError = '';
+          const get = async (path) => {
+            const response = await fetch(`${process.env.GITHUB_API_URL}/repos/${repo}/${path}`, {
+              headers: { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: 'application/vnd.github+json' },
+              signal: AbortSignal.timeout(20000),
+              redirect: 'error',
+            });
+            if (!response.ok) throw new Error(`GitHub devolvió HTTP ${response.status}`);
+            return response.json();
+          };
+          try {
+            const data = await get(`actions/runs/${process.env.GITHUB_RUN_ID}/jobs?filter=latest&per_page=100`);
+            if (!Array.isArray(data.jobs)) throw new Error('Respuesta de trabajos incompleta');
+            jobs = data.jobs;
+            const commit = await get(`commits/${process.env.HEAD_SHA}`);
+            title = commit.commit.message.split('\n')[0];
+          } catch {
+            reportError = 'No se pudo obtener el detalle de GitHub. Revisa los trabajos enlazados; el informe queda incompleto.';
+          }
+          const passed = Object.keys(results).length === Object.keys(checks).length
+            && Object.keys(checks).every((id) => results[id]?.result === 'success');
+          const lines = [
+            '# Resultado de las pruebas de Foodtrucks',
+            '',
+            `**Cambio:** ${escape(title)}`,
+            `**Commit enviado:** [${escape(process.env.HEAD_SHA)}](${commitUrl})`,
+            `**Revisión comprobada:** ${escape(process.env.CHECKED_SHA)}${event.pull_request ? ' (integración de la PR con su rama base)' : ''}`,
+            '',
+            '| Comprobación | Resultado | Qué revisa | Paso que requiere atención |',
+            '| --- | --- | --- | --- |',
+          ];
+          for (const [id, [name, purpose]] of Object.entries(checks)) {
+            const result = results[id]?.result;
+            const job = jobs.find((item) => item.name === name);
+            const link = job && Number.isSafeInteger(job.id) ? `${runUrl}/job/${job.id}` : runUrl;
+            const failed = job?.steps?.filter((step) => step.conclusion === 'failure' || step.conclusion === 'cancelled') ?? [];
+            const detail = failed.map((step) => step.name).join('; ')
+              || (result === 'success' ? 'Sin fallos' : 'No se completó esta comprobación; abre el enlace para ver el motivo.');
+            if (!job || job.conclusion !== result) reportError ||= 'Falta el detalle actualizado de una comprobación. El informe queda incompleto.';
+            lines.push(`| [${escape(name)}](${link}) | ${labels[result] ?? 'Resultado no disponible'} | ${purpose} | ${escape(detail)} |`);
+          }
+          lines.push('', passed && !reportError
+            ? '**Resultado general: todas las comprobaciones configuradas han pasado.**'
+            : '**Resultado general: cambio pendiente de corregir o verificar.**');
+          if (reportError) lines.push('', reportError);
+          lines.push('', '## Alcance y siguientes pasos', '',
+            'Estas comprobaciones no acreditan un recorrido completo en un teléfono ni pagos, correos o notificaciones reales.',
+            'Los avisos de ECC se revisan por separado y no están incluidos en este resultado.',
+            passed && !reportError
+              ? 'La siguiente revisión es el QA del comportamiento afectado. Este resultado no autoriza un despliegue a producción.'
+              : 'Abre la comprobación señalada, revisa el paso fallido y corrige su causa. Una prueba omitida o cancelada necesita una ejecución completa.',
+            '', `[Abrir todos los trabajos y sus registros](${runUrl})`);
+          await appendFile(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          if (!passed || reportError) {
+            console.error('Hay comprobaciones fallidas, incompletas o sin verificar. Consulta el informe de pruebas.');
+            process.exitCode = 1;
+          }
+          NODE

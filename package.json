@@ -1,0 +1,16 @@
+{
+  "name": "foodtrucks-contracts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:api": "openapi-typescript contracts/openapi.json -o apps/mobile/src/generated/api.ts && prettier --write apps/mobile/src/generated/api.ts",
+    "check:api": "npm run generate:api && git diff --exit-code -- apps/mobile/src/generated/api.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "prettier": "^3.9.10"
+  },
+  "engines": {
+    "node": "^24.3.0"
+  }
+}

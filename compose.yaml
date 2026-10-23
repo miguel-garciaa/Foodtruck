@@ -1,0 +1,124 @@
+name: foodtrucks-dev
+x-app: &app
+  image: foodtrucks-dev:local
+  pull_policy: never
+  env_file: .private/providers.env
+  environment: &app-env
+    APP_NAME: Foodtrucks
+    APP_ENV: dev
+    APP_DEBUG: 'false'
+    APP_URL: http://127.0.0.1:8085
+    APP_KEY_FILE: /run/secrets/app_key
+    DB_CONNECTION: pgsql
+    DB_HOST: db
+    DB_DATABASE: foodtrucks
+    DB_USERNAME: foodtrucks
+    DB_PASSWORD_FILE: /run/secrets/app_password
+    REDIS_HOST: redis
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    SESSION_DRIVER: array
+    LOG_CHANNEL: stderr
+    MAIL_MAILER: resend
+    FCM_CREDENTIALS_FILE: /run/providers/fcm-service-account.json
+  secrets: [app_password, app_key]
+  volumes:
+    - uploads:/app/storage/app/private
+    - ./.private/providers:/run/providers:ro
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  read_only: true
+  tmpfs: ['/tmp:size=16m,mode=1777', '/app/storage/framework:size=16m,uid=1000,gid=1000,mode=0700', '/app/bootstrap/cache:size=8m,uid=1000,gid=1000,mode=0700']
+  mem_limit: 512m
+  cpus: 1.5
+  logging: {driver: json-file, options: {max-size: 5m, max-file: '3'}}
+services:
+  db:
+    image: postgis/postgis:17-3.6
+    environment:
+      POSTGRES_DB: foodtrucks
+      POSTGRES_USER: foodtrucks_migrator
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password, app_password]
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./infrastructure/db-init.sh:/docker-entrypoint-initdb.d/10-app.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U foodtrucks_migrator -d foodtrucks]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    mem_limit: 768m
+    logging: {driver: json-file, options: {max-size: 5m, max-file: '3'}}
+  redis:
+    image: redis:8.8.3-alpine
+    command: [redis-server, --save, '', --appendonly, 'no', --maxmemory, 192mb, --maxmemory-policy, noeviction]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    mem_limit: 256m
+    security_opt: [no-new-privileges:true]
+    logging: {driver: json-file, options: {max-size: 5m, max-file: '3'}}
+  migrate:
+    <<: *app
+    build: {context: ., target: runtime}
+    command: [php, artisan, migrate, --force, --isolated]
+    environment:
+      <<: *app-env
+      DB_USERNAME: foodtrucks_migrator
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password, app_key]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+  api:
+    <<: *app
+    restart: unless-stopped
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, php, -r, 'exit(@fsockopen("127.0.0.1",9000) ? 0 : 1);']
+      interval: 15s
+      timeout: 3s
+      retries: 5
+  caddy:
+    image: caddy:2.11.7-alpine
+    ports: ['127.0.0.1:8080:8080']
+    volumes: ['./infrastructure/Caddyfile:/etc/caddy/Caddyfile:ro']
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    # The official binary has this file capability, required even when listening on 8080.
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    logging: {driver: json-file, options: {max-size: 5m, max-file: '3'}}
+  worker:
+    <<: *app
+    command: [php, artisan, horizon]
+    restart: unless-stopped
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+  scheduler:
+    <<: *app
+    command: [php, artisan, schedule:work]
+    restart: unless-stopped
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+  review:
+    <<: *app
+    profiles: [admin]
+    command: [php, artisan, foodtrucks:review]
+secrets:
+  db_password: {file: .private/db-password}
+  app_password: {file: .private/app-password}
+  app_key: {file: .private/app-key}
+volumes:
+  postgres:
+  uploads:

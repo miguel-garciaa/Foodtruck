@@ -8,7 +8,7 @@ Seleccionar por tarea y fase. Instalación significa que los archivos están dis
 
 1. Partir de AGENTS/README, consultar decisiones y el apartado de skills pertinentes e inspeccionar el módulo real. El historial se consulta solo por contexto o conflictos; no cargar todo el inventario por defecto.
 2. Elegir una skill principal y los complementos necesarios por intención, tecnología y alcance. Leer su entrada completa y las referencias aplicables.
-3. Respetar las decisiones del usuario: Go, Expo/Next.js, PostgreSQL/PostGIS, fotos locales y navegación específica. Una recomendación genérica no cambia el stack.
+3. Respetar las decisiones del usuario: Laravel/PHP (D47), Expo/Next.js, PostgreSQL/PostGIS, fotos locales y navegación específica. Una recomendación genérica no cambia el stack.
 4. Verificar compatibilidad/versiones/documentación actual al implementar. Registrar qué skill se cargó y con qué objetivo, sin volver a leer entradas ya cargadas en el mismo contexto.
 5. Si falta una capacidad, buscar primero fuentes oficiales y revisar autoría, contenido, mantenimiento, licencia y adopción. Instalar solo lo pertinente; no duplicar plugins disponibles.
 6. Si no hay una skill fiable, utilizar documentación oficial y las especificaciones de Foodtrucks; no bloquear trabajo independiente ni instalar una alternativa ajena al stack.
@@ -33,7 +33,7 @@ Los nombres Vercel de la primera columna corresponden al frontmatter; la carpeta
 | expo-data-fetching | [Expo](https://github.com/expo/skills/tree/main/plugins/expo/skills/expo-data-fetching) | API, caché cliente, estados y recuperación |
 | expo-ui | [Expo](https://github.com/expo/skills/tree/main/plugins/expo/skills/expo-ui) | Componentes/plataformas cuando el caso los requiere |
 | expo-design-system | [Expo](https://github.com/expo/skills/tree/main/plugins/expo/skills/expo-design-system) | Tokens, claro/oscuro y componentes móviles |
-| docker-project-foundations | [Docker](https://github.com/docker/skills/tree/main/skills/docker-project-foundations) | Base Docker de Go/Next.js y estructura operativa |
+| docker-project-foundations | [Docker](https://github.com/docker/skills/tree/main/skills/docker-project-foundations) | Base Docker de Laravel/Next.js y estructura operativa |
 | docker-build-strategies | [Docker](https://github.com/docker/skills/tree/main/skills/docker-build-strategies) | Imágenes, builds y reproducibilidad |
 | docker-compose-patterns | [Docker](https://github.com/docker/skills/tree/main/skills/docker-compose-patterns) | Servicios, redes, healthchecks y persistencia |
 | redis-core | [Redis](https://github.com/redis/agent-skills/tree/main/skills/redis-core) | Claves, operaciones, TTL y caché |
@@ -43,7 +43,7 @@ Los nombres Vercel de la primera columna corresponden al frontmatter; la carpeta
 | mapbox-web-integration-patterns | [Mapbox](https://github.com/mapbox/mapbox-agent-skills/tree/main/skills/mapbox-web-integration-patterns) | Mapbox GL JS en Next.js |
 | mapbox-web-performance-patterns | [Mapbox](https://github.com/mapbox/mapbox-agent-skills/tree/main/skills/mapbox-web-performance-patterns) | Capas, datos y rendimiento del mapa web |
 | mapbox-token-security | [Mapbox](https://github.com/mapbox/mapbox-agent-skills/tree/main/skills/mapbox-token-security) | Scopes, separación de tokens y exposición cliente |
-| security-best-practices | [OpenAI](https://github.com/openai/skills/tree/main/skills/.curated/security-best-practices) | Código seguro/revisión solicitada Go y JS/TS |
+| security-best-practices | [OpenAI](https://github.com/openai/skills/tree/main/skills/.curated/security-best-practices) | Referencias de seguridad JS/TS; la cobertura Go se conserva para usos futuros, no acredita PHP |
 | gh-fix-ci | [OpenAI](https://github.com/openai/skills/tree/main/skills/.curated/gh-fix-ci) | Diagnóstico de checks GitHub Actions fallidos |
 | ads | [Comunidad: coreyhaines31](https://github.com/coreyhaines31/marketingskills/tree/main/skills/ads) | Estrategia Google Ads y preparación de campaña |
 | analytics | [Comunidad: coreyhaines31](https://github.com/coreyhaines31/marketingskills/tree/main/skills/analytics) | Plan de medición, eventos y conversiones |
@@ -65,9 +65,9 @@ Disponibilidad de plugin/skill no acredita cuenta conectada. Por ejemplo, el con
 
 ## Cobertura que requiere documentación oficial
 
-La revisión v1.3 añadió guías de pruebas/concurrencia Go y diseño PostgreSQL/PostGIS. Siguen necesitando documentación oficial de versión Chi/pgx/sqlc, migraciones de producción, Ubuntu/Caddy, @rnmapbox/maps, APNs/FCM, ActivityKit y Android Live Updates. Las guías no sustituyen los contratos ni acreditan cobertura completa de esos módulos.
+La revisión v1.3 añadió guías de pruebas/concurrencia Go y diseño PostgreSQL/PostGIS. Con D47, usar documentación oficial de versión Laravel/PHP/Eloquent, migraciones de producción, Ubuntu/Caddy, @rnmapbox/maps, APNs/FCM, ActivityKit y Android Live Updates. Las guías no sustituyen los contratos ni acreditan cobertura completa de esos módulos.
 
-Las skills Mapbox web no implementan React Native. Las de SDK nativo Swift/Kotlin no sustituyen al wrapper Expo. Redis incluye ejemplos de otros lenguajes: adaptar principios a Go, sin introducir runtimes adicionales.
+Las skills Mapbox web no implementan React Native. Las de SDK nativo Swift/Kotlin no sustituyen al wrapper Expo. Redis incluye ejemplos de otros lenguajes: adaptar principios al cliente Redis de Laravel/Horizon, sin introducir runtimes adicionales.
 
 No instalar skills de Supabase/Firebase Authentication, Laravel, S3, AWS o Kubernetes por aparecer en búsquedas: no son decisiones de Foodtrucks. U08 solicita planificar Firebase Analytics para medición; SDK/configuración se evalúan separadamente y no cambia auth.
 
@@ -78,7 +78,7 @@ No instalar skills de Supabase/Firebase Authentication, Laravel, S3, AWS o Kuber
 - ads presupone acceso directo a plataformas en su introducción: Foodtrucks no lo ha concedido ni verificado. Ninguna recomendación de la skill autoriza publicar anuncios, gastar, llamar a leads o enviar mensajes.
 - Los benchmarks, porcentajes y reglas de puja comunitarios son hipótesis, no resultados ni defaults aprobados. Verificar decisiones operativas con datos reales y Google oficial.
 - gh-fix-ci tiene un flujo específico de plan/autorización; revisar autorización vigente del usuario antes de modificar. La instalación no implica análisis de PR ni acceso GitHub.
-- Seguridad Go/Next.js necesita las referencias aplicables, no únicamente la entrada genérica. No ejecutar un escaneo o modificar configuraciones reales por instalarla.
+- Seguridad Laravel/Next.js necesita fuentes compatibles con cada lenguaje; la entrada genérica de una skill no acredita cobertura PHP. No ejecutar un escaneo o modificar configuraciones reales por instalarla.
 
 ## Reproducción y mantenimiento
 
@@ -90,7 +90,7 @@ Al cambiar una skill: registrar motivo/ref, leer diferencias y comprobar que no 
 
 ## Inicio de cada fase
 
-Fundamentos: Expo overview/estructura, Compose y seguridad. UI móvil: Router, native-ui/UI/design-system y animación según función. Web: Vercel React y Mapbox web. Datos/caché: Redis pertinente y docs PostgreSQL/Go. Pagos: Stripe pertinente. Marketing: ads + analytics con [plan de campaña](27-marketing-google-ads.md).
+Fundamentos: Expo overview/estructura, Compose y seguridad. UI móvil: Router, native-ui/UI/design-system y animación según función. Web: Vercel React y Mapbox web. Datos/caché: Redis pertinente y docs PostgreSQL/Laravel/PHP. Pagos: Stripe pertinente. Marketing: ads + analytics con [plan de campaña](27-marketing-google-ads.md).
 
 Cargar solo las entradas/referencias correspondientes al trabajo actual, sin convertir todo el catálogo en contexto permanente.
 
@@ -98,8 +98,8 @@ Cargar solo las entradas/referencias correspondientes al trabajo actual, sin con
 
 | Skill | Cargar cuando |
 | --- | --- |
-| golang-concurrency | Límites, cancelación y estado compartido en Go |
-| golang-testing | Tests de comportamiento, httptest, fuzzing e integración |
+| golang-concurrency | Conservada; solo si se aprueba un componente Go futuro, no para Laravel |
+| golang-testing | Conservada para un componente Go futuro; backend actual usa PHPUnit, Pint y Larastan |
 | postgresql-table-design | Modelo relacional, constraints y tipos |
 | design-postgis-tables | Ubicación, queries por metros/viewport e integridad geográfica |
 | playwright-best-practices | Tests web TypeScript; no prueba app nativa |
@@ -117,7 +117,7 @@ Preservar dinero entero, índices según consultas, header web y dependencias m�
 
 ## Cloudflare y Resend
 
-La ampliación v1.4 utiliza documentación oficial de estos proveedores y Caddy, con las skills existentes de Compose, Go/testing, seguridad y frontend cuando corresponda implementar. No se añade una skill genérica de Workers/hosting ni un stack ajeno al alojamiento propio por elegir Cloudflare Registrar. La integración HTTPS de Resend tampoco obliga a introducir un SDK o SMTP.
+La ampliación v1.4 utiliza documentación oficial de estos proveedores y Caddy, con las skills existentes de Compose, documentación Laravel/PHP y PHPUnit, seguridad y frontend cuando corresponda implementar. No se añade una skill genérica de Workers/hosting ni un stack ajeno al alojamiento propio por elegir Cloudflare Registrar. La integración HTTPS de Resend tampoco obliga a introducir un SDK o SMTP.
 
 Leer [guía DNS/HTTPS](29-cloudflare-dominio-dns.md) y [correo](30-correo-resend.md); validar nombres, versión y APIs vigentes. Las 37 instalaciones del inventario se conservan sin cambios. Cuenta conectada, DNS verificado y pruebas de envío requieren evidencia distinta de la instalación de una skill.
 
@@ -129,7 +129,7 @@ Fuentes oficiales cubren ASO, Search Console/GBP, AdSense/AdMob, CMP/UMP y GA4/F
 
 ## Seguridad/QA, observabilidad y costes
 
-Aplicar security-best-practices a referencias Go y frontend JS/TS para la guía solicitada; golang-testing, Playwright, Expo y Compose según módulo. Codex Security se utiliza para un escaneo real de código solo cuando exista un objetivo/acceso válido, no para inventar findings del paquete documental. Sentry disponible como plugin no acredita una cuenta conectada o SDK instalado.
+La guía security-best-practices disponible cubre Go y JS/TS; sus referencias Go no validan Laravel/PHP. Para backend usar documentación oficial Laravel/PHP, el código, PHPUnit, Pint y Larastan; para frontend, Playwright/Expo según módulo. Las dos skills golang se conservan sin activarlas para el backend actual. Codex Security se utiliza para un escaneo real de código solo cuando exista un objetivo/acceso válido, no para inventar findings del paquete documental. Sentry disponible como plugin no acredita una cuenta conectada o SDK instalado.
 
 La documentación oficial de OpenAI se consultó para distinguir uso incluido y API; importes de Plus/OpenCode/Figma/21st.dev proceden del usuario. Grafana/Prometheus/Sentry/Cloudflare se dimensionan y verifican con sus fuentes oficiales. Se mantienen las 37 skills, sin instalaciones ni compra de servicios por estas ampliaciones.
 
@@ -142,13 +142,13 @@ La documentación oficial de OpenAI se consultó para distinguir uso incluido y 
 | Skill instalada | Cuándo cargarla | Fuente existente de Foodtrucks |
 | --- | --- | --- |
 | [api-design](../.agents/skills/api-design/SKILL.md) | Diseñar o revisar endpoints REST | [API](20-api.md) |
-| [contract-first](../.agents/skills/contract-first/SKILL.md) | Coordinar contratos Go/web/móvil y sus consumidores | [API](20-api.md); OpenAPI cuando se implemente |
+| [contract-first](../.agents/skills/contract-first/SKILL.md) | Coordinar contratos Laravel/web/móvil y sus consumidores | [API](20-api.md) y [OpenAPI vigente](../contracts/openapi.json) |
 | [change-impact](../.agents/skills/change-impact/SKILL.md) | Evaluar cambios transversales, datos o permisos | Documentos del módulo y [pruebas](40-testing-qa-github.md) |
 | [docs-governance](../.agents/skills/docs-governance/SKILL.md) | Elegir el alcance de una revisión documental | README y documentos actuales |
 | [living-docs-governance](../.agents/skills/living-docs-governance/SKILL.md) | Reducir duplicidad y mantener fuentes claras | AGENTS, [arquitectura](07-arquitectura-monorepo.md), [roadmap](22-roadmap.md), [decisiones](23-decisiones-pendientes.md) y [procedencia](00-procedencia.md) |
 
 Se leyeron las cinco entradas y el contrato de roles de `docs-governance`. Sus scripts se conservan sin ejecutarse. La instalación no añade hooks, MCP, memoria, agentes, configuración global ni dependencias de aplicación. Las skills se cargan por tarea; su detección se comprueba en el siguiente turno.
 
-Aplicar los ejemplos al contrato existente: dinero entero en unidades mínimas y moneda explícita, errores acordados, consultas parametrizadas y límites medidos. No copiar el importe `double` de `contract-first`, tarifas de rate limit o plazos de retirada de API como decisiones. Las referencias a otros frameworks no cambian Go/Chi/pgx/sqlc.
+Aplicar los ejemplos al contrato existente: dinero entero en unidades mínimas y moneda explícita, errores acordados, consultas parametrizadas y límites medidos. No copiar el importe `double` de `contract-first`, tarifas de rate limit o plazos de retirada de API como decisiones. Las referencias a otros frameworks no cambian Laravel/PHP, Eloquent ni sus migraciones (D47).
 
-Las skills relacionadas que ECC menciona no son dependencias instaladas automáticamente. Reutilizar los registros actuales antes de proponer ADR, CONTEXT, TESTS o nuevas políticas. Se omiten guías genéricas ya cubiertas de frontend, Go/testing, Docker, Redis y seguridad; flujos con umbrales universales o herramientas externas sin integración. ZIP e informe v1.10 conservan la instantánea anterior a esta instalación.
+Las skills relacionadas que ECC menciona no son dependencias instaladas automáticamente. Reutilizar los registros actuales antes de proponer ADR, CONTEXT, TESTS o nuevas políticas. Se omiten guías genéricas ya cubiertas de frontend, testing del stack aplicable, Docker, Redis y seguridad; flujos con umbrales universales o herramientas externas sin integración. ZIP e informe v1.10 conservan la instantánea anterior a esta instalación.

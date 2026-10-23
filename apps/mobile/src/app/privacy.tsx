@@ -8,28 +8,30 @@ export default function PrivacyScreen() {
   return (
     <PageShell title="Tu privacidad">
       <Text style={{ color: theme.secondaryText, fontSize: 17, lineHeight: 26 }}>
-        Así funciona esta demostración de Foodtrucks.
+        Información de la versión DEV de Foodtrucks, en pruebas privadas.
       </Text>
       <View>
         <MenuRow
           icon="person-outline"
-          title="Sin cuenta iniciada"
-          subtitle="No se solicitan nombre, correo ni datos de pago."
+          title="Tu cuenta y tu perfil"
+          subtitle="Laravel guarda tu correo, nombre, fotografía opcional y preferencias. Google permite identificarte con tu correo y un identificador de cuenta; no solicitamos acceso a Gmail, Drive o contactos."
         />
         <MenuRow
           icon="favorite-border"
-          title="Guardados durante la sesión"
-          subtitle="Los favoritos y filtros viven en la memoria de la app. No se envían a un servidor de Foodtrucks."
+          title="Favoritos y anuncios"
+          subtitle="Los favoritos se guardan en tu cuenta. Los borradores son privados del propietario; la revisión decide qué versión del anuncio y sus fotos se publica."
         />
         <MenuRow
           icon="location-off"
           title="Explora sin ubicación"
-          subtitle="La app no solicita permisos de ubicación, cámara o notificaciones al abrirse."
+          subtitle="No solicitamos ubicación al abrir la app. Mapbox recibe las solicitudes necesarias para mostrar el mapa. El selector del sistema permite elegir fotos y las notificaciones se activan desde tu cuenta."
         />
       </View>
       <Text style={{ color: theme.secondaryText, fontSize: 14, lineHeight: 22 }}>
-        Información sobre la versión de demostración. No sustituye la política de privacidad del
-        servicio que se publique en el futuro.
+        Resend gestiona los correos de cuenta cuando está configurado y Firebase Cloud Messaging
+        entrega los avisos activados. No hay pagos ni campañas de marketing en este hito. La
+        política pública, el responsable y los plazos de conservación deben completarse antes de
+        abrir el servicio al público.
       </Text>
     </PageShell>
   );

@@ -1,19 +1,21 @@
 # Correo con Resend: configuración e integración propuesta
 
-**Cerrado por el usuario:** Resend para los correos de Foodtrucks; compra futura del dominio en Cloudflare. **Estado:** especificación para implementar y configurar después. No se ha comprado el dominio, creado una cuenta/clave, publicado DNS, enviado correo ni implementado código. Fuentes oficiales consultadas el 13 de octubre de 2026; revisar las condiciones vigentes durante la configuración.
+**Actualización técnica, 22/10/2026 (D47):** Laravel/PHP es el backend principal. Composer y su lockfile, las migraciones Laravel y [OpenAPI](../contracts/openapi.json) son las fuentes ejecutables; comandos y operación DEV en la [guía del backend](../backend/README.md). Las reglas siguientes se aplican a Laravel; Go queda reservado para una necesidad futura aprobada.
+
+**Estado DEV comprobado el 22/10/2026:** dominio `foodtruck.bid` verificado, envío Laravel con una clave limitada a ese dominio y correo técnico autorizado confirmado como `Delivered` en Resend. Las credenciales están fuera de Git y del cliente. Recepción de correo, marketing y producción siguen fuera de este hito. La [guía del backend](../backend/README.md) contiene los comandos vigentes; las recetas siguientes son la especificación histórica consultada el 13 de octubre.
 
 Los nombres `dominio.example` y sus subdominios son ejemplos reservados, no el dominio elegido. La configuración general del registrador, DNS, TLS y proxy está en [Cloudflare](29-cloudflare-dominio-dns.md). El dominio definitivo, buzón de soporte, región y plan de Resend siguen pendientes.
 
 ## Alcance y tipos de correo
 
-Resend enviará desde el servidor Go, nunca desde React Native/Next.js cliente. La API propia conserva la autenticación, reglas, consentimiento y estado del pedido. Resend no sustituye auth propia ni PostgreSQL, y no decide si una venta está pagada o una membresía está activa.
+Resend enviará desde el servidor Laravel, nunca desde React Native/Next.js cliente. La API propia conserva la autenticación, reglas, consentimiento y estado del pedido. Resend no sustituye auth propia ni PostgreSQL, y no decide si una venta está pagada o una membresía está activa.
 
 | Clase propuesta | Disparador autoritativo y contenido |
 | --- | --- |
 | Verificación de email | Registro/cambio de dirección; enlace de propósito limitado |
 | Recuperación de contraseña | Solicitud limitada y no enumerativa; enlace único |
 | Aviso de seguridad | Cambio de contraseña/email o evento relevante, según política |
-| Pedido | Confirmación de pago, rechazo/cancelación o resumen útil; datos desde Go |
+| Pedido | Confirmación de pago, rechazo/cancelación o resumen útil; datos desde Laravel |
 | Recogida | Enlace al pedido autenticado si se adopta email además de push; no token QR |
 | Comerciante | Alta, estado operativo y comunicaciones necesarias de su negocio |
 | Suscripción | Alta/cambio/fallo/baja confirmados por proveedor; distinguir cliente y negocio |
@@ -65,9 +67,9 @@ Separar dev/staging/producción con remitentes verificados, claves y secretos de
 
 Rotación: crear nueva credencial limitada, actualizar el servicio y comprobar con un destinatario autorizado, revocar la anterior y revisar actividad. Revocar inmediatamente una credencial expuesta; eliminarla del archivo actual no sanea historial ni artefactos. El webhook usa su propio secreto de firma, no la clave de envío.
 
-## Integración Go por HTTPS
+## Integración Laravel por HTTPS
 
-**Propuesta simple:** cliente reutilizable con `net/http`, `context` y `encoding/json`; `html/template` para escapar contenido HTML y `text/template` para texto. Mantener un módulo pequeño dentro del [backend](09-backend-go.md). El SDK Go oficial de Resend es alternativa si reduce errores o mantenimiento; no se ha instalado ni fijado su versión. [Guía Go](https://resend.com/docs/send-with-go).
+La implementación DEV utiliza el transporte `resend` de Laravel y `resend/resend-php` fijado en Composer/lockfile; no construir un cliente net/http ni añadir otro SDK por la receta histórica. Reutilizar Mail/Mailables, vistas con escape contextual y texto explícito; si un adaptador necesita cabeceras de idempotencia, probar que el transporte y versión reales las envían. [Configuración existente](../backend/config/mail.php), [dependencias](../backend/composer.json).
 
 Contrato externo documentado: `POST https://api.resend.com/emails`, JSON con `from`, destinatario, `subject`, `html` y `text`; `reply_to` solo cuando exista destino. Cabeceras `Authorization: Bearer <SECRETO_EN_SERVIDOR>`, `Content-Type: application/json`, `User-Agent` identificado e `Idempotency-Key`. Conservar ID devuelto por Resend. HTTPS y User-Agent forman parte de los requisitos actuales de la API. [API general](https://resend.com/docs/api-reference/introduction), [envío](https://resend.com/docs/api-reference/emails/send-email).
 
@@ -77,7 +79,7 @@ Destinatario, From, plantilla y enlaces se obtienen de datos/control del servido
 
 ## Outbox, entrega y recuperación
 
-**Base propuesta:** en la transacción del evento de negocio registrar outbox e intención de correo. Worker Go reclama trabajos con lease/bloqueo corto, confirma la reclamación, llama fuera de la transacción y persiste resultado. Concurrencia limitada y reintentos con backoff/jitter; Redis puede acelerar avisos, pero PostgreSQL conserva la cola. Separar prioridad operativa de promociones para que una campaña no bloquee recuperación de acceso.
+**Base propuesta:** en la transacción del evento de negocio registrar outbox e intención de correo. Horizon y la outbox Laravel reclaman trabajos con lease/bloqueo corto, confirma la reclamación, llama fuera de la transacción y persiste resultado. Concurrencia limitada y reintentos con backoff/jitter; Redis puede acelerar avisos, pero PostgreSQL conserva la cola. Separar prioridad operativa de promociones para que una campaña no bloquee recuperación de acceso.
 
 | Modelo preliminar | Datos/constraint relevante |
 | --- | --- |
@@ -109,7 +111,7 @@ En la consulta actual, el límite inicial de la API es **10 peticiones/segundo p
 
 Ruta propuesta `POST /api/v1/webhooks/resend`, publicada en HTTPS bajo `api.dominio.example`. Caddy/Cloudflare deben permitir esta ruta sin challenge interactivo ni cachearla. Delimitar excepción de CSRF de sesión a este webhook; conserva firma, límites de body/tiempo y persistencia. No crear un endpoint que reciba destinatario/URL arbitrarios para enviar emails.
 
-Verificar **bytes originales** del cuerpo con secreto de endpoint y cabeceras `svix-id`, `svix-timestamp`, `svix-signature`, antes de interpretar/aplicar el JSON. Usar soporte mantenido de verificación Resend/Svix para Go, con comparación segura y tolerancia temporal/replay de la biblioteca; fijar versión al implementar. No convertir JSON de nuevo a texto, diseñar criptografía propia ni omitir comprobación temporal. [Verificación Resend](https://resend.com/docs/webhooks/verify-webhooks-requests), [Svix](https://docs.svix.com/receiving/verifying-payloads/how).
+Verificar **bytes originales** del cuerpo con secreto de endpoint y cabeceras `svix-id`, `svix-timestamp`, `svix-signature`, antes de interpretar/aplicar el JSON. Usar soporte mantenido de verificación Resend/Svix compatible con PHP/Laravel, con comparación segura y tolerancia temporal/replay de la biblioteca; fijar versión al implementar. No convertir JSON de nuevo a texto, diseñar criptografía propia ni omitir comprobación temporal. [Verificación Resend](https://resend.com/docs/webhooks/verify-webhooks-requests), [Svix](https://docs.svix.com/receiving/verifying-payloads/how).
 
 Persistir evento autenticado y deduplicar por endpoint/entorno + `svix-id` antes de devolver 2xx. Si no se puede guardar duraderamente, devolver fallo recuperable. Aplicación asíncrona idempotente por ID Resend/origen; procesar eventos fuera de orden sin que `sent` tardío borre un bounce/complaint. Eventos desconocidos válidos se registran mínimamente para revisión y no activan acciones inesperadas. Resend reintenta y permite replay; puede desactivar un endpoint persistentemente fallido, por lo que requiere supervisión. [Reintentos/replays](https://resend.com/docs/webhooks/retries-and-replays).
 
@@ -155,29 +157,15 @@ Minimizar datos remitidos a Resend: dirección, plantilla y contenido necesario.
 
 Plantillas versionadas en el repositorio como propuesta, HTML escapado y texto explícito en español; idioma adicional pendiente. Priorizar legibilidad sin imágenes, botones/enlaces claros, texto alternativo, contraste y diseño responsive. Probar modo claro/oscuro en clientes de correo, que pueden invertir colores; no prometer que respeten los tokens del Design System. No incluir testimonios, beneficios, descuentos o precios no aprobados.
 
-Usar assets públicos estables del dominio propio solo donde aporten valor. Nada de QR de canje, tokens de pedido, enlaces admin o información sensible en imágenes/asunto/preheader. El CTA del pedido abre su vista autorizada; email no habilita canje. React Email/editor Resend son alternativas por evaluar, no dependencias instaladas ni condición para enviar desde Go.
+Usar assets públicos estables del dominio propio solo donde aporten valor. Nada de QR de canje, tokens de pedido, enlaces admin o información sensible en imágenes/asunto/preheader. El CTA del pedido abre su vista autorizada; email no habilita canje. React Email/editor Resend son alternativas por evaluar, no dependencias instaladas ni condición para enviar desde Laravel.
 
-Variables propuestas para un futuro `.env.example`, **sin secretos ni configuración ejecutable definitiva**:
+La configuración vigente se consulta en [backend/config/mail.php](../backend/config/mail.php), [foodtrucks.php](../backend/config/foodtrucks.php), `.env.example` del backend y la [guía DEV](../backend/README.md). No crear variables `EMAIL_MODE`/`EMAIL_PROVIDER` o claves de cifrado paralelas que el código no lea.
 
-~~~dotenv
-EMAIL_PROVIDER=resend
-EMAIL_MODE=sink
-RESEND_API_KEY=
-RESEND_WEBHOOK_SECRET=
-EMAIL_FROM_TRANSACTIONAL="Foodtrucks <avisos@mail.dominio.example>"
-EMAIL_FROM_MARKETING=
-EMAIL_REPLY_TO=
-WEB_ORIGIN=https://dominio.example
-EMAIL_PAYLOAD_KEY_FILE=
-EMAIL_ALLOWED_RECIPIENTS=
-EMAIL_MAX_ATTEMPTS=
-EMAIL_REQUEST_TIMEOUT=
-EMAIL_RATE_LIMIT=
-~~~
+- `MAIL_MAILER`, `MAIL_FROM_ADDRESS` y `RESEND_API_KEY`: transporte/remitente y secreto de envío solo servidor.
+- `FOODTRUCKS_EMAIL_ENABLED=false` y `DEV_EMAIL_ALLOWLIST`: desactivación explícita y destinatarios limitados; habilitar solo el alcance autorizado en D50.
+- `APP_KEY_FILE`: secreto privado montado para el cifrado Laravel usado por outbox; conservarlo con la recuperación y no regenerarlo sobre datos existentes.
 
-Nombres y valores son propuesta; definir validación al iniciar. WEB_ORIGIN comparte el origen canónico con el backend/frontend, sin introducir otra URL divergente. EMAIL_PAYLOAD_KEY_FILE, si se utiliza payload cifrado para secretos temporales, apunta a material montado fuera de PostgreSQL y de imágenes/Git; la gestión, rotación y recuperación de claves se resuelven antes de habilitar esa entrega diferida.
-
-`sink` guarda en un destino local de pruebas con retención corta y nunca llama al proveedor. Para prueba de integración seleccionada usar Resend con remitente autorizado y allowlist explícita, no dominios ficticios como destinatarios reales. No cambiar automáticamente `sink` a envío real por encontrar una clave. No imprimir variables completas en diagnósticos.
+CI usa `MAIL_MAILER=array`/fakes y no envía al proveedor. No usar el mailer `log` con tokens o cuerpos de identidad privados. Encontrar una clave no habilita envíos. Webhooks, supresiones y campañas descritos arriba son alcance futuro: sus secretos/variables se definirán con su implementación, sin declararlos activos.
 
 ## Desarrollo, observación y runbook
 

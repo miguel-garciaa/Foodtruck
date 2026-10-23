@@ -28,13 +28,13 @@ Estado local para formularios y UI. Caché de datos remotos con una biblioteca l
 
 Cliente HTTP compartido con timeout, cancelación, errores tipados y renovación coordinada de sesión. Reintentar GET transitorios con límites; mutaciones económicas solo con clave de idempotencia y recuperación del resultado.
 
-No duplicar validación compleja del servidor. Mantener feedback inmediato de campos y presentar los errores de Go. No confiar en precios del carrito cliente.
+No duplicar validación compleja del servidor. Mantener feedback inmediato de campos y presentar los errores de Laravel. No confiar en precios del carrito cliente.
 
 ## Herramientas
 
 **Arranque local, 21/10/2026:** base Expo SDK 58/React Native 0.88/TypeScript en `apps/mobile`, npm con lockfile y development build Android. El usuario pospone el móvil físico; se compila e instala en Pixel_10. Incluye exploración, filtros, favoritos de sesión y carta con fixtures sintéticas, siguiendo las capturas aportadas. Mapbox nativo integrado, sin mapa online verificado por falta de configuración pública. La [guía de arranque](../apps/mobile/README.md) conserva comandos, requisitos y resultados reales; no acredita backend, web, iOS o funcionalidades comerciales. El identificador `com.foodtrucks.dev` es provisional y exclusivo de desarrollo.
 
-Editor principal VS Code/Cursor/Codex según elección del usuario; Android Studio aporta SDK y emulador en el ordenador anfitrión. VM Ubuntu ejecuta servicios. Go puede editarse por Remote SSH o en checkout sincronizado; elegir un flujo sin copias divergentes.
+Editor principal VS Code/Cursor/Codex según elección del usuario; Android Studio aporta SDK y emulador en el ordenador anfitrión. VM Ubuntu ejecuta servicios. Laravel puede editarse por Remote SSH o en checkout sincronizado; elegir un flujo sin copias divergentes.
 
 Para simulador/compilación local iOS se necesita macOS/Xcode; VMware Ubuntu no los sustituye. EAS Build fue sugerido para compilación remota, sin contratación ni configuración realizada.
 
@@ -48,7 +48,7 @@ Fuente: [Expo development builds](https://docs.expo.dev/develop/development-buil
 
 Añadir contratación/gestión de membresía, ofertas, puntos e historial y selector de canje en checkout. El frontend nunca calcula el saldo gastable ni concede derechos a partir de un retorno de pago.
 
-Stripe Billing web es propuesta; canal de contratación dentro de iOS/Android por validar con los beneficios/territorio finales. Recuperar el estado desde Go y evitar doble contratación entre dispositivos. No añadir un botón externo de pago hasta confirmar el flujo permitido.
+Stripe Billing web es propuesta; canal de contratación dentro de iOS/Android por validar con los beneficios/territorio finales. Recuperar el estado desde Laravel y evitar doble contratación entre dispositivos. No añadir un botón externo de pago hasta confirmar el flujo permitido.
 
 ## Configuración del dominio en web y móvil, base propuesta
 
@@ -62,7 +62,7 @@ Cloudflare será registrador/DNS y Resend enviará los correos. Todos los nombre
 | EXPO_PUBLIC_API_BASE_URL | https://api.dominio.example/api/v1; URL pública, nunca credenciales |
 | ASSETS_PUBLIC_ORIGIN | https://assets.dominio.example, si se adopta; solo medios públicos |
 
-Caddy conserva el prefijo /api/v1 hacia Go. Si se elige llamada web directa al hostname api, configurar CORS con orígenes exactos y cookies/CSRF coherentes; no añadir wildcard con credenciales. Los orígenes de staging y callbacks OAuth serán distintos y se registrarán explícitamente. Evitar compartir cookies de sesión con mail/assets/staging.
+Caddy conserva el prefijo /api/v1 hacia Laravel. Si se elige llamada web directa al hostname api, configurar CORS con orígenes exactos y cookies/CSRF coherentes; no añadir wildcard con credenciales. Los orígenes de staging y callbacks OAuth serán distintos y se registrarán explícitamente. Evitar compartir cookies de sesión con mail/assets/staging.
 
 ## Asociación dominio/app y retornos
 
@@ -72,7 +72,7 @@ Android: public/.well-known/assetlinks.json con package real y huellas SHA-256 d
 
 Estos archivos y capacidades se añadirán cuando existan identificadores/firma, con build nativa apropiada y pruebas de apertura instalada/no instalada. Los nombres de ruta son por definir; no asociar todos los paths si bastan identidad y pedidos. Mantener los archivos públicos accesibles a los verificadores, con estrategia de caché que permita actualizar asociaciones.
 
-El retorno Stripe muestra el resultado recuperado desde Go; nunca acredita pago por la URL. Los enlaces de email no consumen verificación/reset por un GET. Validar destinos internos y no aceptar redirección a un host arbitrario. Resend y Cloudflare no sustituyen los mecanismos de sesión de cada plataforma.
+El retorno Stripe muestra el resultado recuperado desde Laravel; nunca acredita pago por la URL. Los enlaces de email no consumen verificación/reset por un GET. Validar destinos internos y no aceptar redirección a un host arbitrario. Resend y Cloudflare no sustituyen los mecanismos de sesión de cada plataforma.
 
 ## SEO, ASO y SDK de marketing U08
 
@@ -90,4 +90,4 @@ Novedades se resuelve con contenido/identificador estable de release y estado lo
 
 Permisos se consultan desde el SO antes de usar recurso y al volver de ajustes. Ubicación al pedirla, primer plano/manual; push al activar aviso; cámara en escáner de comerciante; fotos con selector. canAskAgain y permisos temporales/provisionales se interpretan según SDK/SO, sin un booleano local como autorización duradera. Revisar usage strings/config plugins/manifiestos, permisos añadidos por módulos, firma y build nativa; OTA no basta para cambiar capacidades del binario. No hay manifests/configuración nativa o permisos reales implementados en esta entrega.
 
-Header/menú web y dock nativo siguen separados. Compartir tokens/contratos compatibles; las facultades admin se autorizan en Go y no se deducen del menú. Un archivo de ejemplo de Billing/Invoice no integra Stripe ni acredita permiso de cambios de plan/reembolsos. Los contratos de API y datos de este paquete no se modifican por esta ampliación.
+Header/menú web y dock nativo siguen separados. Compartir tokens/contratos compatibles; las facultades admin se autorizan en Laravel y no se deducen del menú. Un archivo de ejemplo de Billing/Invoice no integra Stripe ni acredita permiso de cambios de plan/reembolsos. Los contratos de API y datos de este paquete no se modifican por esta ampliación.

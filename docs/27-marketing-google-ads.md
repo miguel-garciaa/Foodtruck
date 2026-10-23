@@ -45,7 +45,7 @@ Probar una hipótesis por vez: descubrimiento frente a comodidad de recogida; p�
 
 | Evento propuesto | Definición y uso |
 | --- | --- |
-| `first_purchase_confirmed` | Primera compra de comida pagada, confirmada en Go mediante evidencia autenticada de Stripe; objetivo principal cliente |
+| `first_purchase_confirmed` | Primera compra de comida pagada, confirmada en Laravel mediante evidencia autenticada de Stripe; objetivo principal cliente |
 | `merchant_activated` | Negocio que cumple aprobación adoptada, Billing, Connect, carta y ubicación operativa; objetivo principal comercial |
 | Registro, inicio de checkout, lead | Diagnóstico secundario; no equivalen a venta ni activación |
 | Alta de membresía | Evento separado tras confirmación del proveedor; no mezclar comida y cuota |

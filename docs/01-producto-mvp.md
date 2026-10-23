@@ -50,7 +50,7 @@ Paridad comercial de la web cliente, ciudad/país, comisiones, cancelaciones, po
 
 U01 añade suscripción de clientes, ofertas/promociones y puntos por compra para descuentos. U02 confirma **5,99 €/mes en EUR**. El requisito forma parte del proyecto; impuestos, reglas de beneficios y entrada en el primer MVP están pendientes. Las recomendaciones históricas de dejar toda fidelización para después quedan actualizadas.
 
-Base propuesta: membresía opcional, compra de comida disponible sin ella y reglas de beneficio calculadas en Go. No prometer exclusividad, descuentos universales o ratios hasta acordarlos. [Especificación](25-suscripcion-clientes-fidelizacion.md).
+Base propuesta: membresía opcional, compra de comida disponible sin ella y reglas de beneficio calculadas en Laravel. No prometer exclusividad, descuentos universales o ratios hasta acordarlos. [Especificación](25-suscripcion-clientes-fidelizacion.md).
 
 ## Preparación de captación
 

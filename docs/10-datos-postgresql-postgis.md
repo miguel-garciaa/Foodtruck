@@ -1,6 +1,8 @@
 # PostgreSQL, PostGIS y entidades
 
-**Cerrado:** PostgreSQL como fuente duradera y PostGIS para geografía. **Base propuesta:** este modelo, nombres de tablas/campos y restricciones; todavía no existen migraciones.
+**Actualización técnica, 22/10/2026 (D47):** Laravel/PHP es el backend principal. Composer y su lockfile, las migraciones Laravel y [OpenAPI](../contracts/openapi.json) son las fuentes ejecutables; comandos y operación DEV en la [guía del backend](../backend/README.md). Las reglas siguientes se aplican a Laravel; Go queda reservado para una necesidad futura aprobada.
+
+**Cerrado:** PostgreSQL como fuente duradera y PostGIS para geografía. **Base propuesta:** este modelo ampliado, nombres de tablas/campos y restricciones futuras. Las migraciones DEV existentes en [backend/database/migrations](../backend/database/migrations) gobiernan el esquema implementado; las entidades comerciales siguientes no se presumen implementadas.
 
 ## Modelo lógico
 

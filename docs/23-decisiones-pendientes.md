@@ -1,6 +1,6 @@
 # Decisiones cerradas y preguntas pendientes
 
-**Base documental:** v1.10 · **Actualización local:** 20 de octubre de 2026.
+**Base documental:** v1.10 · **Actualización local:** 22 de octubre de 2026.
 
 Consultar las decisiones y preguntas pertinentes antes de implementar; el historial se usa para contexto o conflictos. C01–C11 corresponden a [procedencia](00-procedencia.md). S indica la solicitud inicial de documentación; U01 identifica la ampliación de membresía cliente y U02 confirma su precio mensual. “Cerrado” no significa implementado.
 
@@ -13,7 +13,7 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 | D03 | Licencia inicial y mensualidad a comerciantes, con Stripe | C01/S |
 | D04 | React Native + Expo + TypeScript móvil; Next.js web | Evolución C07 confirmada en S |
 | D05 | Dock solo app nativa; header y menú responsive web | C10/S |
-| D06 | Go + Chi + pgx/sqlc para backend | C03/S |
+| D06 | Go + Chi + pgx/sqlc para backend; sustituida por D47 | C03/S, histórica |
 | D07 | PostgreSQL + PostGIS | S, base mantenida desde C01 |
 | D08 | Redis con caché e invalidación | C03/S |
 | D09 | Mapbox personalizado, nativo/web | C03/S |
@@ -55,6 +55,12 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 | D45 | Instalar una selección de ECC compatible con Foodtrucks y las skills actuales, con alcance de proyecto en .agents/skills y procedencia fijada por commit | Petición del usuario y elección «Selección para Foodtrucks», 20/10/2026 |
 | D46 | Consolidar AGENTS y CI/CD dentro de los 49 documentos existentes: AGENTS máximo 800 palabras, lectura por tarea e historial contextual; 21 define entornos, 40 pruebas, 44 política de entrega y DevOps procedimientos; conservar requisitos, casos QA y decisiones | Plan aprobado e implementación solicitada, 20/10/2026; complementa D44 sin borrar ni fusionar archivos |
 
+| D47 | Laravel/PHP como backend principal; ecosistema necesario para este hito y Go reservado para necesidades futuras | Instrucción expresa y selección del usuario, 21/10/2026 |
+| D48 | Google OAuth incluido ahora con auth propia; foodtruck.bid comprado en Cloudflare y correo Resend sobre ese dominio | Instrucciones expresas, 21/10/2026 |
+| D49 | Nueva clave Resend y túnel foodtrucks-dev pendientes por decisión del usuario; no publicar api-dev todavía | Respuesta expresa del usuario, 21/10/2026 |
+| D50 | Reactivar la configuración DEV: clave Resend de envío limitada a foodtruck.bid, túnel foodtrucks-dev para api-dev.foodtruck.bid y cuenta FCM exclusiva del servidor. Correo técnico autorizado al único destinatario de la allowlist privada. Sustituye el aplazamiento D49; no autoriza producción ni marketing | Instrucciones y confirmaciones expresas, 22/10/2026 |
+| D51 | Adaptar las capturas y ambos vídeos a Foodtrucks: controles compactos, corazones de 20 dp, filtros combinados, colección de favoritos y modo comerciante con alta guiada de seis pasos. Guardar el primer borrador al confirmar ubicación; después al avanzar y salir. Mapbox con GPS puntual opcional, dirección manual, sin autocompletado externo ni ubicación de fondo. Reutilizar Draft y revisión existentes, sin migraciones; pagos y operación de pedidos conservan su alcance vigente. 60/90/120 Hz exige medida real | Plan solicitado expresamente, 23/10/2026 |
+
 ## Bases propuestas, no cierres comerciales
 
 **Inicio de implementación, 21/10/2026:** el usuario aprueba crear únicamente la base Android en `apps/mobile`, con Expo SDK 58, Expo Router, TypeScript, npm/lockfile, development build local y pantalla estática en español con tema automático. Identificador de desarrollo provisional `com.foodtrucks.dev`. Tras elegir inicialmente Pixel_10, cambia la prueba inicial a su móvil Android físico por USB. Esto concreta P17 para la base móvil y P54 para el gestor local; versiones mínimas de producto, Git/remoto y CI siguen pendientes. No cierra las demás cuestiones comerciales ni autoriza publicación. Evidencia de implementación y comprobaciones en la [guía móvil](../apps/mobile/README.md).
@@ -63,7 +69,7 @@ Consultar las decisiones y preguntas pertinentes antes de implementar; el histor
 
 Monolito modular; app única con modos cliente/comerciante; roles customer/truck_owner/admin; Expo Router; Reanimated/Worklets/Gesture Handler; Skia/FlashList según uso; cache-aside con TTL iniciales; outbox PostgreSQL; cargos directos Connect; Checkout/Portal para Billing; automático de tema por defecto; paleta marfil/coral/azul noche; aprobación administrativa; WebSocket preferente con SSE alternativo.
 
-Herramientas auxiliares goose, slog, OpenTelemetry, Testcontainers, go-redis y stripe-go fueron recomendadas. Versiones e incorporación concreta se verificarán al implementar.
+goose, slog, go-redis y stripe-go pertenecen a la propuesta Go sustituida por D47; no se adoptan para Laravel. La base activa utiliza Composer, migraciones/Eloquent, Sanctum, Horizon, Pint, Larastan y PHPUnit según el repositorio. OpenTelemetry, Testcontainers y cualquier integración futura requieren necesidad y compatibilidad verificadas.
 
 Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implementación/hitos concretan el proyecto como **propuestas**. Los cierres explícitos de commit/push, GitHub Actions, GHCR, staging automático y aprobación manual de producción prevalecen sobre su antigua clasificación como propuesta.
 
@@ -104,11 +110,11 @@ Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implem
 | --- | --- |
 | P17 | Versiones compatibles, gestor npm/pnpm, SDK Expo y mínimos iOS/Android |
 | P18 | WebSocket o SSE, protocolo/versionado y reconexión |
-| P19 | JWT/token opaco, duración de sesiones y revocación |
+| P19 | DEV móvil usa Sanctum opaco de 15 min y refresh rotatorio de 30 días; verificar concurrencia/revocación y definir sesión web |
 | P20 | OAuth IDs/redirects, APNs/FCM y firma móvil; proveedor de correo ya cerrado en Resend |
 | P21 | Acceso MCP, licencias y selección final 21st.dev |
 | P22 | Tokens/paleta/fuentes definitivos y estilos Mapbox publicados |
-| P23 | foodtrucks.com indicado como referencia en U08: verificar control/disponibilidad y uso de producción; hardware doméstico/WAN o Tunnel, staging, presupuesto y disco |
+| P23 | foodtruck.bid comprado y api-dev.foodtruck.bid por Tunnel en DEV; dominio/hostnames de producción, hardware/WAN, staging, presupuesto y disco por verificar |
 | P24 | Cuotas de fotos, conversión, retención y política de privacidad |
 | P25 | Destino backups, cifrado, frecuencia, retención, RPO/RTO y restore |
 | P26 | SLO API, carga esperada, dispositivos y umbrales de frames |
@@ -129,7 +135,7 @@ Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implem
 | P51 | Hardware existente/nuevo, total CPU/RAM/discos, reservas DEV/PROD/observabilidad, hipervisor y coste |
 | P52 | ISP/contrato, subida real, IPv4 pública/CGNAT/IPv6, Tunnel o directo, administración y firewall |
 | P53 | Consumo W/kWh, tarifa, horarios, SAI/autonomía y coste de red/refrigeración/mantenimiento |
-| P54 | Repo Git/remoto/ramas/gestor/versiones, scripts/tests/gate configurado, plan/visibilidad GitHub, revisores/protecciones, mecanismo de aprobación/acceso y rollback probado; política principal ya cerrada |
+| P54 | Git/remoto, npm/Composer/locks y CI DEV existentes; verificar baseline del SHA, plan/visibilidad GitHub, revisores/protecciones, mecanismo de aprobación/acceso y rollback probado; política principal ya cerrada |
 | P55 | Modalidad Grafana/Prometheus/Sentry, cuotas/retención/series, instrumentación, alertas y destinatarios autorizados |
 | P56 | SLI/SLO/error budget, sonda externa, incidentes, mantenimiento y disponibilidad de producción doméstica |
 | P57 | Selección final 21st.dev por pantalla, fuente/version/hash/licencia, dependencias, runtime, accesibilidad y pruebas en app/web; catálogo preliminar 45–46 |
@@ -142,7 +148,7 @@ Entidades, rutas, errores, claves Redis, reglas de archivos y detalles de implem
 
 ## Historial y conflictos resueltos
 
-Flutter sustituido por React Native; NestJS/ORM sustituidos por Go/SQL; Google Maps sustituido por Mapbox; S3 eliminado; dock web eliminado. Recomendaciones PHP/Laravel generales del usuario no cambian el stack Go explícito de Foodtrucks.
+Flutter sustituido por React Native; NestJS/ORM sustituidos inicialmente por Go/SQL, a su vez sustituido por Laravel/PHP en D47 (21/10/2026). Google Maps sustituido por Mapbox; S3 eliminado; dock web eliminado. Laravel es la decisión específica vigente; Go queda reservado sin segundo backend activo.
 
 99 €, 29 €/mes, 0 % y 2 % son ejemplos no definitivos. Costes externos y tamaños de producción no son presupuestos aprobados. Ninguna arquitectura de este paquete acredita rendimiento o capacidad real.
 
@@ -168,7 +174,7 @@ U06 refuerza búsqueda/selección en skills.sh evitando duplicados. Resultado: 2
 
 La elección del registrador y del proveedor de envío ya no es una pregunta abierta. [Cloudflare](29-cloudflare-dominio-dns.md) y [Resend](30-correo-resend.md) contienen configuración propuesta y criterios de comprobación. Nombre/IP, valores generados, plan, recepción y condiciones de operación siguen pendientes; ningún marcador es una configuración real.
 
-No se ha comprado el dominio, creado cuentas, modificado DNS o enviado mensajes. La petición se incorpora al paquete documental y no sustituye las decisiones Go/Expo/Next.js/Caddy ni autoriza gastos de Google Ads; U09 modifica posteriormente el alojamiento base a servidor doméstico.
+No se ha comprado el dominio, creado cuentas, modificado DNS o enviado mensajes. La petición se incorpora al paquete documental y no sustituía las decisiones de stack vigentes en U07; D47 fija posteriormente Laravel/PHP, conservando Expo/Next.js/Caddy ni autoriza gastos de Google Ads; U09 modifica posteriormente el alojamiento base a servidor doméstico.
 
 ## Actualización U08 — marketing digital completo
 

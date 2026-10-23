@@ -1,5 +1,6 @@
 import Mapbox from '@rnmapbox/maps';
-import { useRef, useState, type ComponentRef } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { useReducedMotion } from 'react-native-reanimated';
 import { useColorScheme } from 'react-native';
 import { EmptyState } from './empty-state';
 import type { DiscoveryMapProps } from './discovery-map';
@@ -9,12 +10,29 @@ const publicToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const hasPublicToken = Boolean(publicToken?.startsWith('pk.'));
 if (hasPublicToken) Mapbox.setAccessToken(publicToken!);
 
-export function DiscoveryMap({ trucks, selectedId, onSelect }: DiscoveryMapProps) {
+export function DiscoveryMap({
+  trucks,
+  selectedId,
+  onSelect,
+  onBoundsChange,
+  focus,
+}: DiscoveryMapProps) {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const [failed, setFailed] = useState(false);
   const camera = useRef<ComponentRef<typeof Mapbox.Camera>>(null);
   const source = useRef<ComponentRef<typeof Mapbox.ShapeSource>>(null);
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    if (!focus) return;
+    const [west, south, east, north] = focus.bounds;
+    camera.current?.fitBounds(
+      [east + 0.005, north + 0.005],
+      [west - 0.005, south - 0.005],
+      [48, 32, 180, 32],
+      reduced ? 0 : 300,
+    );
+  }, [focus, reduced]);
   if (!hasPublicToken || failed) {
     return (
       <EmptyState
@@ -36,10 +54,24 @@ export function DiscoveryMap({ trucks, selectedId, onSelect }: DiscoveryMapProps
       attributionPosition={{ top: 12, right: 12 }}
       logoPosition={{ top: 12, left: 12 }}
       scaleBarEnabled={false}
+      onMapIdle={({ properties }) => {
+        const { sw, ne } = properties.bounds;
+        if ([...sw, ...ne].every(Number.isFinite) && sw[0] < ne[0] && sw[1] < ne[1])
+          onBoundsChange([sw[0], sw[1], ne[0], ne[1]]);
+      }}
     >
       <Mapbox.Camera
         ref={camera}
-        defaultSettings={{ centerCoordinate: [-0.375, 39.469], zoomLevel: 12.6 }}
+        defaultSettings={{
+          bounds: {
+            sw: [-18.5, 27.5],
+            ne: [4.7, 43.9],
+            paddingBottom: 170,
+            paddingTop: 32,
+            paddingLeft: 24,
+            paddingRight: 24,
+          },
+        }}
       />
       <Mapbox.ShapeSource
         ref={source}
@@ -64,7 +96,7 @@ export function DiscoveryMap({ trucks, selectedId, onSelect }: DiscoveryMapProps
                 camera.current?.setCamera({
                   centerCoordinate: feature.geometry.coordinates,
                   zoomLevel: zoom,
-                  animationDuration: 0,
+                  animationDuration: reduced ? 0 : 300,
                 });
               }
             } catch {

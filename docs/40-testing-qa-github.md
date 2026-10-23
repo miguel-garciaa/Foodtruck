@@ -1,6 +1,8 @@
 # Testing y QA de Foodtrucks
 
-**Consolidación:** 20 de octubre de 2026. Esta guía define qué probar y qué evidencia demuestra el comportamiento. La obligatoriedad de controles, revisión/Git/CI y promoción se rige por [44](44-politica-commits-ci-cd-tests.md); [21](21-entornos-ci-cd.md) define aislamiento y [39](39-seguridad-devsecops.md) los controles de seguridad. Los 29 apartados recibidos y QA01–29 se conservan como especificación; no hay tests de aplicación ni CI implementados/ejecutados en este paquete.
+**Actualización técnica, 22/10/2026 (D47):** Laravel/PHP es el backend principal. Composer y su lockfile, las migraciones Laravel y [OpenAPI](../contracts/openapi.json) son las fuentes ejecutables; comandos y operación DEV en la [guía del backend](../backend/README.md). Las reglas siguientes se aplican a Laravel; Go queda reservado para una necesidad futura aprobada.
+
+**Consolidación:** 20 de octubre de 2026. Esta guía define qué probar y qué evidencia demuestra el comportamiento. La obligatoriedad de controles, revisión/Git/CI y promoción se rige por [44](44-politica-commits-ci-cd-tests.md); [21](21-entornos-ci-cd.md) define aislamiento y [39](39-seguridad-devsecops.md) los controles de seguridad. Los 29 apartados recibidos y QA01–29 se conservan como especificación; existen tests Laravel y móvil y CI en [dev.yml](../.github/workflows/dev.yml). Su ejecución y aceptación se comprueban para el SHA concreto; no toda la matriz comercial está implementada.
 
 ## 1. Preparar la verificación
 
@@ -10,15 +12,15 @@ Seguir la auditoría de 44 §2 y obtener baseline real de tests/build/cobertura,
 
 | Nivel | Qué valida | Base propuesta y límites |
 | --- | --- | --- |
-| Unitario/domain | Precio entero, descuento aprobado, estado, elegibilidad, serialización y validaciones | Go testing/subtests/fuzzing; frontend Jest/Vitest según proyecto real |
+| Unitario/domain | Precio entero, descuento aprobado, estado, elegibilidad, serialización y validaciones | PHPUnit y datasets/casos parametrizados; frontend según scripts reales (Jest/Vitest solo si se adoptan) |
 | Componente | Interacción visible, errores, accesibilidad, tema y estados de carga | Testing Library web/nativa compatible; sin verificar solo que renderiza |
-| Integración | API Chi, auth, SQL real, transacciones, caché/outbox y workers | PostgreSQL/PostGIS y Redis de prueba aislados; pgx/sqlc, no SQLite sustituta |
+| Integración | API Laravel/Sanctum, auth, SQL real, transacciones, caché/outbox y workers | PostgreSQL/PostGIS y Redis de prueba aislados; Eloquent y SQL parametrizado, no SQLite sustituta |
 | Contrato/proveedor | DTO/API, firmas, idempotencia, errores y cuenta/entorno | Fakes en frontera + sandboxes reales controlados para casos que los necesiten |
-| E2E web | Recorridos Next.js → Go → DB y roles | Playwright TypeScript compatible; pocos recorridos críticos |
+| E2E web | Recorridos Next.js → Laravel → DB y roles | Playwright TypeScript compatible; pocos recorridos críticos |
 | E2E nativo | SDK nativo, enlaces, permisos, mapa, pago, QR, notificaciones | Maestro o Detox a evaluar; dispositivos/development/release builds |
 | Operación | Artefacto, TLS/proxy, migración, smoke, backup/restore y rollback | Staging propio; efectos externos desactivados |
 
-Go primero testing/httptest y herramientas estándar. Usar tablas de casos/subtests y resultados observables; t.Parallel solo con fixtures independientes. Race detector comprueba carreras de memoria ejecutadas, no sustituye los tests de concurrencia económica en DB. Fuzzing con corpus saneado valida parsers/geometría/IDs/aritmética donde aporte; no usar float para dinero. [Go testing](https://pkg.go.dev/testing), [race detector](https://go.dev/doc/articles/race_detector), [fuzzing](https://go.dev/doc/security/).
+Backend: PHPUnit ya instalado, tests HTTP/Feature de Laravel y casos unitarios cuando aíslen una regla real. Fakes de Mail/Notifications/HTTP/Queue solo en la frontera que corresponda; probar también persistencia, leases y reintentos reales cuando se cambie outbox/Horizon. Tests paralelos solo con fixtures/DB independientes admitidos por el guard; no habilitarlos por receta. Datos parametrizados/corpus saneado para entradas límite; enteros para dinero. [Testing Laravel 13](https://laravel.com/docs/13.x/testing).
 
 Para Expo revisar SDK antes de Jest/jest-expo y React Native Testing Library; Jest/Vitest web según scripts existentes. Tests JS no ejecutan módulos Swift/Kotlin reales ni acreditan firma/push/Mapbox. No añadir Maestro y Detox simultáneamente sin necesidad. [Expo unit testing](https://docs.expo.dev/develop/unit-testing/), [React Native testing](https://reactnative.dev/docs/testing-overview).
 
@@ -55,7 +57,7 @@ Cuando una política comercial está pendiente, verificar invariantes independie
 
 ### Concurrencia y consistencia reproducibles
 
-Usar dos clientes/goroutines y conexiones SQL separadas, una barrera para iniciar juntas, deadline y repetición justificada. Assert sobre unicidad/stock/ledger/estado/outbox y resultado de cada operación, no solo status 200. Un test envuelto siempre en una única transacción que luego se revierte no reproduce correctamente dos commits competidores.
+Usar dos clientes/procesos PHP independientes y conexiones SQL separadas, una barrera para iniciar juntas, deadline y repetición justificada. Assert sobre unicidad/stock/ledger/estado/outbox y resultado de cada operación, no solo status 200. Un test envuelto siempre en una única transacción que luego se revierte no reproduce correctamente dos commits competidores.
 
 Fixtures independientes por test/worker y reloj controlable para expiración; health/readiness en vez de sleeps fijos. No TRUNCATE, borrado de volúmenes o migraciones destructivas sobre un DSN ambiguo. Guardrail de entorno/nombre/origen de DB de pruebas, credenciales limitadas y teardown exclusivo de recursos creados por la suite. Probar locks/deadlocks/retry de la estrategia elegida con límites, sin ocultar errores transitorios.
 
@@ -79,35 +81,33 @@ Accesibilidad: controles etiquetados, focus management, teclado y lector, contra
 
 ## 5. Cobertura, rendimiento y calidad de datos
 
-Baseline al existir tests. Publicar cobertura de módulos/rutas críticas y ramas no probadas junto con calidad de assertions. Umbral progresivo por riesgo y cambio, pendiente hasta observar baseline; no imponer 100 % ni un 80 % inventado global. No excluir código crítico para inflar porcentaje. Perfil Go/Lcov y reportes compatibles con herramientas elegidas, retenidos sin datos privados.
+Baseline al existir tests. Publicar cobertura de módulos/rutas críticas y ramas no probadas junto con calidad de assertions. Umbral progresivo por riesgo y cambio, pendiente hasta observar baseline; no imponer 100 % ni un 80 % inventado global. No excluir código crítico para inflar porcentaje. Cobertura PHPUnit (Clover/HTML con Xdebug o PCOV disponible) y reportes frontend compatibles con las herramientas elegidas, retenidos sin datos privados.
 
 Carga controlada de descubrimiento/PostGIS, carta, auth, cotización/pedido/transición: plan con entorno propio, volumen/duración, usuarios concurrentes, dataset, ramp-up, stop conditions y presupuesto. k6 es candidato, no instalado ni ejecutado. No cargar producción o la red doméstica compartida sin autorización; tampoco activar pagos/emails/promociones durante el test. Registrar p50/p95/p99, errores, throughput, CPU/RAM/disco/I/O/conexiones y terceros separados. [k6](https://grafana.com/docs/k6/latest/testing-guides/).
 
 120 FPS según [16](16-rendimiento.md): release/dispositivo real, tiempos de frame y dropped frames, gestos/mapa/fotos/tema, memoria/batería/temperatura. Targets p95/p99 y pérdidas aceptables pendientes; la bandera ProMotion no demuestra FPS. Comparar antes/después con misma escena/dataset. Core Web Vitals campo y laboratorio diferenciados; no usar Lighthouse como prueba del objetivo nativo.
 
-Datos: fixture válido geográfico, timestamps/moneda, constraints/relaciones, pipeline de migración/sqlc y contratos TS; no ciudades/reseñas/ofertas ficticias publicadas. La venta/refund/QR viene de Go/Stripe/DB. GA4/Firebase comprueba consentimiento, deduplicación por origen, eventos fuera de orden y no fuga; dashboard no sustituye reconciliación del backend. [Observabilidad](41-observabilidad-grafana-prometheus-sentry.md).
+Datos: fixture válido geográfico, timestamps/moneda, constraints/relaciones, migraciones Laravel/PostGIS y sincronización OpenAPI/tipos TS; no ciudades/reseñas/ofertas ficticias publicadas. La venta/refund/QR viene de Laravel/Stripe/DB. GA4/Firebase comprueba consentimiento, deduplicación por origen, eventos fuera de orden y no fuga; dashboard no sustituye reconciliación del backend. [Observabilidad](41-observabilidad-grafana-prometheus-sentry.md).
 
 ## 6. Ejecución y comandos de referencia
 
-La clasificación obligatoria/informativa/periódica/manual y herramientas de scans están en 44 §7; selección, resultados y fallos del pipeline en §5–6. Esta sección muestra comandos propuestos, **no ejecutados**, que deben ajustarse al repositorio real.
+La clasificación de controles está en 44 §7. Estos comandos corresponden a la configuración existente; enumerarlos no acredita su ejecución en esta entrega. Desde `backend/`, con dependencias y entorno de pruebas preparados:
 
-Desde backend/ **solo cuando existan go.mod, herramientas y rutas propuestas**:
-
-~~~bash
-gofmt -l .
-go vet ./...
-go test ./...
-go test -race ./...
-govulncheck ./...
-go build ./cmd/api
-go build ./cmd/worker
-go test -coverprofile=coverage.out ./...
-go tool cover -func=coverage.out
+~~~sh
+composer validate --strict
+composer install --no-interaction --prefer-dist
+php vendor/bin/pint --test
+php vendor/bin/phpstan analyse --memory-limit=512M
+composer audit --locked
+php vendor/bin/phpunit --filter=BoundaryTest
+php vendor/bin/phpunit --fail-on-warning --fail-on-risky
 ~~~
 
-Si se adopta separación de integración por build tag, añadir go test -race -tags=integration ./... con PostgreSQL/PostGIS y Redis de prueba preparados. Race no sustituye dos conexiones/commits SQL concurrentes ni la prueba de idempotencia de Stripe/QR. Regeneración sqlc y gofmt se convierten en scripts reproducibles con tools/versiones fijadas; el check gofmt debe fallar cuando `gofmt -l` produzca rutas, ya que listar rutas no falla por sí mismo. govulncheck requiere herramienta y configuración verificadas; si falta, el control obligatorio queda fallido/pendiente, no verde. No usar APIs nuevas de testing citadas en una skill hasta confirmar versión Go real.
+El último comando requiere PostgreSQL/PostGIS desechable, credenciales por entorno y base exacta `foodtrucks_testing`, conforme a `phpunit.xml` y al guard de los tests. Nunca apuntar la suite a DEV/PROD. `BoundaryTest` solo valida la frontera sin DB; no sustituye integración. La configuración rápida usa caché/sesión array y cola sync: no acredita Redis/Horizon reales. Si cambia esa integración, comprobar además el Compose Linux y comportamiento/reintentos del worker. Cobertura se obtiene con driver compatible y se informa sin porcentaje inventado.
 
-Frontend: elegir npm/pnpm del lockfile; npm ci o pnpm install --frozen-lockfile; después scripts **realmente definidos** lint/typecheck/test/build en cada workspace. Playwright test requiere configuración y browsers de versión correspondiente; no suponer que npm run build prueba iOS/Android. Registrar el comando final por carpeta una vez exista el código, sin usar --if-present para aprobar una comprobación obligatoria ausente.
+CI construye desde la raíz el target `checks` del [Dockerfile](../Dockerfile), con dependencias de desarrollo y extensiones Linux, y ejecuta Pint, Larastan, audit y PHPUnit/PostGIS. El runtime usa dependencias sin dev y `composer check-platform-reqs --no-dev`. No ejecutar `composer update` en despliegue. Windows no valida pcntl/posix/GD ni la integración Horizon/fotos; usar Linux/CI sin omitir requisitos de plataforma allí. Comandos completos de contenedor y límites: [backend](../backend/README.md).
+
+Desde la raíz, `npm run check:api` comprueba OpenAPI/tipos generados y `node --test .github/tests/ci-report.test.mjs` valida el informe de CI. En `apps/mobile/`: `npm ci`, `npm run typecheck`, `npm run lint`, `npm run format:check` y `npm test`, según sus scripts. Next.js aún no tiene app; sus pruebas/build/E2E se definirán al implementarla. Playwright necesita configuración y browsers compatibles; un bundle JS no acredita iOS/Android. No usar `--if-present` para aprobar una comprobación obligatoria ausente.
 
 ## 7. Fases A–G y evidencia
 
@@ -115,12 +115,12 @@ Las fases describen la aceptación transversal de seguridad y QA. El detalle del
 
 | Fase | Resultado verificable futuro | Estado actual |
 | --- | --- | --- |
-| A Auditoría | Inventario real Git/código/versions/tests/workflows/infra, baseline y riesgos con evidencia | Material documental inspeccionado; auditoría app pendiente por ausencia de repositorio |
-| B Seguridad crítica | Auth/permisos/precios/pagos/QR/puntos/secretos corregidos y probados por bloque | Requisitos 39; no correcciones de app |
-| C Testing | Matriz crítica ejecutable, integración/concurrencia y E2E/regresión con reports | Plan 40; no tests app |
-| D CI | GitHub Actions ejecutado para el SHA exacto enviado; gate always fail-closed probado y scans reales | Política; ninguna ejecución Actions |
+| A Auditoría | Inventario real Git/código/versions/tests/workflows/infra, baseline y riesgos con evidencia | Material documental inspeccionado; backend/móvil, manifests y CI disponibles; revisar baseline del SHA afectado |
+| B Seguridad crítica | Auth/permisos/precios/pagos/QR/puntos/secretos corregidos y probados por bloque | Requisitos 39; registrar pruebas de cada control implementado y pendientes comerciales |
+| C Testing | Matriz crítica ejecutable, integración/concurrencia y E2E/regresión con reports | Tests Laravel/móvil existentes; matriz ampliada y E2E completos pendientes |
+| D CI | GitHub Actions ejecutado para el SHA exacto enviado; gate always fail-closed probado y scans reales | Workflow dev.yml existente; resultado de cada SHA obligatorio y verificable |
 | E CD | Imágenes GHCR por digest; staging automático; producción con aprobación manual del mismo digest y rollback probado | Política condicionada al host/cuentas; no build, scan, paquete o despliegue |
-| F GitHub | Política/owners/protecciones/Dependabot/PR reales y checks del commit vigente | Acceso/repo/plan por aportar; no cambios remotos |
+| F GitHub | Política/owners/protecciones/Dependabot/PR reales y checks del commit vigente | Git/remoto/PR existentes; protecciones, plan y revisión humana por verificar |
 | G Calidad | Baselines/SLO/observabilidad/restore/performance y documentación operables | [41](41-observabilidad-grafana-prometheus-sentry.md) y plan; no métricas de app |
 
 Aplicar el cierre técnico y los estados de 44 §12, con decisión de pruebas de §4 y evidencia A–J de §11. Documentación comprobada no equivale a fases B–G ejecutadas; merge y producción son etapas separadas. La ausencia de un comando obligatorio no se aprueba por omisión.
@@ -132,14 +132,14 @@ Se conserva la trazabilidad hacia sus fuentes responsables; estas filas son un �
 | Apartado | Política incorporada y ubicación | Evidencia de aceptación futura |
 | --- | --- | --- |
 | 1 Rol y responsabilidades | 39 y 44 §10: ingeniería, seguridad, DevSecOps, revisión y operación; §1 de esta guía: QA | Propietarios asignados y responsabilidades verificables |
-| 2 Contexto | Go/Chi/pgx/sqlc, PostgreSQL/PostGIS, Redis justificado, Next.js, Expo/React Native y recogida sin delivery | Inventario real respeta decisiones; recursos VM solo dev |
+| 2 Contexto | Laravel/PHP, Eloquent y migraciones, PostgreSQL/PostGIS, Redis justificado, Next.js, Expo/React Native y recogida sin delivery | Inventario real respeta decisiones; recursos VM solo dev |
 | 3 Reglas de ejecución | 39: seguridad; 44 §2–3: auditoría y límites de cambios/Git/despliegue | Status/diff propio, herramientas/arquitectura inspeccionadas y autorización aplicable |
 | 4 Auditoría general | 39 marcos, SEC01–08, fronteras, hallazgos y excepciones | Hallazgos con evidencia real; controles de auth/permisos/datos probados |
 | 5 Next.js | 39 SEC05; QA18/19, TypeScript/build web | Servidor/cliente, cookies/CSRF/CSP, rutas, caché y datos emitidos comprobados |
 | 6 React Native | 39 SEC06; E2E nativo y release | SDK Expo real, Keychain/Keystore, links, permisos y builds iOS/Android verificados |
 | 7 API/backend | Inventario 39 y 20; QA01–05/09 | Método/ruta/roles/entradas/salidas/límites reales; denegaciones directas probadas |
-| 8 Pedidos/precios/pagos | 39 SEC04; QA06–13, transacciones/sandbox | Autoridad Go, idempotencia, Stripe auténtico, concurrencia, estados y QR probados |
-| 9 Dependencias | 39 SEC08; 44 §7: SCA, supply chain y licencias | Inventario/locks/licencias, compatibilidad, govulncheck/auditoría/build reales |
+| 8 Pedidos/precios/pagos | 39 SEC04; QA06–13, transacciones/sandbox | Autoridad Laravel, idempotencia, Stripe auténtico, concurrencia, estados y QR probados |
+| 9 Dependencias | 39 SEC08; 44 §7: SCA, supply chain y licencias | Inventario/locks/licencias, compatibilidad, Composer audit/auditoría Node/build reales |
 | 10 Secretos | 39 SEC08; 44 §7/10: secret scanning y confianza Actions | Prevención/evidencia saneada; rotación autorizada y alcance si existe exposición |
 | 11 Testing | Pirámide, matriz QA01–20, regresión/E2E/a11y; 44 decisión por cambio | Test nuevo/adaptado/existente ejecutado o sin test justificado; resultados reales |
 | 12 Seguridad automatizada | 44 §7: clases y controles SAST/SCA/secretos/imagen/DAST | Scans aplicables reales, findings triageados y entorno dinámico autorizado |
@@ -175,7 +175,7 @@ Los escenarios de [45](45-catalogo-21st-frontend.md), [46](46-panel-admin-negoci
 | --- | --- | --- |
 | QA21 Novedades | Primera presentación relevante, varias novedades de la misma actualización, repetición/actualización menor, cambio rol/plataforma, cierre/Ahora no y consulta Perfil | Una presentación automática agrupada por actualización con identificador estable; cambiar de rol no repite una presentación consumida; contenido elegible real; reapertura manual; no interrumpir compra/pago/pedido/QR |
 | QA22 Permisos | Concedido, denegado, temporal, revocado, canAskAgain false, regreso ajustes y permisos provisionales/capacidades push | Estado real releído; sin prompts insistentes/cadenas; alternativa manual/seguimiento; iOS/Android preavisos apropiados; no permisos extras en binario |
-| QA23 Admin y fechas | Actor no admin/recurso ajeno, guardado/suspensión fallido, factura ausente, búsqueda/filtros/paginación y cambio concurrente | Go autoriza y audita; estados independientes; motivo/confirmación y pendiente/error persistentes; precios/pedidos no se alteran por UI |
+| QA23 Admin y fechas | Actor no admin/recurso ajeno, guardado/suspensión fallido, factura ausente, búsqueda/filtros/paginación y cambio concurrente | Laravel autoriza y audita; estados independientes; motivo/confirmación y pendiente/error persistentes; precios/pedidos no se alteran por UI |
 | QA24 Recursos/tema/a11y | Ambos temas, responsive, keyboard/VoiceOver/TalkBack, texto grande, imágenes ausentes, largo contenido, rango de fechas/zona horaria | Controles/acción accesibles, filtro observable, header web/dock solo nativo, indicador anunciado y movimiento reducido; licencia/runtime/source revisados |
 
 Fechas: probar límites del rango y cambios de mes/año/hora en la zona operativa configurada, sin inferir reservas. Formularios preservan borrador/error al fallar; tarjetas de precio/movimientos no aceptan valores de demo como autoridad. Cámara solo escáner comerciante; mostrar QR cliente no pide permiso. Selector de imágenes no obliga a biblioteca completa/audio. Tests JS no acreditan solicitudes reales del SO o rendimiento de dispositivo.

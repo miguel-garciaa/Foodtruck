@@ -13,12 +13,12 @@ const questions = [
   {
     title: '¿Dónde están mis favoritos?',
     answer:
-      'Toca el corazón de una tarjeta para guardarla. Puedes ver tus favoritos desde el corazón de Explorar o desde Perfil. En esta demostración se conservan durante la sesión.',
+      'Toca el corazón de una tarjeta para guardarla en tu cuenta. Puedes ver tus favoritos desde el corazón de Explorar o desde Perfil. Necesitas iniciar sesión.',
   },
   {
     title: '¿Puedo hacer un pedido?',
     answer:
-      'Por ahora puedes explorar los foodtrucks y consultar sus cartas de ejemplo. Los pedidos y pagos estarán disponibles en una siguiente fase. No se realiza ningún cobro en esta versión.',
+      'Puedes explorar los anuncios publicados y consultar sus cartas. Los pedidos y pagos estarán disponibles en una siguiente fase. No se realiza ningún cobro en esta versión DEV.',
   },
   {
     title: '¿Necesito compartir mi ubicación?',

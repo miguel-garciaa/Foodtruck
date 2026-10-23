@@ -1,31 +1,38 @@
+import { useDockSpace } from '@/components/use-dock-space';
 import { router } from 'expo-router';
 import { ScrollView, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenSurface } from '@/components/screen-surface';
 import { EmptyState } from '@/components/empty-state';
 import { useTheme } from '@/theme';
+import { useAccount } from '@/features/account/account-context';
 
 export default function OrdersScreen() {
   const theme = useTheme();
+  const owner = useAccount().profile?.mode === 'owner';
+  const bottomSpace = useDockSpace();
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{ flex: 1, backgroundColor: theme.background }}
-    >
-      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 120 }}>
+    <ScreenSurface bottom={false} enter>
+      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: bottomSpace }}>
         <Text
           accessibilityRole="header"
           style={{ color: theme.text, fontSize: 30, fontWeight: '700', marginTop: 24 }}
         >
-          Tus pedidos
+          {owner ? 'Pedidos de tus foodtrucks' : 'Tus pedidos'}
         </Text>
         <EmptyState
           icon="receipt-long"
-          title="Cada pedido empieza con una buena elección"
-          description="Esta demostración permite explorar cartas. Todavía no admite compras ni genera tickets de recogida."
-          action="Descubrir foodtrucks"
+          title={
+            owner ? 'Tu próxima comanda empieza aquí' : 'Cada pedido empieza con una buena elección'
+          }
+          description={
+            owner
+              ? 'La recepción y preparación de pedidos todavía no están activadas en DEV. Mientras tanto, puedes preparar tus anuncios, cartas y horarios.'
+              : 'Todavía no se admiten compras ni se generan tickets de recogida. Aquí aparecerán tus pedidos cuando estén disponibles.'
+          }
+          action={owner ? 'Gestionar mis foodtrucks' : 'Descubrir foodtrucks'}
           onPress={() => router.navigate('/')}
         />
       </ScrollView>
-    </SafeAreaView>
+    </ScreenSurface>
   );
 }

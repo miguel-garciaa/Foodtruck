@@ -2,23 +2,23 @@
 
 ## Contexto y lectura por tarea
 
-Este proyecto contiene documentación; inspecciona los archivos reales antes de asumir aplicación, Git, versiones, comandos o accesos. No inicialices código o infraestructura para aparentar una implementación.
+Este repositorio contiene documentación, backend Laravel en `backend/` y app Expo en `apps/mobile/`; inspecciona los archivos reales antes de asumir versiones, comandos o accesos. No inicialices código o infraestructura para aparentar una implementación.
 
 Lee el [README](README.md), las decisiones y pendientes pertinentes de [23](docs/23-decisiones-pendientes.md) y las políticas aplicables de la tabla siguiente. Consulta [procedencia](docs/00-procedencia.md) solo para contexto histórico o conflictos; no leas los 49 documentos ni todo el historial por defecto. Las políticas enlazadas conservan sus reglas completas. Distingue confirmado, propuesto, pendiente y ejemplo; prevalece la instrucción explícita posterior del usuario.
 
 ## Stack y restricciones
 
 - React Native + Expo + TypeScript móvil; Next.js web. Dock solo nativo, header/menú responsive web; claro/oscuro y accesibilidad. Los 120 FPS son objetivo adaptativo que exige medición.
-- Go + Chi + pgx/sqlc; PostgreSQL/PostGIS y Redis. Monorepo GitHub y monolito modular como base propuesta. La preferencia general por Laravel/PHP no cambia Go; no añadir otro backend por comodidad.
+- Laravel/PHP como backend principal por decisión expresa del 21/10/2026. Go reservado para necesidades específicas futuras, sin segundo backend ahora. PostgreSQL/PostGIS y Redis para Horizon; monorepo GitHub y monolito modular.
 - Auth propia email/contraseña, Google y Apple; sin Supabase. Mapbox nativo/web; development build para módulos nativos. APNs/FCM, ActivityKit/Live Updates con Swift/Kotlin cuando proceda.
 - Stripe Billing para licencia/mensualidad comercial; Connect para comida. Membresía cliente confirmada: **5,99 €/mes EUR**. Impuestos, beneficios y canal de cobro pendientes; tarifas comerciales ilustrativas nunca son defaults.
-- Servidor doméstico DEV/PROD, Ubuntu Server 26.04, Compose/Caddy. VMware DEV: 4 vCPU/8 GB/40 GB; no dimensiona PROD. Fotos locales persistentes sin S3 y backups externos fuera del domicilio. Dominio en Cloudflare y correo Resend; nombre, cuentas y configuración reales pendientes.
+- Servidor doméstico DEV/PROD, Ubuntu Server 26.04, Compose/Caddy. VMware DEV: 4 vCPU/8 GB/40 GB; no dimensiona PROD. Fotos locales persistentes sin S3 y backups externos fuera del domicilio. Dominio en Cloudflare y correo Resend; foodtruck.bid comprado y DNS Resend verificado. D50 autoriza configurar clave de envío, Tunnel para api-dev.foodtruck.bid y FCM en DEV; comprobar conexión y entrega antes de declararlos operativos.
 
 ## Invariantes de trabajo
 
 Prioriza correctitud, seguridad y simplicidad. KISS/YAGNI/DRY pragmáticos: dependencias, capas e interfaces solo con beneficio real. Avanza en trabajo autorizado y reversible; pregunta únicamente por decisiones que bloqueen el comportamiento afectado, sin repetir autorizaciones vigentes.
 
-Go/PostgreSQL deciden importes enteros, moneda, stock, pagos, puntos y canjes. Autoriza cada acción/recurso, valida entradas y usa SQL parametrizado, constraints y transacciones. Reintentos económicos idempotentes y contexto Stripe correcto. Redis no concede permisos ni sustituye la autoridad duradera. QR opaco, protegido, hasheado y de canje único atómico; sin canje offline ni tokens en logs.
+Laravel/PostgreSQL deciden importes enteros, moneda, stock, pagos, puntos y canjes. Autoriza cada acción/recurso, valida entradas y usa SQL parametrizado, constraints y transacciones. Usa validación del servidor/Form Requests, Policies, Resources y Eloquent sin capas triviales; migraciones Laravel y OpenAPI son las fuentes de esquema y contrato. Reintentos económicos idempotentes y contexto Stripe correcto. Redis no concede permisos ni sustituye la autoridad duradera. QR opaco, protegido, hasheado y de canje único atómico; sin canje offline ni tokens en logs.
 
 Secretos fuera de Git/frontend/logs; uploads con MIME real, límites, nombres y paths seguros. No desactivar TLS/CSRF sin fundamento, exponer DB/Redis, usar chmod 777, ejecutar comandos con entrada no validada ni borrar datos/volúmenes por una receta. Migraciones y recuperación siguen sus políticas. Pagar una membresía no concede consentimiento de marketing ni permisos del dispositivo.
 
@@ -39,6 +39,6 @@ Evalúa recursos 21st.dev por necesidad, código/licencia y runtime antes del fr
 
 Consulta solo el apartado pertinente de [skills](docs/26-skills-proyecto.md); lee la entrada completa y referencias necesarias de la skill elegida, sin recargarlas ni cargar todo el catálogo. Conserva las 37 skills base y cinco ECC del proyecto. Reutiliza fuentes de verdad existentes; las skills no cambian decisiones ni autorizan sus scripts o servicios externos.
 
-Para cada cambio aplica [44](docs/44-politica-commits-ci-cd-tests.md): pruebas pertinentes y revisión, commit/push autorizado y CI del SHA vigente cuando existan Git/acceso. Staging automático; producción con aprobación manual del mismo artefacto verificado. No merge, force-push, publicación, gasto o mensajes a terceros por inferencia.
+Backend: Composer/lock, Pint, Larastan y PHPUnit con PostgreSQL/PostGIS aislado; Horizon y fotos se validan en Linux/CI. No exigir herramientas Go al backend Laravel. Para cada cambio aplica [44](docs/44-politica-commits-ci-cd-tests.md): pruebas pertinentes y revisión, commit/push autorizado y CI del SHA vigente cuando existan Git/acceso. Staging automático; producción con aprobación manual del mismo artefacto verificado. No merge, force-push, publicación, gasto o mensajes a terceros por inferencia.
 
 Informa cambios, comprobaciones realmente ejecutadas y límites. Ausencia de código/acceso no acredita tests, CI, despliegue o auditoría; indica la causa y los pasos apropiados al entorno real.
